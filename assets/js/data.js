@@ -7,21 +7,138 @@
 var DSH = {};
 window.DSH = DSH;
 
+/* ---------- 数据说明 ---------- */
+/* 包/工具清单是上游仓库的时点快照;上游演化后需同步本文件。
+   刷新方法:以 packages/README.md 的分组结构为准,实测列出各 packages/<组>/ 目录;
+   工具条目以 docs/tool-catalog.md 为准。 */
+DSH.meta = {
+  note: '本清单是上游仓库的时点快照(以 packages/README.md 分组结构与目录实测为准);上游演化后请同步 data.js。',
+};
+
+/* ---------- 模块(学习路径分区) ---------- */
+DSH.modules = [
+  { id: 'north', name: '北极星', desc: '先弄清目标：什么是递归自我改进，它长什么样', icon: 'target' },
+  { id: 'cap', name: '能力地图', desc: '把 RSI 拆成可以逐项点亮的机制清单', icon: 'layers' },
+  { id: 'dsh', name: '载体实战 · DSH', desc: '在最接近 RSI 的开源 harness 里掌握全部零件', icon: 'wrench' },
+  { id: 'road', name: '进阶之路', desc: '横向对比、安全护栏，然后是动手的五个关卡', icon: 'flask' },
+];
+
 /* ---------- 章节 ---------- */
 DSH.chapters = [
-  { id: 'home', num: '⌂', title: '首页·学习地图', short: '首页', blurb: '从这里开始：了解本站结构与学习路线。', icon: 'home' },
-  { id: 'intro', num: '01', title: '认识 DSH', short: '认识 DSH', blurb: '什么是 Agent Harness？一切皆插件的设计哲学、快速上手与仓库鸟瞰。', icon: 'info' },
-  { id: 'cordis', num: '02', title: 'Cordis 核心', short: 'Cordis 核心', blurb: '插件、服务、inject、五种事件分发模式与可逆效果——附交互模拟器。', icon: 'puzzle' },
-  { id: 'architecture', num: '03', title: '架构总览', short: '架构总览', blurb: 'Profile/Bundle/Patch 分层引导、核心包与 ctx 键、三大事件域。', icon: 'layers' },
-  { id: 'loop', num: '04', title: 'Agent Loop 剖析', short: 'Agent Loop', blurb: '逐帧播放一个回合：从 turn/start 到 turn/end 的完整生命周期。', icon: 'loop' },
-  { id: 'session', num: '05', title: '会话与持久化', short: '会话与持久化', blurb: '会话日志是唯一真相：模型可见 ⟺ 已记录，格式版本与迁移链。', icon: 'db' },
-  { id: 'packages', num: '06', title: '包版图探索', short: '包版图', blurb: '52 个分组、280+ 个工作区包：可搜索、可过滤的全景地图。', icon: 'boxes' },
-  { id: 'tools', num: '07', title: '工具与能力接缝', short: '工具系统', blurb: '工具执行流水线、Capability Seam 三角与 72 个模型工具目录。', icon: 'wrench' },
-  { id: 'conventions', num: '08', title: '工程规范', short: '工程规范', blurb: '让仓库保持一致的铁律：效果即注册、响亮失败、防御性模式。', icon: 'ruler' },
-  { id: 'testing', num: '09', title: '测试体系', short: '测试体系', blurb: '从单测到录制回放快照：“推理在这里很便宜”的测试哲学。', icon: 'flask' },
-  { id: 'workflow', num: '10', title: '开发工作流', short: '开发工作流', blurb: '环境搭建、日常命令速查、PR 与 Agent Notes 文化。', icon: 'git' },
-  { id: 'glossary', num: '11', title: '术语表', short: '术语表', blurb: '可搜索的领域词汇表：seam、scope、turn/step/round、Ralph……', icon: 'book' },
-  { id: 'quiz', num: '12', title: '知识闯关', short: '知识闯关', blurb: '12 道题检验学习成果，即时反馈 + 详细解析。', icon: 'target' },
+  { id: 'home', num: '⌂', title: '首页·路线图', short: '首页', blurb: '从这里开始：了解 RSI 路线图与模块划分。', icon: 'home', module: 'north' },
+  { id: 'rsi', num: '01', title: '什么是 RSI', short: '什么是 RSI', blurb: '递归自我改进的定义、思想源流与自我改进分级阶梯。', icon: 'target', module: 'north' },
+  { id: 'godel', num: '02', title: '哥德尔机谱系', short: '哥德尔机', blurb: '从 2003 年的形式化原型到达尔文/赫胥黎哥德尔机：自改门槛的二十年演化——证明、基准、谱系指标。', icon: 'book', module: 'north' },
+  { id: 'capmap', num: '03', title: 'RSI 能力拆解', short: '能力拆解', blurb: '实现 RSI 的六大机制：自改、持久状态、评估、沙箱执行、目标、护栏——以及它们在 DSH 里的包级映射。', icon: 'layers', module: 'cap' },
+  { id: 'intro', num: '04', title: '认识 DSH', short: '认识 DSH', blurb: '什么是 Agent Harness？一切皆插件的设计哲学、快速上手与仓库鸟瞰。', icon: 'info', module: 'dsh' },
+  { id: 'cordis', num: '05', title: 'Cordis 核心', short: 'Cordis 核心', blurb: '插件、服务、inject、五种事件分发模式与可逆效果——附交互模拟器。', icon: 'puzzle', module: 'dsh' },
+  { id: 'architecture', num: '06', title: '架构总览', short: '架构总览', blurb: 'Profile/Bundle/Patch 分层引导、核心包与 ctx 键、三大事件域。', icon: 'layers', module: 'dsh' },
+  { id: 'loop', num: '07', title: 'Agent Loop 剖析', short: 'Agent Loop', blurb: '逐帧播放一个回合：从 turn/start 到 turn/end 的完整生命周期。', icon: 'loop', module: 'dsh' },
+  { id: 'session', num: '08', title: '会话与持久化', short: '会话与持久化', blurb: '会话日志是唯一真相：模型可见 ⟺ 已记录，格式版本与迁移链。', icon: 'db', module: 'dsh' },
+  { id: 'packages', num: '09', title: '包版图探索', short: '包版图', blurb: '52 个分组、280+ 个工作区包：可搜索、可过滤的全景地图。', icon: 'boxes', module: 'dsh' },
+  { id: 'tools', num: '10', title: '工具与能力接缝', short: '工具系统', blurb: '工具执行流水线、Capability Seam 三角与全部模型工具目录。', icon: 'wrench', module: 'dsh' },
+  { id: 'conventions', num: '11', title: '工程规范', short: '工程规范', blurb: '让仓库保持一致的铁律：效果即注册、响亮失败、防御性模式。', icon: 'ruler', module: 'dsh' },
+  { id: 'testing', num: '12', title: '测试体系', short: '测试体系', blurb: '从单测到录制回放快照：“推理在这里很便宜”的测试哲学。', icon: 'flask', module: 'dsh' },
+  { id: 'workflow', num: '13', title: '开发工作流', short: '开发工作流', blurb: '环境搭建、日常命令速查、PR 与 Agent Notes 文化。', icon: 'git', module: 'dsh' },
+  { id: 'glossary', num: '14', title: '术语表', short: '术语表', blurb: '可搜索的领域词汇表：seam、scope、turn/step/round、Ralph……', icon: 'book', module: 'dsh' },
+  { id: 'quiz', num: '15', title: '知识闯关', short: '知识闯关', blurb: '12 道题检验学习成果，即时反馈 + 详细解析。', icon: 'target', module: 'dsh' },
+  { id: 'carriers', num: '16', title: '载体对比', short: '载体对比', blurb: 'Claude Code / Codex / ACP / 自写 harness 的自我修改通道对比——为什么 DSH 最接近“递归”两字。', icon: 'loop', module: 'road' },
+  { id: 'safety', num: '17', title: '安全与护栏', short: '安全与护栏', blurb: 'RSI 实验的分层防御：审批、沙箱、版本回滚、评估门禁与不可变日志。', icon: 'ruler', module: 'road' },
+  { id: 'practice', num: '18', title: '实战关卡', short: '实战关卡', blurb: '五个递进的 RSI 实验：从生成第一个运行时插件到给 agent 装上“长期记忆”。', icon: 'flask', module: 'road' },
+];
+
+/* ---------- 哥德尔机三代对照(第 02 章) ---------- */
+DSH.godelMachines = [
+  { name: 'Gödel Machine', year: '2003', by: 'Schmidhuber', gate: '数学证明：能形式化证明净收益才允许自改', eval: '证明搜索(理论上最优)', status: '理论原型·未实现', key: '门槛是“真”:改自己前先证明这是最优一步' },
+  { name: 'Darwin Gödel Machine', year: '2025', by: 'Sakana AI × Jeff Clune 组', gate: '经验评估：改动在 SWE-bench / Polyglot 上跑分', eval: '开放式进化:档案库存所有版本,任何祖先可作跳板', status: '已实现·代码开源', key: '门槛换成“分数”:证不了就看跑得好不好' },
+  { name: 'Huxley-Gödel Machine', year: 'ICLR 2026', by: 'metauto-ai × Schmidhuber 等', gate: '谱系评估:用后代们的表现(CMP)估计“元生产力”', eval: '以 CMP 指导搜索树展开,更少算力达到人类水平', status: '已实现·ICLR 2026', key: '门槛换成“谱系”:好祖先不看自己分数,看后代出息' },
+];
+
+/* ---------- RSI:自我改进分级阶梯(第 01 章) ---------- */
+DSH.rsiLevels = [
+  { n: 'L0', t: '模型永远不变', d: '一切改进都来自外部：换模型版本、换提示词、加工具。系统本身没有自我改进回路。' },
+  { n: 'L1', t: '改进提示词与知识', d: 'agent 修改自己的 system prompt、记忆、skill 文件。下一次会话受益,但不会写出新的代码能力。', cur: true },
+  { n: 'L2', t: '改进工具与技能', d: 'agent 给自己编写新工具/skill/MCP 服务器并挂载使用。能力面扩展了,但运行时的核心结构没变。' },
+  { n: 'L3', t: '改进运行时结构', d: 'agent 定义并挂载真正的插件——新增 Service、监听事件、替换 Provider。改变的是组合本身。DSH 的 cordis_define/cordis_run 正位于这一级。', cur: true },
+  { n: 'L4', t: '改进改进过程', d: 'agent 改写自己的循环、评估器、迭代策略——“如何改进”本身也在被改进。递归真正开始收拢。' },
+  { n: 'L5', t: '无约束起飞(假想)', d: '改进回路不再依赖人类批准、评估与数据,自我加速。这是讨论最多的版本,也是工程上最需要护栏的版本。' },
+];
+
+/* ---------- RSI 能力地图(第 02 章) ---------- */
+/* st: ready=DSH 已有对应能力 / extend=有 seam 需自实现 / research=仍需探索 */
+DSH.capMap = [
+  {
+    t: '运行时自我修改', st: 'ready',
+    d: '能在进程内定义代码、挂载为真插件、给它注册服务/事件/工具,而不只是改配置文件。这是 RSI 的“手”。',
+    refs: ['tool-cordis(cordis_define/run/inspect)', 'extensions 包组', 'cordis-host-runner / cordis-client-runner'],
+    q: '自改的粒度越细(函数插件 → Service → 整个循环替换),递归的上限越高。',
+  },
+  {
+    t: '持久状态与记忆', st: 'ready',
+    d: '跨会话保留“我改过什么、效果如何”的事实,供下一轮改进参考。没有记忆的改进只是随机漂移。',
+    refs: ['会话日志 + 投影(ctx.sessionProjections)', 'storage / storage-sqlite', 'attachment 内容寻址存储'],
+    q: '模型可见 ⟺ 已记录——自改历史也要先落成 session event 才能被未来的自己读到。',
+  },
+  {
+    t: '自我评估与验证', st: 'extend',
+    d: '判断一次自改是进步还是退步:行为断言、回归对比、录制回放。没有评估的 RSI 等于闭眼开车。',
+    refs: ['快照测试体系(snapshots/)', '重复调用守卫 / 超时策略(guard 包组)', '需要你实现:行为 eval 插件'],
+    q: '评估器本身也是插件——它可以被改进,但改进它的改进,需要更硬的评估器。',
+  },
+  {
+    t: '沙箱化执行', st: 'ready',
+    d: '自写的代码必然有 bug,可能危险:文件系统/子进程/沙箱 Provider 把“试错”关进受控世界。',
+    refs: ['ctx.sandbox(bwrap/Landlock/Seatbelt)', 'ctx.fs / ctx.subprocess seam', 'ssh 远程执行世界'],
+    q: '一次切换 Provider,整个执行世界一起搬——这是 seam 架构对安全实验的最大红利。',
+  },
+  {
+    t: '目标管理与迭代策略', st: 'extend',
+    d: 'RSI 不是一次改动,而是围绕不变目标的持续迭代:目标状态机、轮次上限、断点续跑。',
+    refs: ['goal 包组(create/update/blocked/complete)', 'tool-ralph 新鲜子会话循环', 'workflow + PTC 引擎', '需要你实现:改进策略本身'],
+    q: '回合关闭后谁决定再跑一轮?这个“谁”就是改进策略,它本身应该是可替换的插件。',
+  },
+  {
+    t: '护栏与审批', st: 'ready',
+    d: '自我修改必须穿过人类边界:结构无法被模型自己绕过。审批、写策略、命令确认是地基,不是装饰。',
+    refs: ['用户审批(user-approval)', 'permission-presets', 'fs-observation-policy', '插件版本回滚(current/next packageId)'],
+    q: '判断护栏是否有效的唯一标准:把模型当成对手,它能否通过自改解除自己的护栏。',
+  },
+];
+
+/* ---------- 载体对比(第 15 章,教学整理) ---------- */
+DSH.carriers = [
+  { name: 'DeepSeek Harness (DSH)', mech: '运行时定义 Cordis 插件:写代码 → 挂载 → 提供服务/事件/工具', gran: '运行时结构(Service/事件/工具皆可)', persist: '持久;含版本指针与回滚', approval: '审批门禁 + 沙箱执行世界', score: 5, note: '唯一让 agent 改写“组合本身”的公开实现' },
+  { name: 'Claude Code', mech: '编写 skill/命令/MCP 服务器文件,重启或热加载后使用', gran: '工具与提示词层', persist: '持久(文件)', approval: '权限模式 + 工具确认', score: 3, note: '可扩能力面,但不动运行时结构' },
+  { name: 'Codex (CLI)', mech: 'AGENTS.md 指令、MCP、补丁式代码修改', gran: '配置与代码文件层', persist: '持久(文件)', approval: '沙箱 + 审批模式', score: 2, note: '改“自己的代码”可以,改“运行时”不行' },
+  { name: 'ACP 客户端/自写 harness', mech: '经协议对接任意 harness;自写则无限制', gran: '取决于实现', persist: '取决于实现', approval: '取决于实现', score: 4, note: '自由度最高,工程成本也最高——DSH 也可作 ACP 服务器' },
+];
+
+/* ---------- 安全与护栏(第 16 章) ---------- */
+DSH.rsiSafety = [
+  { t: '审批是不可绕过的地基', d: 'cordis_run 首次激活需要人工授权;单次勾选只放行当前包,双击才授权该插件的未来版本。护栏必须在模型够不到的那一侧——它不能用自改来关闭审批。' },
+  { t: '一切自改必须可回滚', d: 'DSH 的包是不可变的:每次自改产生新 packageId,失败保留 currentPackageId,随时 run 回滚。绝不让 agent 用“覆盖旧版本”的方式改自己。' },
+  { t: '执行世界与真实世界分离', d: '文件系统与子进程走 Provider seam:实验指向沙箱后端,一条命令就能换。试错发生在沙箱里,而不是你的工作区。' },
+  { t: '日志是审计,不只是回放', d: '模型可见 ⟺ 已记录:每次自改意图、执行、结果都会落帐。RSI 实验的第一守则:没有日志的自改等于没发生过,也等于无法追责。' },
+  { t: '改进必须过评估门禁', d: '把“改动是否保留”的决定交给可重复的评估(快照/断言/指标),而不是 agent 的自我感觉。评估器放在改进回路之外。' },
+  { t: '权限最小化 + 作用域隔离', d: '实验性能力用 tools.restrict 收窄;注入上下文、子进程环境、凭据路径按最小暴露原则配置。能不给的权限不给。' },
+];
+
+/* ---------- 实战关卡(第 17 章) ---------- */
+DSH.experiments = [
+  { id: 'e1', lv: 'L1', t: '读图', title: '看懂自己运行在什么样的树上',
+    desc: '跑通 dsh --profile web --dump-config,找到 cordis_* 工具所在行;在网页里用 cordis_inspect_list 看 Host/Client 两侧能力目录。',
+    verify: '能说出:自己此刻的能力由哪些 bundle/patch 层叠加而来。' },
+  { id: 'e2', lv: 'L2', t: '第一次自改', title: '让 agent 给自己定义一个函数插件',
+    desc: '在会话里用 cordis_define 写一个小插件(注册一个工具或监听一个事件),cordis_run 挂载,再 cordis_stop 卸载——亲手完成一次“写代码→活在自己身体里”。',
+    verify: '插件出现在 inspect_self 列表,Run 卡有成功状态,卸载后副作用消失。' },
+  { id: 'e3', lv: 'L3', t: '装上记忆', title: '给 agent 一个跨会话的自改日志',
+    desc: '用一个新插件把“每次自改的意图与结果”写成 storage 记录或 session event;新开会话让 agent 能回答“我上次改过什么、为什么”。',
+    verify: 'fork/resume 后,agent 能复述上一次自改的事实,而不是猜测。' },
+  { id: 'e4', lv: 'L3+', t: '装上评估', title: '让改进必须先通过一道自己的考试',
+    desc: '实现一个 eval 插件:自改运行后自动执行一组行为断言(如固定 prompt 的期望输出),未通过则自动回滚到 currentPackageId。',
+    verify: '故意注入一次坏改动,看到它被评估拦下并回滚;好改动正常保留。' },
+  { id: 'e5', lv: 'L4', t: '收拢递归', title: '让改进策略本身成为可替换插件',
+    desc: '把“改什么、何时改、改完怎么验”的策略抽成一个 Service 插件:它能驱动 cordis_define → eval → rollback/keep 的完整回路,而你随时可以 patch 换策略。',
+    verify: '换掉策略插件后,同一目标下的改进行为明显不同;人类审批始终在每个回路内。' },
 ];
 
 /* ---------- 导航图标(简洁线性 SVG path, 24x24) ---------- */
@@ -379,6 +496,9 @@ DSH.glossary = [
   { t: 'PTC', en: 'PTC runtime', src: 'packages/README.md', d: 'PTC 执行能力族(ptc-runtime 分组)：Service Definition + 沙箱化 Node Provider + PTC 模式 Consumer；与 run_code 工具、demo:ptc 相关——让模型用代码编排工具调用。' },
   { t: '收件箱', en: 'inbox', src: 'docs/architecture.md', d: '输入抵达驱动器的唯一通道：有些消息立即唤醒循环；注入的上下文则在收件箱里等到另一条消息唤醒才随行。' },
   { t: '展开式嵌入流', en: 'embedded assistant stream', src: 'docs/architecture.md', d: '每条 assistant/message 内嵌产生它的精确紧凑计时流；assistant/attempt 保留失败/重试/取消/流错误的尝试而不增加模型历史。' },
+  { t: '哥德尔机', en: 'Gödel machine', src: '本站第 02 章 · Schmidhuber 2003', d: '自改的形式化原型：agent 持有自身完整描述，仅当能数学证明一次重写带来净收益时才执行——包括重写自己的证明器。形式最优，但证明搜索在实践中不可计算；DGM/HGM 用经验评估替代证明门槛。' },
+  { t: '开放式进化', en: 'open-endedness', src: '本站第 02 章 · DGM', d: '不只从当前最优个体继续，而是维护不断增长的多样性档案库：任何“垫脚石”祖先都能成为新分支的起点。DGM 消融实验证明它与生改进同等必要——贪心爬坡会困在局部最优。' },
+  { t: '元生产力', en: 'metaproductivity (CMP)', src: '本站第 02 章 · HGM', d: '一个 agent 的“自我改进潜力”，用其后代们的基准表现聚合估计(clade metaproductivity)。HGM 的关键洞见：自身分数高 ≠ 后代会强——评估谁当祖先,要看谱系而非个人。' },
 ];
 
 /* ---------- 测验 ---------- */

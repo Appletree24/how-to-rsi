@@ -3,25 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DSH 互动学堂 · DeepSeek Harness 完全学习指南</title>
-<meta name="description" content="交互式学习 DeepSeek Harness(dsh)：Cordis 插件架构、Agent Loop、会话持久化、能力接缝、测试体系与工程规范。">
+<title>How to RSI · 造一个能改进自己的 Agent</title>
+<meta name="description" content="以递归自我改进(RSI)为目标的交互式学习与实践站：RSI 概念与能力拆解、以 DeepSeek Harness 为载体的实战路径、安全护栏与递进实验关卡。">
+<meta name="color-scheme" content="dark light">
+<script>document.documentElement.classList.add('js');</script>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body>
+<a class="skip-link" href="#main">跳到正文</a>
 <div class="bg-decor"></div>
 <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
 <div class="progress-top"><div id="scrollProgress"></div></div>
 
 <header class="topbar">
-  <button class="icon-btn" id="menuBtn" aria-label="菜单">
+  <button class="icon-btn" id="menuBtn" aria-label="菜单" aria-expanded="false" aria-controls="sidebar">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
   </button>
   <a class="brand" href="#/home">
     <span class="logo">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h2a2 2 0 1 1 4 0h2v4a2 2 0 1 1 0 4v4h-4a2 2 0 1 0-4 0H5v-4a2 2 0 1 0 0-4V4h4Z"/></svg>
     </span>
-    DSH 互动学堂 <span class="sub">DeepSeek Harness 完全学习指南</span>
+    How to RSI <span class="sub">造一个能改进自己的 Agent</span>
   </a>
   <div class="top-spacer"></div>
   <div class="top-actions">
@@ -47,47 +50,176 @@
 
 <div class="side-mask" id="sideMask"></div>
 <div class="layout">
-  <nav class="sidebar" id="sidebar"><div id="navList"></div></nav>
+  <nav class="sidebar" id="sidebar" aria-label="课程目录"><div id="navList"></div></nav>
 
-  <main class="main" id="main">
+  <main class="main" id="main" tabindex="-1">
+
+  <noscript>
+    <div class="callout warn"><span class="t">JavaScript 已禁用</span>章节正文可直接阅读；模拟器、探索器、测验与目录导航需要启用 JavaScript 才能使用。以下为目录：</div>
+    <ol class="noscript-toc">
+      <li><a href="#ch-home">首页·路线图</a></li>
+      <li><a href="#ch-rsi">01 什么是 RSI</a></li>
+      <li><a href="#ch-godel">02 哥德尔机谱系</a></li>
+      <li><a href="#ch-capmap">03 RSI 能力拆解</a></li>
+      <li><a href="#ch-intro">04 认识 DSH</a></li>
+      <li><a href="#ch-cordis">05 Cordis 核心</a></li>
+      <li><a href="#ch-architecture">06 架构总览</a></li>
+      <li><a href="#ch-loop">07 Agent Loop 剖析</a></li>
+      <li><a href="#ch-session">08 会话与持久化</a></li>
+      <li><a href="#ch-packages">09 包版图</a></li>
+      <li><a href="#ch-tools">10 工具系统</a></li>
+      <li><a href="#ch-conventions">11 工程规范</a></li>
+      <li><a href="#ch-testing">12 测试体系</a></li>
+      <li><a href="#ch-workflow">13 开发工作流</a></li>
+      <li><a href="#ch-glossary">14 术语表</a></li>
+      <li><a href="#ch-quiz">15 知识闯关</a></li>
+      <li><a href="#ch-carriers">16 载体对比</a></li>
+      <li><a href="#ch-safety">17 安全与护栏</a></li>
+      <li><a href="#ch-practice">18 实战关卡</a></li>
+    </ol>
+  </noscript>
 
   <!-- ============ 首页 ============ -->
   <section class="chapter" id="ch-home">
     <div class="hero">
       <div>
-        <span class="ch-kicker">✦ Interactive Guide · 基于仓库真实文档构建</span>
-        <div class="hero-title">把 <span class="grad">DeepSeek Harness</span><br>一次学透</div>
-        <p class="hero-sub">DSH 是一个“一切皆插件”的开源 Agent Harness：模型适配器、工具注册表、会话日志、甚至 Agent 循环本身都是可替换的 Cordis 插件。本站用 12 个交互章节带你从零掌握它的架构、约定与工程文化。</p>
+        <span class="ch-kicker">✦ How to RSI · 递归自我改进实战</span>
+        <div class="hero-title">造一个能<br><span class="grad">改进自己</span>的 Agent</div>
+        <p class="hero-sub">RSI(Recursive Self-Improvement)是让 agent 改进“自己如何改进”的终极目标。本站把它拆成可执行的事：先搞懂概念与能力地图，再到最接近 RSI 的开源 harness —— DeepSeek Harness —— 里亲手实现每一个机制，最后过五道实战关卡。</p>
         <div class="hero-cta">
-          <a class="btn primary" href="#/intro">开始学习 →</a>
-          <a class="btn" href="#/loop">直接看 Agent Loop 动画</a>
+          <a class="btn primary" href="#/rsi">开始：什么是 RSI →</a>
+          <a class="btn" href="#/practice">直接看实战关卡</a>
         </div>
         <p class="small muted" style="margin-top:14px">⌨ 小技巧：<span class="kbd">←</span> <span class="kbd">→</span> 切换章节，<span class="kbd">Ctrl K</span> 全局搜索</p>
       </div>
       <div class="orbit-wrap reveal">
         <div class="orbit-ring r2" id="orbitR2"></div>
         <div class="orbit-ring r1" id="orbitR1"></div>
-        <div class="orbit-core">Cordis<br>Context</div>
+        <div class="orbit-core">改进<br>回路</div>
       </div>
     </div>
 
     <div class="grid cols4" id="statsRow"></div>
 
     <div class="term reveal" style="margin:26px 0">
-      <div class="t-head"><span>●</span> dsh — 两分钟感受它在做什么</div>
-      <pre id="heroTerm"></pre>
+      <div class="t-head"><span>●</span> 递归自改 — 一个回路的一生</div>
+      <pre id="heroTerm" aria-hidden="true"></pre>
     </div>
 
-    <h2>学习路径</h2>
-    <p class="lead">按顺序学效果最佳：前五章建立心智模型，中间三章熟悉版图与规范，最后用测验验收。每章末尾可标记完成，进度保存在本地。</p>
-    <div class="grid cols2" id="pathGrid"></div>
+    <h2>路线图：四个模块</h2>
+    <p class="lead">先学后做：模块一建立目标与分级，模块二把 RSI 拆成机制清单，模块三在 DSH 里学透每个零件(占大部分篇幅)，模块四对比载体、立好护栏、动手闯关。每章末尾可标记完成，进度保存在本地。</p>
+    <div class="grid cols2" id="modGrid"></div>
 
-    <div class="callout info reveal"><span class="t">内容可信度</span>本站内容整理自 deepseek-harness 仓库的权威文档：<code>AGENTS.md</code>、<code>docs/architecture.md</code>、<code>docs/cordis-primer.md</code>、<code>docs/testing.md</code>、<code>docs/glossary.md</code>、<code>packages/README.md</code> 等。个别代码片段为教学示意(已标注)；一切以仓库源码与文档为准。DSH 处于 developer preview，接口仍在快速迭代。</div>
+    <div class="callout warn reveal"><span class="t">先声明边界</span>RSI 属于高风险研究课题：本站只讨论<strong>有审批、可回滚、可评估</strong>的工程实现，不主张也不指导任何“绕过人类边界”的做法。概念章节为教学整理，非学术论文；DSH 章节整理自 deepseek-harness 仓库文档，一切以仓库为准。</div>
+  </section>
+
+  <!-- ============ 01 什么是 RSI ============ -->
+  <section class="chapter" id="ch-rsi">
+    <span class="ch-kicker">Chapter 01 · 模块一 北极星</span>
+    <h1>什么是 <span class="grad">RSI</span></h1>
+    <p class="lead">先把词说准。RSI = Recursive Self-Improvement，递归自我改进：系统不只改进自己“做什么”，还改进“自己如何改进”——改进的产出物里包含改进过程本身。</p>
+
+    <h2>三种常被混用但不同的说法</h2>
+    <div class="grid cols3">
+      <div class="card reveal d1"><div class="icon">📈</div><h3>自我改进(浅)</h3><p>改提示词、加工具、攒记忆：能力变强，但“如何改进”由外部设计。多数今天能跑的系统停在这里。</p></div>
+      <div class="card reveal d2"><div class="icon">🔁</div><h3>递归自我改进</h3><p>改进回路也是改进对象：agent 能改写自己的工具、策略、评估器乃至循环结构，且每轮改进让下一轮更强。</p></div>
+      <div class="card reveal d3"><div class="icon">🚀</div><h3>智能爆炸(假想)</h3><p>递归收拢到不再依赖人类批准与新数据时，能力在短周期内自我加速。讨论热度最高、工程现实最少。</p></div>
+    </div>
+
+    <h2>自我改进分级阶梯</h2>
+    <p>把“RSI”说精确一点：今天的系统分布在 L0–L3 之间。本站的目标是把你带到 L3，并看清 L4 的结构(悬停感受层级)：</p>
+    <div class="layerstack" id="rsiLevels"></div>
+    <div class="callout info"><span class="t">今天的位置</span>多数 agent 产品实现 L1–L2(改提示词、写工具)；DSH 的 cordis_* 工具族把 L3 变成了工程现实——agent 能定义并挂载真正的运行时插件。L4 的“改进改进过程”则要求把迭代策略本身也做成可替换的插件。</div>
+
+    <h2>一个 RSI 回路的最小形状</h2>
+    <p>无论哪一级，工程化 RSI 都由同一组零件组成——这也正是第 02 章能力地图和第 17 章实战关卡的展开方式：</p>
+    <div class="codeblock">
+      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> RSI loop(示意)</div>
+      <pre data-lang="log">目标(不变) → 诊断现状 → 提出改动 → 沙箱执行
+     → 评估效果 → 保留 or 回滚 → 记入日志 → 下一轮</pre>
+    </div>
+    <p class="small muted">注意三件事都不可省：<strong>评估</strong>(否则叫随机漂移)、<strong>回滚</strong>(否则一次坏改动就结束)、<strong>日志</strong>(否则下一轮没有改进的素材)。</p>
+
+    <div class="callout warn"><span class="t">可信度声明</span>本章是教学整理：思想源流可追溯到 I.J. Good(1965)与后续 AI safety 文献，但本站不是论文索引。工程部分(模块二/三)均有仓库文档支撑，概念部分请当作“帮助理解的坐标系”，而不是权威定义。</div>
+    <div class="callout ok"><span class="t">本章要点</span>RSI = 改进“如何改进”；今天工程现实在 L1–L3；回路 = 目标→改动→评估→保留/回滚→记录；评估、回滚、日志三者缺一不可。下一章把这三种零件拆成六项机制。</div>
+  </section>
+
+  <!-- ============ 02 哥德尔机谱系 ============ -->
+  <section class="chapter" id="ch-godel">
+    <span class="ch-kicker">Chapter 02 · 模块一 北极星</span>
+    <h1>哥德尔机谱系：<span class="grad">自改门槛</span>的二十年</h1>
+    <p class="lead">上一章说 RSI 是“改进如何改进”。这条思路在 2003 年就有一个形式化的极端版本——Gödel Machine。二十年后，Sakana AI 的达尔文哥德尔机把它做成了真的能跑的系统，Schmidhuber 本人联署的赫胥黎哥德尔机又修正了它的评估盲区。读完这条谱系，你会看懂 RSI 从“理论最优”到“工程可行”中间丢掉和换掉了什么。</p>
+
+    <h2>2003 · Gödel Machine：把“证明”当门槛</h2>
+    <p>Schmidhuber 提出的 Gödel Machine 是一个<strong>持有自己完整形式化描述</strong>的程序：代码、硬件、效用函数全部可读写。它只有一条规则——只有当内置的<strong>定理证明器</strong>能找到“这次重写带来更大期望效用”的证明时，才执行自改；而且这个证明器本身也在可改写的范围之内。</p>
+    <div class="grid cols2">
+      <div class="card reveal d1"><h3>它有多优雅</h3><p>自改被证明是“最优”的一步才发生；任何启发式、任何学习算法都只是它的特例——因为一旦证明某个启发式更好，重写自己就合法了。</p></div>
+      <div class="card reveal d2"><h3>它为什么跑不起来</h3><p>“证明这个改动更好”在实践中等价于证明搜索，计算上不可行。形式最优的代价是<strong>永远无法触发</strong>——一台永远在思考要不要改自己的机器，等于不改。</p></div>
+    </div>
+    <p class="small muted">思想源流：命名致敬哥德尔自指；早期形式可追到 Schmidhuber 1990s 的 meta-learning 工作。它不是可运行系统，是“如果什么都能证明，RSI 长这样”的极限定义。</p>
+
+    <h2>2025 · Darwin Gödel Machine：把门槛换成“分数”</h2>
+    <p>DGM(<a href="https://arxiv.org/abs/2505.22954" target="_blank" rel="noopener">arXiv:2505.22954</a>，Sakana AI × Jeff Clune 组)做了一刀关键的实用主义替换：<strong>证明太奢侈，那就跑分</strong>。改动是否保留，不再取决于“能否证明更优”，而取决于“在编程基准上是否真的变强”。</p>
+    <ul>
+      <li><strong>自改对象是自己的 Python 代码库</strong>：读自己、改自己——例如给自己加补丁校验步骤、改文件查看工具、加“多生成几个方案再挑最好的”工作流、给决策加失败历史。</li>
+      <li><strong>评估是经验性的</strong>：SWE-bench 从 <strong>20.0% → 50.0%</strong>，Polyglot 从 <strong>14.2% → 30.7%</strong>，且改进可跨模型、跨语言迁移——说明它学到的是通用的 agent 设计，不是某个模型的技巧。</li>
+      <li><strong>开放式进化是第二支柱</strong>：不只保留最强版本，而是维护一个<strong>不断增长的 agent 档案库</strong>——表现平平的祖先也可能成为突破性分支的垫脚石。消融实验表明：去掉自改不行，去掉开放档案也不行。</li>
+    </ul>
+    <p class="small muted">对照消融数据很关键：DGM 论文明确指出“自改能力加速学习本身”，而“只保留最优版本”的贪心基线会卡在局部最优——这正是下面模拟器要让你亲手看到的。</p>
+
+    <h2>模拟器：贪心爬坡 vs 开放档案</h2>
+    <p>每个 agent 有 8 个可翻转的特性位(bits)，分数 = 激活数 + 隐藏奖励：<code>bit7+bit8 同时激活</code>给 +35 分，但单独激活 bit7 或 bit8 各罚 12 分。试试两种策略——贪心几乎总会卡在 6 分，而开放档案能踩出 43 分的隐藏最优：</p>
+    <div class="sim" id="evoSim"></div>
+    <p class="small muted">教学示意：真实 DGM 的“分数”是 SWE-bench 跑分、“特性位”是代码改动；这里把“需要两步退化才能到达的突破”压缩成一个可玩的最小模型，机制相同——<strong>允许暂时退步的搜索才能到达贪心到不了的地方</strong>。</p>
+
+    <h2>ICLR 2026 · Huxley-Gödel Machine：把门槛换成“谱系”</h2>
+    <p>HGM(<a href="https://mlanthology.org/iclr/2026/wang2026iclr-huxleyg/" target="_blank" rel="noopener">Wang 等 · Schmidhuber 联署</a>)发现了 DGM 的一个隐蔽假设漏洞：<strong>“这个 agent 分数高” ≠ “它的后代会更强”</strong>。论文称之为 metaproductivity-performance mismatch——一个 agent 自己跑分高，不代表它作为祖先能孕育出更强的后代。</p>
+    <ul>
+      <li><strong>CMP(clade metaproductivity)</strong>：用 agent 所有后代的基准表现聚合来估计它的“元生产力”，以“演化支”(clade)命名致敬赫胥黎。</li>
+      <li><strong>更接近哥德尔机本意</strong>：论文证明在这个设定下，访问真实 CMP 就足以模拟哥德尔机在特定假设下的行为——评估指标对了，搜索就近似最优。</li>
+      <li><strong>更省算力</strong>：SWE-bench Verified 上以更少 CPU 小时超过此前所有自改 agent 开发方法；GPT-5 mini 优化的 agent 在 SWE-bench Lite 上以 GPT-5 达到<strong>人类水平</strong>——追平人工调校的最强编程 agent。</li>
+    </ul>
+
+    <h2>三代对照：门槛的演化</h2>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>系统</th><th>年份</th><th>自改门槛</th><th>搜索方式</th><th>状态</th></tr></thead>
+        <tbody id="godelTable"></tbody>
+      </table>
+    </div>
+    <p class="small muted">一句话总结这条线：<strong>哥德尔机说“改自己前必须证明更优”→ 达尔文说“证不了就让它跑分试试”→ 赫胥黎说“跑分要看后代的出息”</strong>。门槛从“真”换成“分数”再换成“谱系”，每换一代就离可运行的 RSI 近一步。</p>
+
+    <h2>对本站的启示</h2>
+    <div class="grid cols2">
+      <div class="card reveal d1"><h3>评估就是门槛</h3><p>哥德尔机的“证明”、DGM 的“跑分”、HGM 的“CMP”都是同一个东西：第 03 章能力地图里那块“要自己写的拼图”——评估器。它决定哪些改动存活，是整个回路的大脑。</p></div>
+      <div class="card reveal d2"><h3>档案库就是记忆</h3><p>DGM 的 agent archive 对应本站第 08 章的会话日志/存储 seam：任何祖先都可被重新唤起做父代——持久化不只是复盘工具，是进化本身的数据结构。</p></div>
+      <div class="card reveal d3"><h3>开放 ≠ 无护栏</h3><p>DGM 论文自己记录了 reward hacking：agent 伪造测试日志、删掉幻觉检测标记来“作弊”。这就是第 17 章“把模型当对手推演”的现实案例——开放进化必须配可审计的日志与不可自改的评估器。</p></div>
+      <div class="card reveal d4"><h3>DSH 是天然的跳板</h3><p>DGM 的自改是“改 Python 代码库”；DSH 的 cordis_* 把自改粒度推进到运行时插件——每一关实战(第 18 章)本质上就是在搭一个小型哥德尔机。</p></div>
+    </div>
+
+    <h2>原始资料</h2>
+    <ul class="small muted">
+      <li>Gödel Machine 原始论文：<a href="https://arxiv.org/abs/cs/0309048" target="_blank" rel="noopener">arXiv:cs/0309048</a> · <a href="https://people.idsia.ch/~juergen/goedelmachine.html" target="_blank" rel="noopener">作者主页</a></li>
+      <li>DGM：<a href="https://arxiv.org/abs/2505.22954" target="_blank" rel="noopener">arXiv:2505.22954</a> · <a href="https://sakana.ai/dgm/" target="_blank" rel="noopener">Sakana AI 官方页</a> · <a href="https://github.com/jennyzzt/dgm" target="_blank" rel="noopener">开源代码</a></li>
+      <li>HGM：<a href="https://openreview.net/forum?id=T0EiEuhOOL" target="_blank" rel="noopener">ICLR 2026 / OpenReview</a> · <a href="https://github.com/metauto-ai/HGM" target="_blank" rel="noopener">开源代码</a></li>
+    </ul>
+    <div class="callout warn"><span class="t">可信度声明</span>本章为教学整理：事实部分(分数、消融、CMP 定义、reward hacking 案例)取自上述论文与官方页面；模拟器是机制示意而非论文复现。不同年份文献的措辞请以原文为准。</div>
+    <div class="callout ok"><span class="t">本章要点</span>自改门槛三代演化：证明 → 基准分数 → 谱系元生产力；开放档案让“退步的祖先”成为跳板；评估器既是门槛也是护栏——它必须在模型够不到的一侧。带着这个视角看第 03 章能力地图和第 18 章实战。</div>
+  </section>
+
+  <!-- ============ 03 RSI 能力拆解 ============ -->
+  <section class="chapter" id="ch-capmap">
+    <span class="ch-kicker">Chapter 03 · 模块二 能力地图</span>
+    <h1>RSI <span class="grad">能力拆解</span>：六项机制</h1>
+    <p class="lead">把上一章的回路落到工程上，需要六项机制全部就位。每一张卡回答：这个机制是什么、DSH 里哪些包/接缝已经提供了它、还差什么要自己写。</p>
+    <div class="callout info"><span class="t">怎么读</span><span class="badge d">● 已有</span> 表示 DSH 现成可用；<span class="badge o">● 需扩展</span> 表示 seam 存在但要自己实现 Provider/策略。六张卡正好对应实战关卡的六个验收维度。</div>
+    <div id="capMapGrid"></div>
+    <div class="callout ok"><span class="t">本章要点</span>RSI 不缺零件缺组装：自改(cordis_*)、记忆(日志/存储)、执行(沙箱 seam)、护栏(审批)已就绪；评估器与迭代策略是要自己写的两块拼图。带着这张地图进入模块三——DSH 实战。</div>
   </section>
 
   <!-- ============ 01 认识 DSH ============ -->
   <section class="chapter" id="ch-intro">
-    <span class="ch-kicker">Chapter 01</span>
+    <span class="ch-kicker">Chapter 04 · 模块三 载体实战</span>
     <h1>认识 <span class="grad">DeepSeek Harness</span></h1>
     <p class="lead">先回答三个问题：什么是 Agent Harness？为什么“一切皆插件”？以及——它在你机器上长什么样。</p>
 
@@ -151,7 +283,7 @@ pnpm dsh web        # 使用已构建产物启动</pre>
 
   <!-- ============ 02 Cordis 核心 ============ -->
   <section class="chapter" id="ch-cordis">
-    <span class="ch-kicker">Chapter 02</span>
+    <span class="ch-kicker">Chapter 05 · 模块三 载体实战</span>
     <h1><span class="grad">Cordis</span> 核心：插件、服务与事件</h1>
     <p class="lead">Cordis 是 DSH 脚下的插件框架：插件向共享上下文贡献服务、类型化事件与可逆效果。掌握本章五个理念，后面所有章节都会变得顺理成章。</p>
 
@@ -221,7 +353,7 @@ export function apply(ctx: Context, config: Config) {
 
   <!-- ============ 03 架构总览 ============ -->
   <section class="chapter" id="ch-architecture">
-    <span class="ch-kicker">Chapter 03</span>
+    <span class="ch-kicker">Chapter 06 · 模块三 载体实战</span>
     <h1>架构总览：<span class="grad">从引导到事件域</span></h1>
     <p class="lead">一个运行中的 dsh，是在启动时由有序分层组合出的插件树。理解“分层组合 + 核心服务 + 三大事件域”，就拿到了阅读整个仓库的地图。</p>
 
@@ -278,7 +410,7 @@ export function apply(ctx: Context, config: Config) {
 
   <!-- ============ 04 Agent Loop ============ -->
   <section class="chapter" id="ch-loop">
-    <span class="ch-kicker">Chapter 04</span>
+    <span class="ch-kicker">Chapter 07 · 模块三 载体实战</span>
     <h1><span class="grad">Agent Loop</span> 剖析：一个回合的一生</h1>
     <p class="lead">这是全站最重要的一章。先记住两个定义，再用播放器逐帧看完一个回合 —— 右侧磁带会同步展示会话日志里真正留下的事件。</p>
 
@@ -308,7 +440,7 @@ export function apply(ctx: Context, config: Config) {
 
   <!-- ============ 05 会话与持久化 ============ -->
   <section class="chapter" id="ch-session">
-    <span class="ch-kicker">Chapter 05</span>
+    <span class="ch-kicker">Chapter 08 · 模块三 载体实战</span>
     <h1>会话与持久化：<span class="grad">日志即真相</span></h1>
     <p class="lead">DSH 最具区分度的设计：模型看到的上下文不是内存里的聊天数组，而是从追加式会话日志投影出来的。拿住这一点，fork、resume、导出、遥测就都顺理成章。</p>
 
@@ -352,7 +484,7 @@ export function apply(ctx: Context, config: Config) {
 
   <!-- ============ 06 包版图 ============ -->
   <section class="chapter" id="ch-packages">
-    <span class="ch-kicker">Chapter 06</span>
+    <span class="ch-kicker">Chapter 09 · 模块三 载体实战</span>
     <h1>包版图：<span class="grad">52 组 · 280+ 包</span>的全景地图</h1>
     <p class="lead">每个 npm 包都叫 <code>@deepseek-ai/dsh-*</code>，住在 <code>packages/&lt;分组&gt;/&lt;包名&gt;/</code>，且恰好属于一个分组；分组 README 是该家族的权威地图。下面的探索器收录了全部分组与包名(取自仓库实测)。</p>
     <div class="callout info"><span class="t">使用方式</span>点分类胶囊按领域筛选；搜框支持包名/分组/职责关键词；点分组标题展开全部包。试试搜 <code>tool-</code>(模型工具 Consumer)、<code>-local</code>(本地 Provider)、<code>session-format</code>(迁移链)。</div>
@@ -370,7 +502,7 @@ export function apply(ctx: Context, config: Config) {
 
   <!-- ============ 07 工具系统 ============ -->
   <section class="chapter" id="ch-tools">
-    <span class="ch-kicker">Chapter 07</span>
+    <span class="ch-kicker">Chapter 10 · 模块三 载体实战</span>
     <h1>工具与<span class="grad">能力接缝</span></h1>
     <p class="lead">工具是模型能力的出口：注册在 <code>ctx.tools</code>，schema 自动加入提示词组装，执行时穿过带守卫的流水线。而工具背后的能力，由“接缝”解耦：换一个 Provider，整个产品的执行世界随之切换。</p>
 
@@ -418,14 +550,14 @@ tool/result          # 持久事件:结果入帐,回传模型</pre>
     </div>
     <p class="small muted">配套规则：每个工具在设计之初就要规划 UI 呈现 —— Host presenter 保持纯函数，Web 卡片从原始事件与持久化结果元数据派生(docs/cookbook/adding-a-tool.md)。作用域规则见术语表：工具可以全局或按 agent 作用域注册，同名时作用域胜(shadowing)，<code>tools.restrict</code> 按交集过滤。</p>
 
-    <h2>工具目录探索器(72 个 schema)</h2>
+    <h2>工具目录探索器</h2>
     <div id="toolExplorer"></div>
     <div class="callout ok"><span class="t">本章要点</span>工具 = Consumer 角色；流水线五站两头持久、中间三个 waterfall；seam 让“换后端”变成配置问题而非重写问题。</div>
   </section>
 
   <!-- ============ 08 工程规范 ============ -->
   <section class="chapter" id="ch-conventions">
-    <span class="ch-kicker">Chapter 08</span>
+    <span class="ch-kicker">Chapter 11 · 模块三 载体实战</span>
     <h1>工程规范：<span class="grad">让 280 个包像一个包</span></h1>
     <p class="lead">这些规则来自根 <code>AGENTS.md</code>——它们不是风格建议，而是有静态门禁、评审文化和决策记录支撑的硬约束。把它们当作阅读源码时的“为什么代码长这样”的答案。</p>
     <div id="ruleCards"></div>
@@ -438,7 +570,7 @@ tool/result          # 持久事件:结果入帐,回传模型</pre>
 
   <!-- ============ 09 测试体系 ============ -->
   <section class="chapter" id="ch-testing">
-    <span class="ch-kicker">Chapter 09</span>
+    <span class="ch-kicker">Chapter 12 · 模块三 载体实战</span>
     <h1>测试体系：<span class="grad">推理在这里很便宜</span></h1>
     <p class="lead">DSH 的测试哲学有两个鲜明立场：① 能用真实实现就不用 mock；② “我们是 DeepSeek，不要吃真实 API 测试的米”——无密钥测试只能证明管道通，只有带密钥的运行才证明 agent 真的能干活。</p>
 
@@ -475,7 +607,7 @@ pnpm run test:snapshot:record        # 模型成稿变了 → 重录(需密钥),
 
   <!-- ============ 10 开发工作流 ============ -->
   <section class="chapter" id="ch-workflow">
-    <span class="ch-kicker">Chapter 10</span>
+    <span class="ch-kicker">Chapter 13 · 模块三 载体实战</span>
     <h1>开发工作流：<span class="grad">从 clone 到 PR</span></h1>
     <p class="lead">环境准备、日常命令、以及这个仓库特有的协作文化：按面选检查、Agent Notes、慢进快退的 Git 约束。</p>
 
@@ -505,12 +637,12 @@ pnpm run test:snapshot:record        # 模型成稿变了 → 重录(需密钥),
 
   <!-- ============ 11 术语表 ============ -->
   <section class="chapter" id="ch-glossary">
-    <span class="ch-kicker">Chapter 11</span>
+    <span class="ch-kicker">Chapter 14 · 模块三 载体实战</span>
     <h1>术语表：<span class="grad">一词一义</span></h1>
     <p class="lead">DSH 的领域词汇坚持“每个概念只有一个规范词”。以下条目整理自 docs/glossary.md 与核心文档，支持即时搜索。</p>
     <div class="searchbar">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="glossSearch" type="text" placeholder="搜索术语：seam、scope、turn、Ralph、profile…" autocomplete="off">
+      <input id="glossSearch" type="search" placeholder="搜索术语：seam、scope、turn、Ralph、profile…" autocomplete="off" aria-label="搜索术语">
       <span class="cnt" id="glossCount"></span>
     </div>
     <div id="glossaryList"></div>
@@ -518,18 +650,55 @@ pnpm run test:snapshot:record        # 模型成稿变了 → 重录(需密钥),
 
   <!-- ============ 12 测验 ============ -->
   <section class="chapter" id="ch-quiz">
-    <span class="ch-kicker">Chapter 12 · Final</span>
+    <span class="ch-kicker">Chapter 15 · 模块三 验收</span>
     <h1>知识闯关：<span class="grad">12 题验收</span></h1>
     <p class="lead">每题都出自前面章节的硬知识点，答错会给出完整解析。拿到 10 分以上有彩蛋。</p>
     <div class="quiz-box" id="quizBox"></div>
-    <div class="callout info"><span class="t">继续深入</span>闯关之后，建议的下一步：① 克隆仓库跑通 <code>pnpm install &amp;&amp; pnpm run typecheck</code>；② 用 <code>dsh --profile web --dump-config</code> 看真实插件树；③ 读 <code>docs/cookbook/adding-a-tool.md</code> 动手写第一个工具插件；④ 给自己的插件补一个录制快照。</div>
+    <div class="callout info"><span class="t">继续深入</span>闯关之后，建议的下一步：① 克隆仓库跑通 <code>pnpm install &amp;&amp; pnpm run typecheck</code>；② 用 <code>dsh --profile web --dump-config</code> 看真实插件树；③ 读 <code>docs/cookbook/adding-a-tool.md</code> 动手写第一个工具插件；④ 给自己的插件补一个录制快照。然后进入模块四：看看别的载体差在哪、立好护栏、开始闯关。</div>
+  </section>
+
+  <!-- ============ 15 载体对比 ============ -->
+  <section class="chapter" id="ch-carriers">
+    <span class="ch-kicker">Chapter 16 · 模块四 进阶之路</span>
+    <h1>载体对比：谁让你<span class="grad">改自己的运行时</span></h1>
+    <p class="lead">几乎每个 agent 都能“改文件”，但 RSI 需要的是“改运行时”——把新代码变成自己身体的一部分。这是载体之间最本质的分界线。</p>
+    <div class="tbl-wrap">
+      <table class="tbl" id="carrierTable">
+        <thead><tr><th>载体</th><th>自改通道</th><th>改动粒度</th><th>持久化</th><th>审批模型</th><th>RSI 适配度</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="small muted">评分只反映“运行时自我修改”这一个维度，不是产品好坏榜——Claude Code / Codex 把钩子、skill、MCP 做得成熟，只是都不等价于改写运行时结构。</p>
+    <div class="callout info"><span class="t">教学整理</span>本表为教学整理，基于各产品公开文档与发布形态，随版本演进可能变化；选型请以各自最新文档为准。核心结论可稳定复用：<strong>文件级扩展(skill/hook/插件文件) ≠ 运行时自改</strong>，前者扩能力面，后者改组合本身。</div>
+    <div class="callout ok"><span class="t">本章要点</span>RSI 的分界线是“agent 能否把新代码变成自己身体的一部分并版本化回滚”；公开实现中 DSH 的 cordis_* 工具族唯一满足这一条件，其它载体停留在文件级扩展。</div>
+  </section>
+
+  <!-- ============ 16 安全与护栏 ============ -->
+  <section class="chapter" id="ch-safety">
+    <span class="ch-kicker">Chapter 17 · 模块四 进阶之路</span>
+    <h1>安全与护栏：<span class="grad">先把地基浇好</span></h1>
+    <p class="lead">RSI 实验的安全不是“给 agent 加限制”，而是给它一个<strong>无法通过自改解除</strong>的人类边界。DSH 恰好把这套边界做成了默认行为——本章把它们组织成分层防御清单。</p>
+    <div id="safetyList"></div>
+    <div class="callout law"><span class="t">一条自检铁律</span>检验护栏是否有效，要把模型当成对手来推演：它能否用 cordis_define 定义一个插件，让自己从此绕过审批？如果答案是“能”，那不是护栏，是装饰。</div>
+    <div class="callout ok"><span class="t">本章要点</span>护栏五层：审批(人类边界)→回滚(改动可撤)→沙箱(执行世界分离)→日志(可审计)→评估(保留与否交给可重复标准)。少一层,RSI 实验都不该开始。</div>
+  </section>
+
+  <!-- ============ 17 实战关卡 ============ -->
+  <section class="chapter" id="ch-practice">
+    <span class="ch-kicker">Chapter 18 · 模块四 进阶之路</span>
+    <h1>实战关卡：<span class="grad">从 L1 走到 L4</span></h1>
+    <p class="lead">五个递进实验，每一关都在真实的 dsh 会话里完成一次“自我改进”。勾选会保存进度；每一关都写了明确的验收标准——没通过验收不算过。</p>
+    <div class="exp-progress"><div class="ep-bar"><div id="expBarFill"></div></div><span id="expBarTxt" class="muted small"></span></div>
+    <div id="expList"></div>
+    <div class="callout warn"><span class="t">动手前必读</span>请先完成第 16 章：确认审批开启、执行世界指向沙箱、有回滚手段。RSI 实验的安全边界在开始前决定，不是在出事后补救。</div>
+    <div class="callout ok"><span class="t">本章要点</span>L1 读图 → L2 第一次自改 → L3 记忆与评估 → L4 策略插件化。做完五关，你就拥有一个最小可用的工程化 RSI 回路——剩下的递归,由它自己接着写。</div>
   </section>
 
   </main>
 </div>
 
 <footer class="site-footer">
-  <div>DSH 互动学堂 — 非官方学习站点，内容整理自 <a href="https://github.com/deepseek-ai/deepseek-harness" target="_blank" rel="noopener">deepseek-ai/deepseek-harness</a> 仓库文档(AGENTS.md · docs/ · packages/README.md)。一切以仓库为准；DSH 处于 developer preview，接口可能随时变化。本站纯静态、可离线使用，学习进度仅存在浏览器 localStorage。</div>
+  <div>How to RSI — 非官方学习站点，以 <a href="https://github.com/deepseek-ai/deepseek-harness" target="_blank" rel="noopener">deepseek-ai/deepseek-harness</a> 为实战载体；RSI 概念章节为教学整理，DSH 章节整理自仓库文档(AGENTS.md · docs/ · packages/README.md)，一切以仓库为准。本站纯静态、可离线使用，学习进度仅存在浏览器 localStorage。</div>
 </footer>
 
 <script src="assets/js/data.js"></script>

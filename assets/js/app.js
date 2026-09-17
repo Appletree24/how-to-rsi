@@ -16,6 +16,22 @@
   function esc(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
+  // 给非 <button>/<a> 元素补齐按钮语义;返回节点便于继续挂事件
+  function buttonize(n, role) {
+    n.setAttribute('role', role || 'button');
+    n.tabIndex = 0;
+    return n;
+  }
+  // Enter/Space 触发 click(click() 也会走已注册的 addEventListener)
+  function keyActivate(n) {
+    n.addEventListener('keydown', function (e) {
+      if (e.target !== n) return;
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+        e.preventDefault();
+        n.click();
+      }
+    });
+  }
   function icon(name, size) {
     var s = size || 18;
     return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="' + (DSH.icons[name] || DSH.icons.info) + '"/></svg>';
@@ -40,6 +56,7 @@
   function applyTheme() {
     document.documentElement.setAttribute('data-theme', store.theme);
     var btn = $('#themeBtn');
+    if (btn) btn.setAttribute('aria-pressed', store.theme === 'dark' ? 'true' : 'false');
     if (btn) btn.innerHTML = store.theme === 'dark'
       ? '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7"/></svg>'
       : '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.4 14.2A8.5 8.5 0 1 1 9.8 3.6a7 7 0 1 0 10.6 10.6Z"/></svg>';
@@ -49,8 +66,14 @@
   var currentId = 'home';
   function buildNav() {
     var nav = $('#navList');
-    nav.innerHTML = '<h4>课程目录</h4>';
+    nav.innerHTML = '';
+    var lastModule = null;
     DSH.chapters.forEach(function (c) {
+      if (c.module !== lastModule) {
+        lastModule = c.module;
+        var m = DSH.modules.find(function (x) { return x.id === c.module; });
+        nav.appendChild(el('h4', '', (m ? icon(m.icon, 13) + ' ' : '') + esc(m ? m.name : '')));
+      }
       var a = el('a', 'nav-item', '');
       a.href = '#/' + c.id;
       a.dataset.ch = c.id;
@@ -72,7 +95,13 @@
       fg.setAttribute('stroke-dashoffset', (C * (1 - pct / 100)).toFixed(2));
     }
     var t = $('#progressPct'); if (t) t.textContent = pct + '%';
-    $$('.pathcard').forEach(function (p) { p.classList.toggle('done2', !!store.done[p.dataset.ch]); });
+    $$('.modcard').forEach(function (p) {
+      var m = DSH.modules.find(function (x) { return x.id === p.dataset.mod; });
+      if (!m) return;
+      var done = DSH.chapters.filter(function (c) { return c.module === m.id && c.id !== 'home'; })
+        .every(function (c) { return store.done[c.id]; });
+      p.classList.toggle('done2', done);
+    });
     $$('.done-btn').forEach(function (b) {
       var on = !!store.done[b.dataset.ch];
       b.classList.toggle('is-done', on);
@@ -139,10 +168,10 @@
   function buildHome() {
     var pkgTotal = DSH.packageGroups.reduce(function (a, g) { return a + g.pkgs.length; }, 0);
     var stats = [
+      { n: DSH.modules.length, l: '学习模块', suf: '' },
       { n: DSH.chapters.length - 1, l: '互动章节', suf: '' },
-      { n: DSH.packageGroups.length, l: '包分组', suf: '' },
-      { n: pkgTotal, l: '工作区包', suf: '+' },
-      { n: 72, l: '模型工具 schema', suf: '' },
+      { n: pkgTotal, l: '载体工作区包', suf: '+' },
+      { n: DSH.experiments.length, l: '实战关卡', suf: '' },
     ];
     var row = $('#statsRow');
     stats.forEach(function (s, i) {
@@ -172,18 +201,22 @@
     }, { threshold: 0.4 });
     io.observe(row);
 
-    var grid = $('#pathGrid');
-    DSH.chapters.slice(1).forEach(function (c, i) {
-      var card = el('div', 'card pathcard reveal d' + (i % 4 + 1));
-      card.dataset.ch = c.id;
-      card.innerHTML = '<div class="nv">' + c.num + '</div><div><h3>' + c.title + '</h3><p>' + c.blurb + '</p></div>';
-      card.addEventListener('click', function () { go(c.id); });
+    var grid = $('#modGrid');
+    DSH.modules.forEach(function (m, i) {
+      var chs = DSH.chapters.filter(function (c) { return c.module === m.id && c.id !== 'home'; });
+      var first = chs[0];
+      var card = buttonize(el('div', 'card modcard reveal d' + (i % 4 + 1)));
+      card.dataset.mod = m.id;
+      card.innerHTML = '<div class="nv">' + icon(m.icon, 18) + '</div><div><h3>' + esc(m.name) + '</h3><p>' + esc(m.desc) + '</p>' +
+        '<div class="mc-meta">' + chs.length + ' 章 · 从「' + esc(first.title) + '」开始</div></div>';
+      card.addEventListener('click', function () { go(first.id); });
+      keyActivate(card);
       grid.appendChild(card);
     });
 
-    // 轨道芯片
-    var r1 = ['ctx.llm', 'ctx.tools', 'ctx.sessions', 'ctx.agents'];
-    var r2 = ['ctx.fs', 'ctx.shell', 'ctx.sandbox', 'ctx.jobs', 'ctx.commands', 'ctx.webhookRuntime'];
+    // 轨道芯片:RSI 回路的两侧——改进手段(内圈)与持久事实(外圈)
+    var r1 = ['cordis_define', 'eval', 'rollback', 'agent.inject'];
+    var r2 = ['ctx.sessions', 'ctx.storage', 'ctx.tools', 'ctx.sandbox', 'ctx.llm', 'ctx.agents'];
     function fill(ringSel, names) {
       var ring = $(ringSel);
       if (!ring) return;
@@ -201,13 +234,13 @@
     fill('#orbitR1', r1);
     fill('#orbitR2', r2);
 
-    // 英雄区打字机
+    // 英雄区打字机:一个 RSI 回路
     var lines = [
-      { t: '$ npx @deepseek-ai/dsh web', c: 't-blue' },
-      { t: '  ➜ Web UI: http://127.0.0.1:3080', c: 't-dim' },
-      { t: '$ pnpm dsh --profile headless "修复 CI 上失败的两个测试"', c: 't-blue' },
-      { t: '  ✔ tool/result × 6 · assistant/message · turn/end', c: 't-green' },
-      { t: '  会话已落盘：session.v3.jsonl — 可重放、可 fork、可导出', c: 't-y' },
+      { t: '$ 诊断 → 提出改动 → cordis_define(写代码)', c: 't-blue' },
+      { t: '$ cordis_run(挂载) → 沙箱执行 → eval(评估)', c: 't-blue' },
+      { t: '  ✔ 通过:keep · assistant/message 落帐', c: 't-green' },
+      { t: '  ✘ 失败:run 回滚到 currentPackageId', c: 't-y' },
+      { t: '  日志即记忆:下一轮改进从 session.v3.jsonl 读起', c: 't-dim' },
     ];
     var pre = $('#heroTerm');
     if (pre) {
@@ -288,8 +321,14 @@
       stage.appendChild(node);
       if (i < names.length - 1) stage.appendChild(el('span', 'sim-arrow', '➔'));
     });
-    var swEl = $('#simShort');
-    swEl.addEventListener('click', function () { shortC = !shortC; swEl.classList.toggle('on2', shortC); });
+    var swEl = buttonize($('#simShort'), 'switch');
+    swEl.setAttribute('aria-checked', 'true');
+    swEl.addEventListener('click', function () {
+      shortC = !shortC;
+      swEl.classList.toggle('on2', shortC);
+      swEl.setAttribute('aria-checked', shortC ? 'true' : 'false');
+    });
+    keyActivate(swEl);
     function logLine(html) { var lg = $('#simLog'); lg.innerHTML += '<div>» ' + html + '</div>'; lg.scrollTop = lg.scrollHeight; }
     function reset() {
       timers.forEach(clearTimeout); timers = [];
@@ -385,10 +424,12 @@
       dots.appendChild(d);
       var badgeCls = s.badge === 'd' ? 'd' : (s.badge === 'o' ? 'o' : 'l');
       var badgeTxt = s.badge === 'd' ? '持久' : (s.badge === 'o' ? '按需' : '活体');
-      var card = el('div', 'loop-step');
+      var card = buttonize(el('div', 'loop-step'));
+      card.setAttribute('aria-label', '第 ' + (i + 1) + ' 帧：' + s.name);
       card.innerHTML = '<div class="ls-head"><span class="ls-num">' + (i + 1) + '</span><span class="ls-title">' + esc(s.name) + '</span><span class="badge ' + badgeCls + '" style="margin-left:auto">' + badgeTxt + '</span></div>' +
         '<div class="ls-desc"><b>' + s.title + '</b> — ' + s.desc + '</div>';
       card.addEventListener('click', function () { idx = i; stopPlay(); render(); });
+      keyActivate(card);
       stepsBox.appendChild(card);
     });
     function render() {
@@ -397,6 +438,7 @@
       });
       $$('#loopSteps .loop-step').forEach(function (c, i) {
         c.className = 'loop-step' + (i < idx ? ' past2' : i === idx ? ' now2' : '');
+        if (i === idx) c.setAttribute('aria-current', 'step'); else c.removeAttribute('aria-current');
       });
       var active = $('#loopSteps .loop-step.now2');
       if (active && active.scrollIntoView) active.scrollIntoView({ block: 'nearest', behavior: reducedMotion ? 'auto' : 'smooth' });
@@ -453,6 +495,219 @@
     show();
   }
 
+  /* ---------- RSI 分级阶梯 ---------- */
+  function buildRsiLevels() {
+    var host = $('#rsiLevels');
+    if (!host) return;
+    DSH.rsiLevels.forEach(function (l, i) {
+      var row = el('div', 'layer reveal d' + (i % 4 + 1) + (l.cur ? ' lv-cur' : ''));
+      row.innerHTML = '<span class="ln">' + l.n + '</span><div><div class="lt">' + esc(l.t) + (l.cur ? ' <span class="lv-tag">今天可达</span>' : '') + '</div><div class="ld">' + esc(l.d) + '</div></div><span class="arrow-down">↓</span>';
+      host.appendChild(row);
+    });
+  }
+
+  /* ---------- 哥德尔机对照表 ---------- */
+  function buildGodel() {
+    var tb = $('#godelTable');
+    if (tb) {
+      DSH.godelMachines.forEach(function (m) {
+        var tr = el('tr', '',
+          '<td><b>' + esc(m.name) + '</b><div class="muted small">' + esc(m.by) + '</div></td>' +
+          '<td>' + esc(m.year) + '</td>' +
+          '<td>' + esc(m.gate) + '<div class="muted small">' + esc(m.key) + '</div></td>' +
+          '<td>' + esc(m.eval) + '</td>' +
+          '<td>' + esc(m.status) + '</td>');
+        tb.appendChild(tr);
+      });
+    }
+  }
+
+  /* ---------- 开放进化模拟器(贪心 vs 档案) ---------- */
+  /* 教学模型:8 个特性位,分数 = 激活数 + (bit7&bit8 同时激活 ? +35 : 单独各罚 12)
+     贪心只从当前最优个体继续;开放档案从全部历史个体中均匀取样——后者能走出需要"暂时退步"的突破。 */
+  function buildEvoSim() {
+    var host = $('#evoSim');
+    if (!host) return;
+    host.innerHTML =
+      '<div class="sim-ctl">' +
+        '<button class="btn small primary" id="evoRun">▶ 跑 60 代(开放档案)</button>' +
+        '<button class="btn small" id="evoGreedy">▶ 跑 60 代(贪心爬坡)</button>' +
+        '<button class="btn small" id="evoReset">↺ 重置</button>' +
+        '<span class="sim-result" id="evoResult">选择一个策略开始</span>' +
+      '</div>' +
+      '<div class="evo-grid" id="evoGrid"></div>' +
+      '<div class="sim-log" id="evoLog">每个格子是一个 agent：颜色越深分数越高(金框 = 全局最优)。开放档案可从任意祖先分支；贪心只能改当前最强。</div>';
+    var BITS = 8;
+    function score(bits) {
+      var n = 0; for (var i = 0; i < BITS; i++) n += bits[i];
+      var b7 = bits[6], b8 = bits[7];
+      if (b7 && b8) n += 35; else n -= (b7 + b8) * 12;
+      return n;
+    }
+    var MAXS = score([1,1,1,1,1,1,1,1]); // 43
+    var evoTimer = null;
+    var cells = $('#evoGrid');
+    var archive = [];
+    var cellEls = [];
+    for (var c = 0; c < 16; c++) {
+      var cell = el('div', 'evo-cell', '<div class="ec-bits"></div><div class="ec-score"></div>');
+      cell.title = '点击可把此 agent 设为"当前最优"视角(不影响结果)';
+      cells.appendChild(cell); cellEls.push(cell);
+    }
+    function render() {
+      archive.slice(-16).forEach(function (a, i) {
+        var cell = cellEls[i];
+        cell.className = 'evo-cell' + (a.score >= MAXS ? ' best' : a.score >= 0 ? ' alive' : ' dead');
+        var bitsHtml = '';
+        for (var b = 0; b < BITS; b++) bitsHtml += '<i class="' + (a.bits[b] ? 'on' : '') + '"></i>';
+        cell.innerHTML = '<div class="ec-bits">' + bitsHtml + '</div><div class="ec-score">' + a.score + '</div>';
+        cell.title = '后代 of #' + a.parent + ' · 分数 ' + a.score;
+      });
+      for (var i = archive.length; i < 16; i++) {
+        cellEls[i].className = 'evo-cell empty';
+        cellEls[i].innerHTML = '<div class="ec-bits"></div><div class="ec-score"></div>';
+      }
+    }
+    function logLine(html) { var lg = $('#evoLog'); lg.innerHTML += '<div>» ' + html + '</div>'; lg.scrollTop = lg.scrollHeight; }
+    function mutate(bits) {
+      var nb = bits.slice();
+      var idx = Math.floor(Math.random() * BITS);
+      nb[idx] = nb[idx] ? 0 : 1;
+      return nb;
+    }
+    function best() {
+      var b = archive[0];
+      archive.forEach(function (a) { if (a.score > b.score) b = a; });
+      return b;
+    }
+    function run(greedy) {
+      if (evoTimer) clearInterval(evoTimer);
+      archive = [{ bits: [0,0,0,0,0,0,0,0], score: score([0,0,0,0,0,0,0,0]), parent: '-' }];
+      $('#evoLog').innerHTML = '';
+      logLine('起点：全零 agent(0 分)。' + (greedy ? '<span class="warn2">贪心：每代只变异当前最优</span>' : '<span class="hl2">开放：每代从全部档案均匀取样作父代</span>'));
+      var gen = 0;
+      evoTimer = setInterval(function () {
+        gen++;
+        var parent = greedy ? best() : archive[Math.floor(Math.random() * archive.length)];
+        var bits = mutate(parent.bits);
+        var s = score(bits);
+        var child = { bits: bits, score: s, parent: '#' + (archive.indexOf(parent) + 1) };
+        if (!greedy || s >= parent.score) archive.push(child);
+        if (s > parent.score) logLine('第 ' + gen + ' 代:#' + archive.length + ' 得分 ' + s + '(+' + (s - parent.score) + ')');
+        else if (!greedy && Math.random() < 0.3) logLine('第 ' + gen + ' 代:#' + archive.length + ' 得分 ' + s + '(退步,保留作跳板)');
+        else if (greedy && Math.random() < 0.15) logLine('第 ' + gen + ' 代:变异体 ' + s + ' 分不如父代 ' + parent.score + ' 分,丢弃');
+        if (archive.length > 64) archive.shift();
+        render();
+        if (gen >= 60) {
+          clearInterval(evoTimer); evoTimer = null;
+          var b = best();
+          var verdict = greedy
+            ? (b.score >= MAXS ? '竟然到了 ' + b.score + ' 分——少数几次运气够好' : '卡在 ' + b.score + ' 分,bit7+bit8 的 +35 分永远够不着(单独激活各罚 12)')
+            : (b.score >= MAXS ? '达到 ' + b.score + ' 分!开放档案踩出了两步退化后的突破' : '达到 ' + b.score + ' 分——再跑几代通常能到 43');
+          $('#evoResult').textContent = '结果：' + verdict;
+          logLine('<span class="hl2">最优 ' + b.score + ' 分</span> — ' + verdict);
+        }
+      }, reducedMotion ? 5 : 55);
+    }
+    $('#evoRun').addEventListener('click', function () { run(false); });
+    $('#evoGreedy').addEventListener('click', function () { run(true); });
+    $('#evoReset').addEventListener('click', function () {
+      if (evoTimer) { clearInterval(evoTimer); evoTimer = null; }
+      archive = []; render();
+      $('#evoLog').innerHTML = '每个格子是一个 agent：颜色越深分数越高(金框 = 全局最优)。开放档案可从任意祖先分支；贪心只能改当前最强。';
+      $('#evoResult').textContent = '选择一个策略开始';
+    });
+    render();
+  }
+
+  /* ---------- RSI 能力地图 ---------- */
+  function buildCapMap() {
+    var host = $('#capMapGrid');
+    if (!host) return;
+    var grid = el('div', 'grid cols2');
+    DSH.capMap.forEach(function (c, i) {
+      var ready = c.st === 'ready';
+      var card = el('div', 'card cap-card reveal d' + (i % 2 + 1));
+      var badge = ready ? '<span class="badge d">● 已有</span>' : '<span class="badge o">● 需扩展</span>';
+      card.innerHTML =
+        '<div class="cc-head"><h3>' + esc(c.t) + '</h3>' + badge + '</div>' +
+        '<p>' + esc(c.d) + '</p>' +
+        '<div class="cc-refs">' + c.refs.map(function (r) { return '<code>' + esc(r) + '</code>'; }).join(' ') + '</div>' +
+        '<div class="cc-q">' + esc(c.q) + '</div>';
+      grid.appendChild(card);
+    });
+    host.appendChild(grid);
+  }
+
+  /* ---------- 载体对比 ---------- */
+  function buildCarriers() {
+    var tb = $('#carrierTable tbody');
+    if (!tb) return;
+    DSH.carriers.forEach(function (c) {
+      var stars = '';
+      for (var i = 1; i <= 5; i++) stars += i <= c.score ? '★' : '☆';
+      var tr = el('tr', '',
+        '<td><b>' + esc(c.name) + '</b><div class="muted small">' + esc(c.note) + '</div></td>' +
+        '<td>' + esc(c.mech) + '</td>' +
+        '<td>' + esc(c.gran) + '</td>' +
+        '<td>' + esc(c.persist) + '</td>' +
+        '<td>' + esc(c.approval) + '</td>' +
+        '<td><span class="stars" title="' + c.score + '/5">' + stars + '</span></td>');
+      tb.appendChild(tr);
+    });
+  }
+
+  /* ---------- 安全护栏清单 ---------- */
+  function buildSafety() {
+    var host = $('#safetyList');
+    if (!host) return;
+    DSH.rsiSafety.forEach(function (s, i) {
+      var det = el('details', 'acc');
+      det.innerHTML = '<summary><span class="safe-num">' + (i + 1) + '</span>' + esc(s.t) + '</summary><div class="acc-body">' + esc(s.d) + '</div>';
+      host.appendChild(det);
+    });
+  }
+
+  /* ---------- 实战关卡 ---------- */
+  function buildExperiments() {
+    var host = $('#expList');
+    if (!host) return;
+    DSH.experiments.forEach(function (x, i) {
+      var card = el('div', 'card exp-card');
+      card.id = 'exp-' + x.id;
+      var head = el('div', 'exp-head');
+      var cb = el('input');
+      cb.type = 'checkbox';
+      cb.id = 'expcb-' + x.id;
+      cb.setAttribute('aria-label', '标记关卡 ' + x.t + ' 已完成');
+      cb.addEventListener('change', function () {
+        if (cb.checked) store.done['exp-' + x.id] = true; else delete store.done['exp-' + x.id];
+        save(); renderExp();
+      });
+      head.appendChild(cb);
+      head.appendChild(el('div', '', '<span class="exp-lv">' + x.lv + ' · ' + esc(x.t) + '</span><h3>' + esc(x.title) + '</h3>'));
+      card.appendChild(head);
+      card.appendChild(el('p', 'exp-desc', esc(x.desc)));
+      card.appendChild(el('div', 'exp-verify', '验收：' + esc(x.verify)));
+      host.appendChild(card);
+    });
+    renderExp();
+  }
+  function renderExp() {
+    var done = 0;
+    DSH.experiments.forEach(function (x) {
+      var on = !!store.done['exp-' + x.id];
+      if (on) done++;
+      var cb = $('#expcb-' + x.id);
+      if (cb) cb.checked = on;
+      var card = $('#exp-' + x.id);
+      if (card) card.classList.toggle('exp-done', on);
+    });
+    var pct = Math.round(done / DSH.experiments.length * 100);
+    var fill = $('#expBarFill'); if (fill) fill.style.width = pct + '%';
+    var txt = $('#expBarTxt'); if (txt) txt.textContent = done + ' / ' + DSH.experiments.length + ' 关已通过';
+  }
+
   /* ---------- 包版图探索器 ---------- */
   function buildPkgExplorer() {
     var host = $('#pkgExplorer');
@@ -461,10 +716,16 @@
     host.innerHTML =
       '<div class="chips" id="pkgBuckets"></div>' +
       '<div class="searchbar">' + icon('boxes', 16) +
-        '<input id="pkgSearch" type="text" placeholder="搜索包名或分组,如 agent-loop、session、tool-…" autocomplete="off">' +
+        '<input id="pkgSearch" type="search" placeholder="搜索包名或分组,如 agent-loop、session、tool-…" autocomplete="off" aria-label="搜索包名或分组">' +
         '<span class="cnt" id="pkgCount"></span>' +
       '</div>' +
-      '<div id="pkgGroups"></div>';
+      '<div id="pkgGroups"></div>' +
+      '<div class="snap-note muted small">' + esc((DSH.meta && DSH.meta.note) || '') + '</div>';
+    // 同名包可能出现在不同分组(如 protocol、web)——收集后用于消歧标记
+    var nameCnt = {};
+    DSH.packageGroups.forEach(function (g) {
+      g.pkgs.forEach(function (p) { nameCnt[p] = (nameCnt[p] || 0) + 1; });
+    });
     var chipBox = $('#pkgBuckets');
     DSH.buckets.forEach(function (b) {
       var ch = el('button', 'chip' + (b.id === bucket ? ' on' : ''), b.name);
@@ -490,25 +751,32 @@
         var shown = query && hits.length > 0 ? hits : g.pkgs;
         pCount += shown.length;
         var card = el('div', 'card flat pkg-group');
-        var head = el('div', 'pg-head',
+        var head = buttonize(el('div', 'pg-head'),
           '<span class="pg-name">packages/' + g.id + '/</span>' +
           '<span class="pg-role">' + g.role + '</span>' +
           '<span class="pg-cnt">' + g.pkgs.length + ' 包</span>');
+        head.setAttribute('aria-expanded', expanded[g.id] ? 'true' : 'false');
+        head.setAttribute('aria-label', '展开/收起 ' + g.id + ' 分组');
+        keyActivate(head);
         card.appendChild(head);
         var list = el('div', 'pkg-list');
         var limit = (expanded[g.id] || query) ? shown.length : Math.min(shown.length, 10);
         shown.slice(0, limit).forEach(function (p) {
-          var pill = el('span', 'pkg-pill' + (query && p.toLowerCase().indexOf(query) >= 0 ? ' hit' : ''), esc(p));
-          pill.title = 'packages/' + g.id + '/' + p;
+          var dup = nameCnt[p] > 1;
+          var pill = el('span', 'pkg-pill' + (query && p.toLowerCase().indexOf(query) >= 0 ? ' hit' : '') + (dup ? ' dup' : ''),
+            esc(p) + (dup ? '<sup class="dup-n">×' + nameCnt[p] + '</sup>' : ''));
+          pill.title = 'packages/' + g.id + '/' + p + (dup ? ' — 同名包存在于多个分组,按路径区分' : '');
           list.appendChild(pill);
         });
         if (limit < shown.length) {
-          var more = el('span', 'pkg-pill more', '+' + (shown.length - limit) + ' 更多…');
+          var more = buttonize(el('span', 'pkg-pill more', '+' + (shown.length - limit) + ' 更多…'));
           more.addEventListener('click', function () { expanded[g.id] = true; render(); });
+          keyActivate(more);
           list.appendChild(more);
         } else if (!query && g.pkgs.length > 10 && expanded[g.id]) {
-          var less = el('span', 'pkg-pill more', '收起');
+          var less = buttonize(el('span', 'pkg-pill more', '收起'));
           less.addEventListener('click', function () { delete expanded[g.id]; render(); });
+          keyActivate(less);
           list.appendChild(less);
         }
         head.addEventListener('click', function () {
@@ -532,7 +800,7 @@
     host.innerHTML =
       '<div class="chips" id="toolCats"></div>' +
       '<div class="searchbar">' + icon('wrench', 16) +
-        '<input id="toolSearch" type="text" placeholder="搜索工具名或包名,如 bash、terminal、web_search…" autocomplete="off">' +
+        '<input id="toolSearch" type="search" placeholder="搜索工具名或包名,如 bash、terminal、web_search…" autocomplete="off" aria-label="搜索工具">' +
         '<span class="cnt" id="toolCount"></span>' +
       '</div>' +
       '<div class="grid cols3" id="toolGrid"></div>';
@@ -656,8 +924,10 @@
     var input = $('#glossSearch');
     if (input) input.addEventListener('input', function (e) { render(e.target.value); });
     render('');
-    window.__glossFilter = function (q) { if (input) { input.value = q; } render(q); };
+    glossFilter = function (q) { if (input) { input.value = q; } render(q); };
   }
+  // 术语表过滤入口;命令面板跳转后调用
+  var glossFilter = function () {};
 
   /* ---------- 测验 ---------- */
   function buildQuiz() {
@@ -807,7 +1077,7 @@
       ix.push({ type: '章节', label: c.title, sub: c.blurb, act: function () { go(c.id); } });
     });
     DSH.glossary.forEach(function (g) {
-      ix.push({ type: '术语', label: g.t + ' (' + g.en + ')', sub: g.d.slice(0, 40) + '…', act: function () { go('glossary'); setTimeout(function () { if (window.__glossFilter) window.__glossFilter(g.en.split(' ')[0]); }, 60); } });
+      ix.push({ type: '术语', label: g.t + ' (' + g.en + ')', sub: g.d.slice(0, 40) + '…', act: function () { go('glossary'); setTimeout(function () { glossFilter(g.en.split(' ')[0]); }, 60); } });
     });
     DSH.packageGroups.forEach(function (g) {
       g.pkgs.forEach(function (p) {
@@ -828,9 +1098,9 @@
     palette.items = palette.items.length ? palette.items : paletteIndex();
     var mask = el('div', 'palette-mask');
     mask.id = 'paletteMask';
-    mask.innerHTML = '<div class="palette"><div class="p-in">' + icon('book', 16) +
-      '<input id="paletteInput" type="text" placeholder="搜索章节、术语、包、工具、命令…" autocomplete="off">' +
-      '<span class="kbd">Esc</span></div><div class="p-results" id="paletteResults"></div></div>';
+    mask.innerHTML = '<div class="palette" role="dialog" aria-modal="true" aria-label="全局搜索"><div class="p-in">' + icon('book', 16) +
+      '<input id="paletteInput" type="search" placeholder="搜索章节、术语、包、工具、命令…" autocomplete="off" aria-label="全局搜索">' +
+      '<span class="kbd">Esc</span></div><div class="p-results" id="paletteResults" role="listbox"></div></div>';
     document.body.appendChild(mask);
     mask.addEventListener('click', function (e) { if (e.target === mask) closePalette(); });
     var input = $('#paletteInput');
@@ -845,7 +1115,10 @@
     renderPalette('');
   }
   function updateSel(items) {
-    items.forEach(function (n, i) { n.classList.toggle('sel', i === palette.sel); });
+    items.forEach(function (n, i) {
+      n.classList.toggle('sel', i === palette.sel);
+      n.setAttribute('aria-selected', i === palette.sel ? 'true' : 'false');
+    });
     var s = items[palette.sel];
     if (s && s.scrollIntoView) s.scrollIntoView({ block: 'nearest' });
   }
@@ -868,8 +1141,10 @@
     box.innerHTML = '';
     if (!hits.length) { box.innerHTML = '<div class="p-empty">没有结果</div>'; return; }
     hits.forEach(function (it, i) {
-      var n = el('div', 'p-item' + (i === palette.sel ? ' sel' : ''), '<span class="p-type">' + it.type + '</span><span>' + esc(it.label) + '</span><span class="p-sub">' + esc(it.sub) + '</span>');
+      var n = buttonize(el('div', 'p-item' + (i === palette.sel ? ' sel' : ''), '<span class="p-type">' + it.type + '</span><span>' + esc(it.label) + '</span><span class="p-sub">' + esc(it.sub) + '</span>'), 'option');
+      n.setAttribute('aria-selected', i === palette.sel ? 'true' : 'false');
       n.addEventListener('click', function () { closePalette(); it.act(); });
+      keyActivate(n);
       box.appendChild(n);
     });
   }
@@ -915,11 +1190,24 @@
   function closeSidebar() {
     $('#sidebar').classList.remove('open');
     $('#sideMask').classList.remove('show');
+    var mb = $('#menuBtn'); if (mb) mb.setAttribute('aria-expanded', 'false');
   }
   function bindChrome() {
     $('#menuBtn').addEventListener('click', function () {
-      $('#sidebar').classList.toggle('open');
-      $('#sideMask').classList.toggle('show');
+      var open = !$('#sidebar').classList.contains('open');
+      $('#sidebar').classList.toggle('open', open);
+      $('#sideMask').classList.toggle('show', open);
+      $('#menuBtn').setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    // 金字塔层在触屏/键盘上可点开说明(hover 之外)
+    $$('.pyr-row').forEach(function (r) {
+      buttonize(r);
+      r.setAttribute('aria-expanded', 'false');
+      r.addEventListener('click', function () {
+        r.classList.toggle('open');
+        r.setAttribute('aria-expanded', r.classList.contains('open') ? 'true' : 'false');
+      });
+      keyActivate(r);
     });
     $('#sideMask').addEventListener('click', closeSidebar);
     $('#themeBtn').addEventListener('click', function () {
@@ -948,6 +1236,10 @@
     applyTheme();
     buildNav();
     buildHome();
+    buildRsiLevels();
+    buildGodel();
+    buildEvoSim();
+    buildCapMap();
     buildCordis();
     buildSim();
     buildLoop();
@@ -958,6 +1250,9 @@
     buildCommands();
     buildGlossary();
     buildQuiz();
+    buildCarriers();
+    buildSafety();
+    buildExperiments();
     buildFooters();
     buildCodeblocks();
     bindChrome();

@@ -909,6 +909,139 @@ select.sel-input:focus { border-color: var(--acc); box-shadow: 0 0 0 3px rgba(77
 .side-mask { position: fixed; inset: 0; z-index: 35; background: rgba(4, 8, 20, 0.5); display: none; }
 .side-mask.show { display: block; }
 
+/* ---------- 模块卡(首页路线图) ---------- */
+.modcard { display: flex; gap: 13px; align-items: flex-start; cursor: pointer; }
+.modcard .nv {
+  flex: none; width: 40px; height: 40px; border-radius: 12px;
+  display: grid; place-items: center;
+  background: rgba(77, 107, 254, 0.16); border: 1px solid rgba(77, 107, 254, 0.35); color: var(--cyan);
+}
+.modcard.done2 .nv { background: rgba(52, 211, 153, 0.15); border-color: rgba(52, 211, 153, 0.4); color: var(--green); }
+.modcard h3 { margin: 2px 0 3px; font-size: 0.98rem; }
+.modcard .mc-meta { font-family: var(--mono); font-size: 0.7rem; color: var(--faint); margin-top: 8px; }
+.nav-item .nav-title { min-width: 0; }
+.sidebar h4 svg { vertical-align: -2px; margin-right: 2px; }
+
+/* ---------- RSI 分级 ---------- */
+.layer.lv-cur { border-color: rgba(34, 211, 238, 0.5); background: rgba(34, 211, 238, 0.06); }
+.lv-tag {
+  font-size: 0.66rem; font-weight: 700; color: var(--cyan);
+  border: 1px solid rgba(34, 211, 238, 0.45); border-radius: 999px; padding: 1px 8px;
+  margin-left: 8px; vertical-align: 2px;
+}
+
+/* ---------- 能力地图卡 ---------- */
+.cap-card .cc-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.cap-card .cc-head h3 { margin: 0; }
+.cap-card .cc-refs { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
+.cap-card .cc-refs code { font-size: 0.72em; }
+.cap-card .cc-q {
+  margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--line);
+  font-size: 0.8rem; color: var(--faint); font-style: italic;
+}
+
+/* ---------- 载体对比 ---------- */
+.stars { color: var(--amber); font-size: 0.9rem; letter-spacing: 1px; }
+
+/* ---------- 安全清单 ---------- */
+.safe-num {
+  flex: none; width: 24px; height: 24px; border-radius: 8px;
+  display: inline-grid; place-items: center;
+  font-family: var(--mono); font-size: 0.72rem;
+  background: linear-gradient(135deg, var(--acc), var(--acc2)); color: #fff;
+}
+
+/* ---------- 实战关卡 ---------- */
+.exp-progress { display: flex; align-items: center; gap: 14px; margin: 14px 0 18px; }
+.exp-progress .ep-bar {
+  flex: 1; height: 8px; border-radius: 6px;
+  background: var(--panel-2); border: 1px solid var(--line-soft); overflow: hidden;
+}
+.exp-progress .ep-bar > div {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--acc), var(--cyan));
+  transition: width 0.5s ease;
+}
+.exp-card { margin-bottom: 14px; }
+.exp-card.exp-done { border-color: rgba(52, 211, 153, 0.45); background: rgba(52, 211, 153, 0.05); }
+.exp-head { display: flex; gap: 13px; align-items: flex-start; }
+.exp-head input[type="checkbox"] {
+  flex: none; width: 20px; height: 20px; margin-top: 4px;
+  accent-color: var(--acc); cursor: pointer;
+}
+.exp-head .exp-lv { font-family: var(--mono); font-size: 0.72rem; color: var(--cyan); letter-spacing: 0.06em; }
+.exp-head h3 { margin: 2px 0 0; }
+.exp-card .exp-desc { margin: 8px 0 0; }
+.exp-card .exp-verify {
+  margin-top: 10px; padding: 8px 12px; border-left: 3px solid var(--amber);
+  background: rgba(251, 191, 36, 0.07); border-radius: 0 9px 9px 0;
+  font-size: 0.84rem; color: var(--muted);
+}
+.exp-card.exp-done .exp-verify { border-left-color: var(--green); background: rgba(52, 211, 153, 0.07); }
+
+/* ---------- 开放进化模拟器 ---------- */
+.evo-grid {
+  display: grid; grid-template-columns: repeat(8, 1fr); gap: 7px;
+  padding: 14px 4px 6px;
+}
+.evo-cell {
+  border: 1px solid var(--line-soft); border-radius: 10px;
+  padding: 8px 6px; text-align: center; min-height: 46px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.2s ease;
+}
+.evo-cell.empty { opacity: 0.25; }
+.evo-cell.alive { border-color: rgba(77, 107, 254, 0.5); background: rgba(77, 107, 254, 0.1); }
+.evo-cell.dead { border-color: rgba(251, 113, 133, 0.35); opacity: 0.55; }
+.evo-cell.best { border-color: var(--amber); background: rgba(251, 191, 36, 0.12); box-shadow: 0 0 14px rgba(251, 191, 36, 0.3); }
+.evo-cell .ec-bits { display: flex; justify-content: center; gap: 2px; flex-wrap: wrap; }
+.evo-cell .ec-bits i { width: 7px; height: 7px; border-radius: 2px; background: var(--line); }
+.evo-cell .ec-bits i.on { background: var(--cyan); }
+.evo-cell .ec-score { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); margin-top: 4px; }
+.evo-cell.best .ec-score { color: var(--amber); font-weight: 700; }
+@media (max-width: 640px) { .evo-grid { grid-template-columns: repeat(4, 1fr); } }
+
+/* ---------- 跳转链接与键盘焦点 ---------- */
+.skip-link {
+  position: fixed; top: -60px; left: 16px; z-index: 120;
+  padding: 10px 18px; border-radius: 0 0 12px 12px;
+  background: var(--acc); color: #fff; font-weight: 700; font-size: 0.9rem;
+  transition: top 0.18s ease;
+}
+.skip-link:focus { top: 0; text-decoration: none; }
+:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.nav-item:focus-visible, .p-item:focus-visible, .gloss-item:focus-within { outline-offset: -2px; }
+
+/* ---------- 包名跨组重复 / 数据快照说明 ---------- */
+.pkg-pill .dup-n { color: var(--amber); font-size: 0.62rem; margin-left: 2px; }
+.pkg-pill.dup { border-style: dotted; }
+.snap-note { margin-top: 10px; }
+
+/* ---------- 无 JS 降级:静态阅读模式 ---------- */
+html:not(.js) .topbar .top-actions,
+html:not(.js) .topbar .icon-btn,
+html:not(.js) .progress-top,
+html:not(.js) .sidebar,
+html:not(.js) .side-mask { display: none; }
+html:not(.js) .main,
+html:not(.js) .site-footer { margin-left: 0; }
+html:not(.js) .chapter { display: block; }
+html:not(.js) .reveal { opacity: 1; transform: none; }
+html:not(.js) .pyr-row .py-d { max-height: 90px; }
+html:not(.js) .loop-step .ls-desc { display: block; }
+html:not(.js) .orbit-wrap,
+html:not(.js) .searchbar { display: none; }
+html:not(.js) .noscript-toc {
+  border: 1px solid var(--line-soft); border-radius: 14px;
+  padding: 18px 18px 18px 40px; margin: 10px 0 26px;
+  background: var(--panel); columns: 2; font-size: 0.95rem;
+}
+html:not(.js) .noscript-toc a { display: inline-block; padding: 3px 0; }
+
 /* ---------- 无动画偏好 ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001s !important; animation-iteration-count: 1 !important; transition-duration: 0.001s !important; }

@@ -1,6 +1,6 @@
-# how-to-rsi · DSH 互动学堂
+# how-to-rsi · 造一个能改进自己的 Agent
 
-一个纯静态、可离线使用的 DeepSeek Harness(dsh)交互式学习网站。（本 README 替换了原先的占位内容，旧版可经 git 历史找回。）
+一个纯静态、可离线使用的交互式学习与实践站：目标是 **RSI(Recursive Self-Improvement,递归自我改进)**。DeepSeek Harness(dsh) 是本站的实战载体——它是目前公开实现中唯一让 agent 把新代码变成"自己身体的一部分"（运行时 Cordis 插件）的 harness。
 
 ## 使用方法
 
@@ -17,22 +17,33 @@ npx serve .
 
 然后打开 http://127.0.0.1:8080。
 
-## 内容与功能
+## 内容与结构
 
-- 12 个章节：认识 DSH → Cordis 核心 → 架构总览 → Agent Loop → 会话与持久化 → 包版图 → 工具系统 → 工程规范 → 测试体系 → 开发工作流 → 术语表 → 知识闯关
-- 交互组件：事件分发模拟器、Agent Loop 逐帧播放器(含会话日志磁带)、包版图探索器(52 组 / 280+ 包)、工具目录探索器(72 个 schema)、扩展点选择器、可搜索术语表、12 题测验(带解析与彩蛋)
-- 全局能力：Ctrl/Cmd+K 命令面板搜索、←/→ 翻章、亮/暗主题、学习进度持久化(localStorage)、代码一键复制、响应式 + 减动效适配
+四个模块，先学后做：
+
+- **北极星**：什么是 RSI、自我改进分级阶梯(L0–L5)、RSI 回路的最小形状；哥德尔机谱系(2003 原型 → DGM → HGM)与"贪心爬坡 vs 开放档案"模拟器
+- **能力地图**：实现 RSI 的六项机制 ↔ DSH 包级映射(自改/记忆/评估/沙箱/目标/护栏)
+- **载体实战 · DSH**：11 章交互教程(认识 DSH → Cordis → 架构 → Agent Loop → 持久化 → 包版图 → 工具 → 规范 → 测试 → 工作流 → 术语 → 12 题测验)
+- **进阶之路**：载体对比(谁让你改运行时) → 安全与护栏 → 五个递进实战关卡(L1 读图 → L4 策略插件化)
+
+交互与全局能力：
+
+- 事件分发模拟器、Agent Loop 逐帧播放器(含会话日志磁带)、包版图探索器(52 组 / 280+ 包)、工具目录探索器(按包归组的全部工具条目)、扩展点选择器、可搜索术语表、12 题测验(带解析与彩蛋)、实战关卡 checklist(带验收标准)
+- Ctrl/Cmd+K 命令面板搜索、←/→ 翻章、亮/暗主题、学习进度持久化(localStorage)、代码一键复制、响应式 + 减动效适配
+- 可访问性：全站可键盘操作(焦点环/跳转链接/ARIA 标注)；禁用 JavaScript 时自动降级为带目录的纯阅读模式
 
 ## 内容来源与可信度
 
-内容整理自 deepseek-harness 仓库的权威文档：`AGENTS.md`、`docs/architecture.md`、`docs/cordis-primer.md`、`docs/testing.md`、`docs/glossary.md`、`docs/defensive-patterns.md`、`docs/session-format-status.md`、`packages/README.md`、`docs/tool-catalog.md` 等；包/工具清单取自仓库实测。标注“教学示意”的代码片段为示意性质，非仓库原文。DSH 处于 developer preview，一切以仓库为准。
+- **RSI 概念章节为教学整理**（非学术论文），安全章节只讨论"有审批、可回滚、可评估"的工程实现。
+- **DSH 章节**整理自 deepseek-harness 仓库的权威文档：`AGENTS.md`、`docs/architecture.md`、`docs/cordis-primer.md`、`docs/testing.md`、`docs/glossary.md`、`docs/defensive-patterns.md`、`packages/README.md` 等；包/工具清单取自仓库实测时点快照(见 data.js 的 DSH.meta)。标注"教学示意"的代码片段为示意性质。DSH 处于 developer preview，一切以仓库为准。
+- **载体对比表**为教学整理，基于各产品公开文档与发布形态，随版本演进可能变化。
 
 ## 目录结构
 
 ```
 index.html            单页应用(全部章节正文)
 assets/css/main.css   设计系统与动画
-assets/js/data.js     内容数据(章节/包/工具/术语/测验…)
+assets/js/data.js     内容数据(模块/章节/包/工具/术语/测验/RSI 数据…)
 assets/js/app.js      路由、交互组件、动效引擎
 assets/favicon.svg    站点图标
 ```
