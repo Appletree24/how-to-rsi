@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DSH 互动学堂 · DeepSeek Harness 完全学习指南</title>
+<meta name="description" content="交互式学习 DeepSeek Harness(dsh)：Cordis 插件架构、Agent Loop、会话持久化、能力接缝、测试体系与工程规范。">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<div class="bg-decor"></div>
+<div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+<div class="progress-top"><div id="scrollProgress"></div></div>
+
+<header class="topbar">
+  <button class="icon-btn" id="menuBtn" aria-label="菜单">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+  <a class="brand" href="#/home">
+    <span class="logo">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h2a2 2 0 1 1 4 0h2v4a2 2 0 1 1 0 4v4h-4a2 2 0 1 0-4 0H5v-4a2 2 0 1 0 0-4V4h4Z"/></svg>
+    </span>
+    DSH 互动学堂 <span class="sub">DeepSeek Harness 完全学习指南</span>
+  </a>
+  <div class="top-spacer"></div>
+  <div class="top-actions">
+    <button class="icon-btn" id="searchBtn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      搜索 <span class="kbd">Ctrl K</span>
+    </button>
+    <span class="progress-pill" title="学习进度(标记完成的章节)">
+      <svg class="ring" viewBox="0 0 26 26">
+        <defs>
+          <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#4d6bfe"/><stop offset="1" stop-color="#22d3ee"/>
+          </linearGradient>
+        </defs>
+        <circle class="bgc" cx="13" cy="13" r="10" fill="none" stroke-width="3"/>
+        <circle class="fgc" id="progressRingFg" cx="13" cy="13" r="10" fill="none" stroke-width="3" stroke-dasharray="62.8" stroke-dashoffset="62.8"/>
+      </svg>
+      <span class="pp-txt" id="progressPct">0%</span>
+    </span>
+    <button class="icon-btn" id="themeBtn" aria-label="切换主题"></button>
+  </div>
+</header>
+
+<div class="side-mask" id="sideMask"></div>
+<div class="layout">
+  <nav class="sidebar" id="sidebar"><div id="navList"></div></nav>
+
+  <main class="main" id="main">
+
+  <!-- ============ 首页 ============ -->
+  <section class="chapter" id="ch-home">
+    <div class="hero">
+      <div>
+        <span class="ch-kicker">✦ Interactive Guide · 基于仓库真实文档构建</span>
+        <div class="hero-title">把 <span class="grad">DeepSeek Harness</span><br>一次学透</div>
+        <p class="hero-sub">DSH 是一个“一切皆插件”的开源 Agent Harness：模型适配器、工具注册表、会话日志、甚至 Agent 循环本身都是可替换的 Cordis 插件。本站用 12 个交互章节带你从零掌握它的架构、约定与工程文化。</p>
+        <div class="hero-cta">
+          <a class="btn primary" href="#/intro">开始学习 →</a>
+          <a class="btn" href="#/loop">直接看 Agent Loop 动画</a>
+        </div>
+        <p class="small muted" style="margin-top:14px">⌨ 小技巧：<span class="kbd">←</span> <span class="kbd">→</span> 切换章节，<span class="kbd">Ctrl K</span> 全局搜索</p>
+      </div>
+      <div class="orbit-wrap reveal">
+        <div class="orbit-ring r2" id="orbitR2"></div>
+        <div class="orbit-ring r1" id="orbitR1"></div>
+        <div class="orbit-core">Cordis<br>Context</div>
+      </div>
+    </div>
+
+    <div class="grid cols4" id="statsRow"></div>
+
+    <div class="term reveal" style="margin:26px 0">
+      <div class="t-head"><span>●</span> dsh — 两分钟感受它在做什么</div>
+      <pre id="heroTerm"></pre>
+    </div>
+
+    <h2>学习路径</h2>
+    <p class="lead">按顺序学效果最佳：前五章建立心智模型，中间三章熟悉版图与规范，最后用测验验收。每章末尾可标记完成，进度保存在本地。</p>
+    <div class="grid cols2" id="pathGrid"></div>
+
+    <div class="callout info reveal"><span class="t">内容可信度</span>本站内容整理自 deepseek-harness 仓库的权威文档：<code>AGENTS.md</code>、<code>docs/architecture.md</code>、<code>docs/cordis-primer.md</code>、<code>docs/testing.md</code>、<code>docs/glossary.md</code>、<code>packages/README.md</code> 等。个别代码片段为教学示意(已标注)；一切以仓库源码与文档为准。DSH 处于 developer preview，接口仍在快速迭代。</div>
+  </section>
+
+  <!-- ============ 01 认识 DSH ============ -->
+  <section class="chapter" id="ch-intro">
+    <span class="ch-kicker">Chapter 01</span>
+    <h1>认识 <span class="grad">DeepSeek Harness</span></h1>
+    <p class="lead">先回答三个问题：什么是 Agent Harness？为什么“一切皆插件”？以及——它在你机器上长什么样。</p>
+
+    <h2>什么是 Agent Harness</h2>
+    <p>大模型只会“说话”；让它真正<strong>干活</strong>需要一套运行时：组装提示词、把工具暴露给模型、执行工具调用、把每一步记录成可重放的会话、处理取消/重试/恢复。这套运行时就是 <strong>Agent Harness</strong>。</p>
+    <div class="grid cols3">
+      <div class="card reveal d1"><div class="icon">🧠</div><h3>模型负责思考</h3><p>DeepSeek 等 LLM 提供推理与工具调用意图；对 harness 而言模型只是一个可替换的适配器。</p></div>
+      <div class="card reveal d2"><div class="icon">⚙️</div><h3>Harness 负责落地</h3><p>文件、终端、浏览器、网络、子智能体……能力以插件形式注册，经统一流水线安全执行。</p></div>
+      <div class="card reveal d3"><div class="icon">💾</div><h3>会话是真相源</h3><p>每一步都写入追加式会话日志：可重放、可 fork、可导出，重启后不丢上下文。</p></div>
+    </div>
+
+    <h2>DSH 是什么</h2>
+    <p><strong>DeepSeek Harness(<code>dsh</code>)</strong>是 DeepSeek AI 开源的 agent harness，采用 <strong>everything-is-a-plugin</strong> 架构，底层是插件框架 <a href="https://github.com/cordiverse/cordis" target="_blank" rel="noopener">Cordis</a>(以 vendored 方式内置，其设计见论文《A Programming Paradigm for Spatiotemporal Composability》)。它以 MIT 协议发布。</p>
+    <div class="callout law"><span class="t">核心世界观：没有特权核心</span>模型适配器、工具注册表、会话日志、甚至 agent 循环本身都是插件，均可从配置替换。扩展 dsh 不是“patch 核心”，而是在旁边挂载一个新插件；注册都是可逆效果，插件卸载时自动回收。</div>
+
+    <h2>两分钟上手</h2>
+    <div class="codeblock">
+      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 快速运行(npm)</div>
+      <pre data-lang="sh">npx @deepseek-ai/dsh web
+# → 启动 Web UI，默认 http://127.0.0.1:3080 并自动打开浏览器
+# → --no-open 只起服务不开浏览器；SSH 会话只打印 URL</pre>
+    </div>
+    <div class="codeblock">
+      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 从源码运行</div>
+      <pre data-lang="sh">git clone https://github.com/deepseek-ai/deepseek-harness.git
+cd deepseek-harness
+pnpm install        # Node ^22.19 || >=24，Corepack 管理的 pnpm
+pnpm run build      # tsc 产出 lib/类型，tsdown 打包运行时
+pnpm dsh web        # 使用已构建产物启动</pre>
+    </div>
+    <div class="callout warn"><span class="t">密钥与安全</span>真实运行与 e2e 测试读 <code>DEEPSEEK_API_KEY</code>(可选 <code>DEEPSEEK_BASE_URL</code>，支持根目录 <code>.env</code>)。永远不要提交凭据。DSH 处于 developer preview，会有破坏性变更；运行前建议阅读仓库的 SAFETY.md。</div>
+
+    <h2>应用启动铁律</h2>
+    <p>所有受支持的 Node 应用<strong>只能</strong>从 <code>dsh</code> CLI + 命名 profile 启动：</p>
+    <div class="chips">
+      <span class="chip on">dsh web</span>
+      <span class="chip">dsh --profile headless</span>
+      <span class="chip">dsh --profile sdk</span>
+      <span class="chip">dsh --profile sdk-minimal</span>
+      <span class="chip">dsh --profile acp</span>
+    </div>
+    <p class="muted small">包自带 bin、demo 脚本、公开 SDK 的 argv 逃逸、直接在进程内挂插件树 —— 都不是合法的应用启动方式；静态门禁 <code>verify-application-entrypoints</code> 会拒绝绕过 dsh 的路径。TypeScript / Python SDK 也遵循同一架构：客户端解析同版本 dsh 并选择 <code>sdk</code> profile。</p>
+
+    <h2>仓库鸟瞰</h2>
+    <div class="tree reveal">deepseek-harness/
+├─ <b>vendor/</b>        内置的 Cordis 源码(钉住上游 SHA，有同步流程)
+├─ <b>packages/</b>      52 个分组、280+ 个 workspace 包 —─ 产品本体 <span class="hl">← 第 06 章可交互探索</span>
+├─ <b>apps/</b>          web / cli / desktop 应用壳
+├─ <b>python/</b>        Python SDK 与运行时
+├─ <b>native/</b>        @deepseek-ai/node-addon-system 原生模块
+├─ <b>benchmarks/</b>    性能门禁(必过的 Linux PR gate)
+├─ <b>snapshots/</b>     录制会话快照(session / sdk / acp / web)
+├─ <b>docs/</b>          架构、子系统、cookbook、术语表、生成目录
+├─ <b>.agents/</b>       Agent Notes(决策记录)与技能
+├─ <b>scripts/</b>       静态门禁与生成器
+└─ <b>website/</b>       VitePress 文档网站投影</div>
+    <p class="small muted">有趣的细节：根目录与 <code>packages/</code> 的 <code>CLAUDE.md</code> 是指向 <code>AGENTS.md</code> 的符号链接 —— 同一份“给 agent 的行动准则”服务多家编码 agent。</p>
+
+    <div class="callout ok"><span class="t">本章要点</span>DSH = 开源 agent harness；一切皆 Cordis 插件，没有特权核心；只有 dsh CLI + 命名 profile 能启动应用；会话日志是真相源。接下来先把地基——Cordis——打牢。</div>
+  </section>
+
+  <!-- ============ 02 Cordis 核心 ============ -->
+  <section class="chapter" id="ch-cordis">
+    <span class="ch-kicker">Chapter 02</span>
+    <h1><span class="grad">Cordis</span> 核心：插件、服务与事件</h1>
+    <p class="lead">Cordis 是 DSH 脚下的插件框架：插件向共享上下文贡献服务、类型化事件与可逆效果。掌握本章五个理念，后面所有章节都会变得顺理成章。</p>
+
+    <h2>五个理念看懂 Cordis</h2>
+    <div class="grid cols3" id="ideaGrid"></div>
+
+    <h2>插件长什么样</h2>
+    <p>仓库约定了两种导出形态，<strong>不得混用</strong>：服务包 <code>default</code> 导出其 Service 类；函数插件具名导出 <code>name</code> / <code>inject</code> / <code>Config</code> / <code>apply</code> 且绝不能有 default 导出——混用会让 Loader 丢弃函数插件的命名空间(这是一次真实事故，见 postmortem 0001)。</p>
+    <div class="codeblock">
+      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 函数插件骨架(教学示意，非仓库原文)</div>
+      <pre data-lang="ts">// 函数插件：具名导出 name / inject / Config / apply，禁止 default 导出
+export const name = 'my-plugin'
+export const inject = ['tools']            // 声明依赖：服务就绪前不加载
+export interface Config { greeting: string }
+
+export function apply(ctx: Context, config: Config) {
+  // 注册即效果：ctx.effect() 返回 disposer，插件卸载/重载时自动回收
+  ctx.effect(() =&gt; registerMyTool(ctx, config))
+}</pre>
+    </div>
+    <div class="callout warn"><span class="t">可选服务怎么读？</span>已声明在 <code>inject</code> 里的服务用 <code>ctx.键</code> 读；<strong>可选</strong>服务必须用 <code>ctx.get(name)</code>——属性代理对插件拓扑敏感，而 <code>ctx.get</code> 读全局服务存储。这也来自 postmortem 0001 的教训。</div>
+
+    <h2>五种事件分发模式 · 交互模拟器</h2>
+    <p>每个事件固定一种分发模式，它是事件公开契约的一部分(JSDoc 用 <code>@mode</code> 标注，生成目录会校验声明与分发点一致)。选一个模式，点“分发事件”，观察四个监听器的行为差异：</p>
+    <div class="sim" id="dispatchSim"></div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>模式</th><th>是否等待</th><th>分发顺序</th><th>返回值</th></tr></thead>
+        <tbody id="dispatchTable"></tbody>
+      </table>
+    </div>
+
+    <h2>Waterfall：环绕式中间件</h2>
+    <p><code>ctx.waterfall</code> 是 around-middleware：监听器收到 <code>(...args, next)</code>。调用 <code>next()</code> 把(可能被包装的)结果委托给下一个监听器；不调用就是短路。值通过 <code>next()</code> 的返回值逐层回传。</p>
+    <ul>
+      <li><strong>合作型监听器</strong>通常修改共享的请求/决策对象后委托；也可以整体替换结果，下游只能看到替换后的值。</li>
+      <li><strong>单决策事件</strong>的短路是设计本意：拥有决定权的策略监听器可以不调 <code>next()</code> 直接返回；只做注释/观察的监听器<strong>必须</strong>委托。</li>
+      <li><code>prepend: true</code> 仅在监听器必须先于常规注册运行时使用。</li>
+    </ul>
+    <div class="codeblock">
+      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> waterfall 监听器(教学示意)</div>
+      <pre data-lang="ts">ctx.on('tools/pre-execute', async (call, next) =&gt; {
+  if (violatesPolicy(call)) return deny(call)  // 短路：本监听器拥有决定权
+  annotate(call)                               // 合作：注释后必须委托
+  return next()
+})</pre>
+    </div>
+
+    <h2>Loader 与 cordis.yml</h2>
+    <p>插件树由 <code>cordis.yml</code> 配置行描述。<code>!!js</code> 表达式(注意：永远不是 <code>!js</code>)只允许出现在两处：插件的 <code>config</code> 与条目的 <code>disabled</code>；其它元数据保持字面量，环境选择插件时用 overlay。config 在声明注入就绪后、针对插件上下文插值；<code>disabled</code> 在每次挂载决策时、针对 loader 上下文求值。</p>
+    <div class="codeblock">
+      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> cordis.patch.yml(教学示意)</div>
+      <pre data-lang="yaml"># patch 按 id 定位一行，整体替换其 config，或插入新行
+- id: my-llm-row
+  plugin: dsh-llm-deepseek
+  config:
+    baseURL: !!js process.env.DEEPSEEK_BASE_URL   # !!js 仅限 config / disabled</pre>
+    </div>
+
+    <h2>实践守则</h2>
+    <div class="grid cols2">
+      <div class="card reveal d1"><h3>行为封装进插件</h3><p>工具流水线事件属于 <code>ctx.tools</code>，模型流属于 <code>ctx.llm</code>，存活 agent 协调属于 <code>ctx.agents</code>。拦截与策略用事件；直接能力调用用服务方法。</p></div>
+      <div class="card reveal d2"><h3>每个注册都有 disposer</h3><p>要么从 <code>ctx.effect()</code> 返回，要么用帮你处理的 Cordis helper。teardown 顺序重要时，把相关工作放进同一个 effect，让回收按预期顺序展开。</p></div>
+    </div>
+    <div class="callout ok"><span class="t">本章要点</span>插件实现 Service；Context 是服务仓库；inject 表达依赖；五种 dispatch 模式各司其职(waterfall 必须 next())；一切注册都是可逆效果。</div>
+  </section>
+
+  <!-- ============ 03 架构总览 ============ -->
+  <section class="chapter" id="ch-architecture">
+    <span class="ch-kicker">Chapter 03</span>
+    <h1>架构总览：<span class="grad">从引导到事件域</span></h1>
+    <p class="lead">一个运行中的 dsh，是在启动时由有序分层组合出的插件树。理解“分层组合 + 核心服务 + 三大事件域”，就拿到了阅读整个仓库的地图。</p>
+
+    <h2>Profile × Bundle × Patch：分层引导</h2>
+    <p><strong>Profile</strong> 是存在 Harness home 的具名组合：列出要堆叠的 bundle、存放仓外插件、保存用户自己的 <code>cordis.patch.yml</code>。<strong>Bundle</strong> 是“Cordis 配置行 + 它们挂载的代码”的分发格式，它插入的一切对上层保持可 patch。两者都在自己的 <code>package.json</code> 的 <code>dsh</code> 字段里自报身份。</p>
+    <p>层按以下顺序应用到一个空条目列表上(悬停感受层叠关系)：</p>
+    <div class="layerstack">
+      <div class="layer reveal d1"><span class="ln">1</span><div><div class="lt">Bundles(按 profile 声明的顺序)</div><div class="ld">如 dsh-base → dsh-web-app；base 提供模型适配器、工具、持久化、沙箱与审批策略、设置、凭据、遥测</div></div><span class="arrow-down">↓</span></div>
+      <div class="layer reveal d2"><span class="ln">2</span><div><div class="lt">Profile 的 cordis.patch.yml</div><div class="ld">这个命名组合自己的补丁</div></div><span class="arrow-down">↓</span></div>
+      <div class="layer reveal d3"><span class="ln">3</span><div><div class="lt">Home 层 cordis.patch.yml</div><div class="ld">用户在 Harness home 的全局补丁</div></div><span class="arrow-down">↓</span></div>
+      <div class="layer reveal d4"><span class="ln">4</span><div><div class="lt">--patch 覆盖层</div><div class="ld">命令行临时叠加；patch 按 id 定位行、整体替换 config 或插入新行</div></div></div>
+    </div>
+    <p class="small muted">发货的 profile：<code>web</code>(支持 patch 热重载)、<code>headless</code>、<code>sdk</code>、<code>sdk-minimal</code>、<code>acp</code>(启动时一次性应用所有层——一次性/stdio 应用拥有工作后替换依赖会破坏其生命周期)。其中 <code>sdk-minimal</code> 是刻意的例外：单 bundle 拥有完整显式插件树，不叠 dsh-base。</p>
+    <div class="codeblock">
+      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 看看你机器上引导出的树</div>
+      <pre data-lang="sh">dsh --profile web --dump-config
+# 打印出的任意一行，都可以被你自己的 patch 替换</pre>
+    </div>
+
+    <h2>核心包与 ctx 键</h2>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>包</th><th>拥有</th><th>ctx 键</th></tr></thead>
+        <tbody>
+          <tr><td><code>core/session</code></td><td>追加式 SessionEvent 日志与内存存储</td><td><code>ctx.sessions</code></td></tr>
+          <tr><td><code>core/system-prompt</code></td><td>提示词段落与工具 schema 组装</td><td><code>ctx.systemPrompt</code></td></tr>
+          <tr><td><code>core/tools</code></td><td>作用域化工具注册表与守卫执行流水线</td><td><code>ctx.tools</code></td></tr>
+          <tr><td><code>core/agent</code></td><td>Agent 接口、存活注册表与 agent/* 事件</td><td><code>ctx.agents</code></td></tr>
+          <tr><td><code>core/agent-loop</code></td><td>实现该接口的默认驱动器(可整体替换)</td><td><code>ctx.agentLoop</code></td></tr>
+          <tr><td><code>core/scope</code></td><td>按 agent 的作用域注册原语</td><td>库，无键</td></tr>
+          <tr><td><code>llm/llm</code></td><td>消息/流词汇与适配器 seam</td><td><code>ctx.llm</code></td></tr>
+          <tr><td><code>webhook/webhook</code></td><td>已验证投递分发与 Workspace 会话创建</td><td><code>ctx.webhookRuntime</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>三大事件域：选对域是多数改动的第一个决策</h2>
+    <div class="grid cols3">
+      <div class="card domain-card reveal d1"><h3>Session 事件</h3><p>追加到日志的<strong>持久事实</strong>，经 <code>session/event</code> 广播。事实必须在重启后存活？用它。</p></div>
+      <div class="card domain-card dm2 reveal d2"><h3>Agent 事件(agent/*)</h3><p>携带<strong>存活 Agent</strong>：inbox、step、status、request、validation、continuation。观察或拦截飞行中的工作？用它。</p></div>
+      <div class="card domain-card dm3 reveal d3"><h3>能力事件</h3><p><code>fs/*</code>、<code>tools/*</code>、<code>telemetry/*</code>：不导入循环就能在 seam 上附加策略与适配器。</p></div>
+    </div>
+    <p class="small muted">AgentLoop 会 await 串行的 <code>agent/created</code> 初始化后才开始排队工作；初始化失败回滚创建。完整的事件生产者/消费者地图见 <code>docs/event-producer-consumer.md</code>。</p>
+
+    <h2>新行为应该放在哪里？选一个目标试试</h2>
+    <p>铁律：新行为挂到有文档的扩展点上，而不是修改循环。下面是官方查询表的交互版：</p>
+    <div id="extPicker"></div>
+
+    <h2>桌面应用(Electron)一瞥</h2>
+    <p class="muted">Electron 桌面应用把精确的 dsh 生产运行时带在签名资源里；渲染器通过安全的 <code>dsh-app://</code> 协议访问，整套组合<strong>不开任何 Web 服务器或回环端口</strong>；保留的 <code>$DSH_HOME/profiles/desktop</code> 存放外部插件。对初学者：知道它和 CLI 共享 <code>$DSH_HOME</code> 产品数据即可。</p>
+
+    <div class="callout ok"><span class="t">本章要点</span>启动 = bundle → profile patch → home patch → --patch 逐层叠加；核心服务各居其 ctx 键；事件分三域(持久/存活/能力)；新行为一律挂扩展点。</div>
+  </section>
+
+  <!-- ============ 04 Agent Loop ============ -->
+  <section class="chapter" id="ch-loop">
+    <span class="ch-kicker">Chapter 04</span>
+    <h1><span class="grad">Agent Loop</span> 剖析：一个回合的一生</h1>
+    <p class="lead">这是全站最重要的一章。先记住两个定义，再用播放器逐帧看完一个回合 —— 右侧磁带会同步展示会话日志里真正留下的事件。</p>
+
+    <div class="grid cols3">
+      <div class="card reveal d1"><h3>step 步骤</h3><p>一次模型请求 + 它引发的工具调用。</p></div>
+      <div class="card reveal d2"><h3>turn 回合</h3><p>零到多个 step：在领取第一份输入前开启，直到不再“欠”任何工作才关闭。</p></div>
+      <div class="card reveal d3"><h3>round 轮次</h3><p>包含一个 turn 的外层策略迭代(goal round、Ralph 尝试)；计数器属于那个策略。</p></div>
+    </div>
+
+    <h2>回合播放器</h2>
+    <p>示例任务：用户说“把 README 里的错别字改掉”。点击自动播放，或用 ←/→ 逐帧推进：</p>
+    <div class="loop-player" id="loopPlayer"></div>
+
+    <h2>这张图背后的硬规则</h2>
+    <ul>
+      <li><strong>持久事件</strong>：<code>turn/*</code>、<code>step/*</code>、<code>system/message</code>、<code>user/message</code>、<code>assistant/message</code>、<code>assistant/attempt</code>、<code>tool/*</code> 写入会话日志；其余是三大域的存活扩展点。</li>
+      <li><strong>waterfall 家族</strong>：<code>agent/pre-step</code>、<code>agent/request</code>、<code>llm/stream</code> 与三个 <code>tools/*</code> 事件都是 waterfall，监听器必须 <code>next()</code> 委托；<code>agent/turn-stopping</code> 是 serial，没有 next()。</li>
+      <li><strong>重试语义</strong>：每次尝试同步对账同一份已渲染组装，只在首次尝试追加 user 消息；重试不重新组装、不重跑 pre-step。失败/重试/取消/流错误的尝试沉淀为 <code>assistant/attempt</code>，不进入模型历史。</li>
+      <li><strong>历史不可变</strong>：循环发送不可变请求同时保持取消能力；消息冻结证据只在完整冻结的身份上复用。</li>
+      <li><strong>收件箱规则</strong>：输入经唯一 inbox 抵达驱动器；有些消息立即唤醒，注入的上下文(<code>agent.inject()</code>)则等到另一条消息唤醒才随行。</li>
+      <li><strong>系统提示词也是历史</strong>：提示词只以 <code>system/message</code> 历史的形式旅行；空渲染会清空所有活跃 system 节点，不留旧提示词可见。</li>
+    </ul>
+
+    <div class="callout info"><span class="t">延伸阅读</span>时序图 <code>docs/agent-lifecycle.md</code>、工具流水线 <code>docs/tool-execution-pipeline.md</code>、取消与错误恢复 <code>docs/subsystems/core.md</code>。驱动器本体在 <code>packages/core/agent-loop</code>，它只是“默认”实现 —— 接口在 <code>core/agent</code>，整个驱动器都可替换。</div>
+    <div class="callout ok"><span class="t">本章要点</span>turn ⊇ step；每一帧要么是持久事件、要么是活体扩展点；模型历史从日志派生并冻结；拦截点 = agent/pre-step、agent/request、llm/stream、tools/*。</div>
+  </section>
+
+  <!-- ============ 05 会话与持久化 ============ -->
+  <section class="chapter" id="ch-session">
+    <span class="ch-kicker">Chapter 05</span>
+    <h1>会话与持久化：<span class="grad">日志即真相</span></h1>
+    <p class="lead">DSH 最具区分度的设计：模型看到的上下文不是内存里的聊天数组，而是从追加式会话日志投影出来的。拿住这一点，fork、resume、导出、遥测就都顺理成章。</p>
+
+    <h2>法则：模型可见 ⟺ 已记录</h2>
+    <div class="callout law"><span class="t">Model-visible means logged</span>任何进入模型请求的内容必须能从会话日志重建，并有运行时不变量断言它。新的模型可见输入 ⇒ 必须先设计新的 session event。修改现有消息内容的插件则注册“纯消息投影”，离线读取方显式提供同一套定义。</div>
+    <p><code>deriveMessages()</code> 从日志投影模型历史。每条 <code>assistant/message</code> 内嵌产生它的精确紧凑计时流；<code>assistant/attempt</code> 保留失败/重试/取消/流错误的尝试而不增加模型历史。Fork、resume、成稿、遥测、持久化全部源于这些持久结算；实时 UI 的增量渲染则来自进程内的 <code>agent/assistant-stream</code> 帧。</p>
+
+    <h2>格式版本与代际：永不重写历史</h2>
+    <p>磁盘上的会话是 JSONL(可选 zstd 压缩)。写入器版本由代码常量 <code>SESSION_FORMAT_VERSION</code> 唯一持有；当前已发布的最新格式是 <strong>v3</strong>(发布证据标签 <code>dsh-v0.1.5-alpha.1</code>)。升级不是“把旧文件改写”，而是在旁边发布新代：</p>
+    <div class="gen-tape reveal">
+      <div class="gen-file">session.jsonl<span class="gf-tag">v0 代际 · 永不动</span></div>
+      <span class="gen-arrow">── v0→v1 ─▶</span>
+      <div class="gen-file">session.v1.jsonl<span class="gf-tag">代际 · 永不动</span></div>
+      <span class="gen-arrow">── v1→v2 ─▶</span>
+      <div class="gen-file">session.v2.jsonl<span class="gf-tag">代际 · 永不动</span></div>
+      <span class="gen-arrow">── v2→v3 ─▶</span>
+      <div class="gen-file cur3">session.v3.jsonl<span class="gf-tag">当前写入器格式</span></div>
+    </div>
+    <ul>
+      <li>每个迁移包只拥有一步 <strong>vN → vN+1</strong>：<code>session-format-v0-to-v1</code>、<code>session-format-v1-to-v2</code>、<code>session-format-v2-to-v3</code>。</li>
+      <li>读式 open：选最高代际，内存中组合迁移链，<strong>不</strong>发布后继。写式 open：先编码、验证、独占式地在源文件旁发布版本命名的后继。</li>
+      <li>已提交代际<strong>永不</strong>改名、替换、删除；前代不隐含回退或降级支持；拒绝打开未来版本。</li>
+      <li>只有结构性格式变更才 bump <code>SESSION_FORMAT_VERSION</code>；读日志时遇到不认识的事件类型默认拒绝，除非事件声明 <code>ignorable: true</code>。</li>
+      <li>SQLite 后端(如会话检索索引)使用单调递增的 <code>SCHEMA_VERSION</code>。</li>
+    </ul>
+
+    <h2>投影 seam：读日志的正确姿势</h2>
+    <p><code>dsh-session-projection</code> 拥有 <code>ctx.sessionProjections</code>：注册的单元增量折叠已提交事件；宿主消费者用 <code>stateOf()</code> 读一个类型化状态，载体用 <code>snapshot()</code> 批量裁剪客户端视图。读取方要么在激活时就依赖该服务，要么在注册表/键缺失时显式失败——绝不默默兜底。agent-loop 自己就注册了共享的 <code>turnBoundary</code> 状态。</p>
+
+    <h2>换存储后端？一个接口的事</h2>
+    <div class="codeblock">
+      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> SessionPersistence — 存储 seam</div>
+      <pre data-lang="log">create / open / stat / list / export
+# 在共享的 handle 脚手架上实现这五个操作,就是一个新后端
+# 参考实现:packages/session/session-persistence-jsonl</pre>
+    </div>
+    <p class="small muted">相关铁律：公开 API 处于预稳定阶段——但“已发布的会话数据契约”不随便变：alpha/beta/rc 的产品发布就建立了发布格式义务，GitHub 的 prerelease 旗子不使用户数据变得可抛弃。持久化类型的变更需要在 PR 中按流程“签收”(docs/cookbook/reviewing-persistence-type-changes.md)。</p>
+
+    <div class="callout ok"><span class="t">本章要点</span>日志是唯一真相源；模型可见 ⟺ 已记录；代际只增不改；迁移每包一步；读状态走投影 seam。</div>
+  </section>
+
+  <!-- ============ 06 包版图 ============ -->
+  <section class="chapter" id="ch-packages">
+    <span class="ch-kicker">Chapter 06</span>
+    <h1>包版图：<span class="grad">52 组 · 280+ 包</span>的全景地图</h1>
+    <p class="lead">每个 npm 包都叫 <code>@deepseek-ai/dsh-*</code>，住在 <code>packages/&lt;分组&gt;/&lt;包名&gt;/</code>，且恰好属于一个分组；分组 README 是该家族的权威地图。下面的探索器收录了全部分组与包名(取自仓库实测)。</p>
+    <div class="callout info"><span class="t">使用方式</span>点分类胶囊按领域筛选；搜框支持包名/分组/职责关键词；点分组标题展开全部包。试试搜 <code>tool-</code>(模型工具 Consumer)、<code>-local</code>(本地 Provider)、<code>session-format</code>(迁移链)。</div>
+    <div id="pkgExplorer"></div>
+
+    <h2>读懂命名规律</h2>
+    <div class="grid cols3">
+      <div class="card reveal d1"><h3>seam 三件套</h3><p>很多分组呈现“定义 / Provider / 工具”三段式：如 <code>shell</code>(定义) + <code>bash-local</code>/<code>bash-sandbox</code>(Provider) + <code>tool-bash</code>(Consumer)。</p></div>
+      <div class="card reveal d2"><h3>依赖方向铁律</h3><p>扩展插件依赖 <strong>Service Definition</strong>，永不依赖具体 Provider；UI/hook/工具插件用 <code>dsh-agent</code>，因为 <code>dsh-agent-loop</code> 可整体替换。</p></div>
+      <div class="card reveal d3"><h3>发布预期</h3><p>多数分组是产品级；<code>experimental/</code> 无稳定性承诺；<code>test-support</code>、<code>runtime-diagnostics</code>、<code>util</code> 是支撑级、兼容性预期更低。</p></div>
+    </div>
+    <p class="small muted">依赖图由生成器维护：<code>docs/module-graph.md</code>(<code>pnpm run gen-module-graph</code>，CI 保鲜)。每个包 README 都有固定栏目：用途、配置、扩展点、Model Experience、Known Limitations。</p>
+    <div class="callout ok"><span class="t">本章要点</span>分组即能力家族；命名自解释(tool-* / *-local / *-sandbox / session-format-*)；依赖只指向定义、不指向 Provider。</div>
+  </section>
+
+  <!-- ============ 07 工具系统 ============ -->
+  <section class="chapter" id="ch-tools">
+    <span class="ch-kicker">Chapter 07</span>
+    <h1>工具与<span class="grad">能力接缝</span></h1>
+    <p class="lead">工具是模型能力的出口：注册在 <code>ctx.tools</code>，schema 自动加入提示词组装，执行时穿过带守卫的流水线。而工具背后的能力，由“接缝”解耦：换一个 Provider，整个产品的执行世界随之切换。</p>
+
+    <h2>Capability Seam：定义 / 提供 / 消费</h2>
+    <div class="seam-fig reveal">
+      <svg viewBox="0 0 560 330" role="img" aria-label="能力接缝三角图">
+        <defs>
+          <linearGradient id="sg1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#4d6bfe"/><stop offset="1" stop-color="#8b5cf6"/>
+          </linearGradient>
+        </defs>
+        <line class="edge" x1="280" y1="84" x2="120" y2="238" stroke="#4d6bfe" stroke-width="2"/>
+        <line class="edge" x1="280" y1="84" x2="440" y2="238" stroke="#22d3ee" stroke-width="2"/>
+        <line class="edge" x1="140" y1="258" x2="420" y2="258" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="7 7"/>
+        <g>
+          <rect x="185" y="28" width="190" height="58" rx="14" fill="url(#sg1)" opacity="0.92"/>
+          <text x="280" y="52" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">Service Definition</text>
+          <text x="280" y="72" text-anchor="middle" fill="#e6ebff" font-size="11" font-family="monospace">dsh-shell · 拥有 ctx.shell 与词汇类型</text>
+        </g>
+        <g>
+          <rect x="28" y="238" width="210" height="58" rx="14" fill="rgba(77,107,254,0.16)" stroke="#4d6bfe"/>
+          <text x="133" y="262" text-anchor="middle" fill="currentColor" font-size="13" font-weight="700">Service Provider(可多个)</text>
+          <text x="133" y="282" text-anchor="middle" fill="#8fa0cc" font-size="11" font-family="monospace">dsh-bash-local / dsh-bash-sandbox</text>
+        </g>
+        <g>
+          <rect x="330" y="238" width="204" height="58" rx="14" fill="rgba(34,211,238,0.12)" stroke="#22d3ee"/>
+          <text x="432" y="262" text-anchor="middle" fill="currentColor" font-size="13" font-weight="700">Consumer(常为模型工具)</text>
+          <text x="432" y="282" text-anchor="middle" fill="#8fa0cc" font-size="11" font-family="monospace">dsh-tool-bash</text>
+        </g>
+        <text x="165" y="152" fill="#8fa0cc" font-size="11">实现接口</text>
+        <text x="352" y="152" fill="#8fa0cc" font-size="11">inject 服务</text>
+        <text x="280" y="250" text-anchor="middle" fill="#8fa0cc" font-size="11">互不直接依赖</text>
+      </svg>
+    </div>
+    <p><strong>seam 是完整能力，不是单个角色</strong>：新增能力意味着同时设计三角色(一个包可以兼任多角色，但只在角色独立演化时才拆开)。它的威力在于“一次替换，整产品联动”：文件系统与子进程 Provider 共享一个执行世界，指向远程沙箱(如 ssh 家族)后，Bash、PTY、LSP 一起搬家，无需为每个工具 fork 一份实现。</p>
+
+    <h2>工具执行流水线</h2>
+    <div class="codeblock">
+      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 一次工具调用的旅程</div>
+      <pre data-lang="log">tool/call            # 持久事件:模型的调用意图入帐
+tools/pre-execute    # waterfall:审批、改写、拒绝的策略挂点
+tools/execute        # waterfall:真正执行(guard 的截止时间强制器也在这层)
+tools/post-execute   # waterfall:结果后处理(溢写、裁剪、呈现元数据)
+tool/result          # 持久事件:结果入帐,回传模型</pre>
+    </div>
+    <p class="small muted">配套规则：每个工具在设计之初就要规划 UI 呈现 —— Host presenter 保持纯函数，Web 卡片从原始事件与持久化结果元数据派生(docs/cookbook/adding-a-tool.md)。作用域规则见术语表：工具可以全局或按 agent 作用域注册，同名时作用域胜(shadowing)，<code>tools.restrict</code> 按交集过滤。</p>
+
+    <h2>工具目录探索器(72 个 schema)</h2>
+    <div id="toolExplorer"></div>
+    <div class="callout ok"><span class="t">本章要点</span>工具 = Consumer 角色；流水线五站两头持久、中间三个 waterfall；seam 让“换后端”变成配置问题而非重写问题。</div>
+  </section>
+
+  <!-- ============ 08 工程规范 ============ -->
+  <section class="chapter" id="ch-conventions">
+    <span class="ch-kicker">Chapter 08</span>
+    <h1>工程规范：<span class="grad">让 280 个包像一个包</span></h1>
+    <p class="lead">这些规则来自根 <code>AGENTS.md</code>——它们不是风格建议，而是有静态门禁、评审文化和决策记录支撑的硬约束。把它们当作阅读源码时的“为什么代码长这样”的答案。</p>
+    <div id="ruleCards"></div>
+
+    <h2>防御性模式：真实事故沉淀的规则</h2>
+    <p class="muted">每一条都对应一类真实发生(或险些发生)的缺陷，写生命周期/并发/子进程/teardown 代码前必读(docs/defensive-patterns.md)：</p>
+    <div id="defPatterns"></div>
+    <div class="callout ok"><span class="t">本章要点</span>效果即注册、响亮失败、显式优于隐式、信任类型但守住真边界、每个异步操作有且仅有一个生命周期主人。</div>
+  </section>
+
+  <!-- ============ 09 测试体系 ============ -->
+  <section class="chapter" id="ch-testing">
+    <span class="ch-kicker">Chapter 09</span>
+    <h1>测试体系：<span class="grad">推理在这里很便宜</span></h1>
+    <p class="lead">DSH 的测试哲学有两个鲜明立场：① 能用真实实现就不用 mock；② “我们是 DeepSeek，不要吃真实 API 测试的米”——无密钥测试只能证明管道通，只有带密钥的运行才证明 agent 真的能干活。</p>
+
+    <h2>七层测试塔</h2>
+    <div class="pyramid">
+      <div class="pyr-row" style="width:96%"><b>unit</b> · pnpm run test <span class="py-d">vitest；每个注册表都有 HMR 安全测试(卸载 fiber、断言清理)；偏好边界/错误路径/事件顺序/并发竞争</span></div>
+      <div class="pyr-row" style="width:86%"><b>coverage</b> · test:coverage <span class="py-d">CI 门禁：packages/*/*/src 逐文件 100%。未覆盖行往往是该删的死代码；行覆盖必要但永不充分</span></div>
+      <div class="pyr-row" style="width:76%"><b>expected</b> · test:expected <span class="py-d">无密钥的 CLI/进程期望输出；驱动器 *.expected.e2e.ts；CI 跑已构建导出</span></div>
+      <div class="pyr-row" style="width:66%"><b>bench</b> · test:bench <span class="py-d">benchmarks/ 用户路径性能门禁(Linux PR 必过)；计时代码跑纯 Node，绝不 TSX</span></div>
+      <div class="pyr-row" style="width:56%"><b>snapshot</b> · test:snapshot <span class="py-d">无密钥录制会话回放：父代录制同时充当输入、模型回放与期望结果；跨 headless/SDK/ACP/Web 四入口</span></div>
+      <div class="pyr-row" style="width:46%"><b>web</b> · test:web <span class="py-d">Chromium 比对 snapshots/web/ 与 UI 期望输出；CI 强制只读 replay，录制留在本地</span></div>
+      <div class="pyr-row" style="width:36%"><b>e2e</b> · test:e2e <span class="py-d">真实 API：无密钥自动跳过；覆盖写文件任务、多轮对话、工具使用、中流取消；最高价值是 boot 真 profile 的冒烟测试</span></div>
+    </div>
+    <p class="small muted">悬停/点击每层查看说明。注意：<code>test:coverage</code> 才是 CI 覆盖门禁，<code>test</code> 不是。</p>
+
+    <h2>四条铁律</h2>
+    <div class="grid cols2">
+      <div class="card reveal d1"><h3>真实优于 mock</h3><p>只 mock 昂贵或非确定性边界(LLM 适配器、网络、时钟)，下游全部真实。桥接测试用真工具注册表 + 真流水线 + 脚本化 MockAdapter。</p></div>
+      <div class="card reveal d2"><h3>验证世界，不验证自报</h3><p>e2e 断言要重新执行命令或重读文件；对 agent 自己输出做关键词探测会让“作弊”的 agent 通过。未触碰的文件要断言字节级一致。</p></div>
+      <div class="card reveal d3"><h3>测真实入口路径</h3><p>产品可见插件必须有 REAL-composition 测试：测试专属 cordis.yml 经 Loader 启动；发布物用构建产物冒烟(bin 跑 lib/的纯 Node)——tsx 会掩盖的故障在这里暴露。</p></div>
+      <div class="card reveal d4"><h3>测试自己管好资源</h3><p>并发 worker 共一台机器：端口、路径、子进程不隔离。谁申请谁释放(afterEach 即使失败/超时)；“只有单跑才过”是测试的缺陷而非环境问题。</p></div>
+    </div>
+
+    <h2>快照测试：什么时候必须写</h2>
+    <p>每个非平凡的“模型可见 / 协议可见 / 人类可见”变更，必须在同一个 PR 里新增或更新一个无密钥录制会话场景；包内单测、mock 测试、理由陈述都不能替代“组装后的真实成稿”。agent-loop / 会话生命周期 / SessionEventMap 的变更还要同步更新 TypeScript 与 Python 两个 SDK 的期望输出。</p>
+    <div class="codeblock">
+      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 快照工作流</div>
+      <pre data-lang="sh">pnpm run test:snapshot -t "场景名"   # 无密钥回放
+pnpm run test:snapshot:record        # 模型成稿变了 → 重录(需密钥),逐 diff 评审
+# 回放输入仍有效、仅派生变化 → 用 test:snapshot:refresh</pre>
+    </div>
+    <div class="callout ok"><span class="t">本章要点</span>覆盖门禁逐文件 100%；mock 止于非确定性边界；断言世界而非自报；模型可见变更必须附录制快照；e2e 无密钥自动跳过。</div>
+  </section>
+
+  <!-- ============ 10 开发工作流 ============ -->
+  <section class="chapter" id="ch-workflow">
+    <span class="ch-kicker">Chapter 10</span>
+    <h1>开发工作流：<span class="grad">从 clone 到 PR</span></h1>
+    <p class="lead">环境准备、日常命令、以及这个仓库特有的协作文化：按面选检查、Agent Notes、慢进快退的 Git 约束。</p>
+
+    <h2>环境准备</h2>
+    <ol>
+      <li>Node.js <strong>22.19+ 或 24+</strong>(CI 覆盖 22.19 / 24 / 26)；Corepack 接管的 pnpm(仓库钉在 <code>pnpm@11.7.0</code>，必要时 <code>corepack enable</code>)；Git ≥ 2.26。</li>
+      <li><code>pnpm install</code> —— 同时安装 worktree 本地的 Lefthook 钩子与双语文档配对 merge driver；缺失时手动 <code>node scripts/install-lefthook.mjs</code>。</li>
+      <li><code>pnpm run typecheck</code> 通过即环境就绪。</li>
+      <li>Windows 可用原生或 WSL2，但 checkout、依赖、工具链必须同居一个操作系统文件系统(跨系访问拖慢 Git/安装/构建)。</li>
+    </ol>
+
+    <h2>命令速查(带一键复制)</h2>
+    <div id="cmdTable"></div>
+
+    <h2>这个仓库的协作文化</h2>
+    <div class="grid cols2">
+      <div class="card reveal d1"><h3>按面选检查，不跑全量</h3><p>推送前只跑覆盖本次 diff 的最小检查集：行为测试、相关快照、文档改动跑 doc-sync。CI 才拥有穷举覆盖与平台矩阵；默认全量重跑是反模式。</p></div>
+      <div class="card reveal d2"><h3>Agent Notes 文化</h3><p>非平凡改动在同一 PR 写决策记录(.agents/notes/)：为什么、放弃了什么、需要什么验证。归档的 note 冻结为历史，永不当现行权威引用。</p></div>
+      <div class="card reveal d3"><h3>PR 历史是设计出来的</h3><p>独立改动拆 PR；在引入问题的 PR 里修而非向下传播；重写只用 <code>--force-with-lease</code>且远端有新提交即中止；每个 PR 打一个 kind/* 标签、所有相关 area/* 标签。</p></div>
+      <div class="card reveal d4"><h3>文档与代码同行</h3><p>README/JSDoc 随代码同 PR 更新；文档一段一物理行、中英双语成对；每个事实只有一个“家”，其它地方链过去(还有字数预算门禁!)。</p></div>
+    </div>
+
+    <h2>文档地图：接下来读什么</h2>
+    <div class="grid cols3" id="docmapGrid"></div>
+    <div class="callout ok"><span class="t">本章要点</span>corepack + pnpm@11.7 + Node≥22.19；检查匹配改动面；非平凡改动必附 Agent Note；钩子和双语配对由 install 自动就位。</div>
+  </section>
+
+  <!-- ============ 11 术语表 ============ -->
+  <section class="chapter" id="ch-glossary">
+    <span class="ch-kicker">Chapter 11</span>
+    <h1>术语表：<span class="grad">一词一义</span></h1>
+    <p class="lead">DSH 的领域词汇坚持“每个概念只有一个规范词”。以下条目整理自 docs/glossary.md 与核心文档，支持即时搜索。</p>
+    <div class="searchbar">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="glossSearch" type="text" placeholder="搜索术语：seam、scope、turn、Ralph、profile…" autocomplete="off">
+      <span class="cnt" id="glossCount"></span>
+    </div>
+    <div id="glossaryList"></div>
+  </section>
+
+  <!-- ============ 12 测验 ============ -->
+  <section class="chapter" id="ch-quiz">
+    <span class="ch-kicker">Chapter 12 · Final</span>
+    <h1>知识闯关：<span class="grad">12 题验收</span></h1>
+    <p class="lead">每题都出自前面章节的硬知识点，答错会给出完整解析。拿到 10 分以上有彩蛋。</p>
+    <div class="quiz-box" id="quizBox"></div>
+    <div class="callout info"><span class="t">继续深入</span>闯关之后，建议的下一步：① 克隆仓库跑通 <code>pnpm install &amp;&amp; pnpm run typecheck</code>；② 用 <code>dsh --profile web --dump-config</code> 看真实插件树；③ 读 <code>docs/cookbook/adding-a-tool.md</code> 动手写第一个工具插件；④ 给自己的插件补一个录制快照。</div>
+  </section>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <div>DSH 互动学堂 — 非官方学习站点，内容整理自 <a href="https://github.com/deepseek-ai/deepseek-harness" target="_blank" rel="noopener">deepseek-ai/deepseek-harness</a> 仓库文档(AGENTS.md · docs/ · packages/README.md)。一切以仓库为准；DSH 处于 developer preview，接口可能随时变化。本站纯静态、可离线使用，学习进度仅存在浏览器 localStorage。</div>
+</footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
