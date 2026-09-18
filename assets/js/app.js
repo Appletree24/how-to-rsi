@@ -1,5 +1,5 @@
 /* ============================================================
-   DSH 互动学堂 — 应用逻辑(无依赖、经典脚本、支持 file:// 直接打开)
+   How to RSI — 应用逻辑(无依赖、经典脚本、支持 file:// 直接打开)
    ============================================================ */
 (function () {
   'use strict';
@@ -40,17 +40,16 @@
   var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ---------- 持久化进度 ---------- */
-  var store = { done: {}, theme: 'dark', best: -1 };
+  var store = { done: {}, theme: 'light', best: -1 };
   try {
     var raw = localStorage.getItem('dsh-learn-v1');
-    if (raw) { var parsed = JSON.parse(raw); if (parsed && typeof parsed === 'object') { store.done = parsed.done || {}; store.theme = parsed.theme || 'dark'; store.best = (typeof parsed.best === 'number') ? parsed.best : -1; } }
+    if (raw) { var parsed = JSON.parse(raw); if (parsed && typeof parsed === 'object') { store.done = parsed.done || {}; store.theme = parsed.theme || 'light'; store.best = (typeof parsed.best === 'number') ? parsed.best : -1; } }
   } catch (e) { /* storageDenied: file:// 隐私模式下可能禁用,降级为不持久 */ }
   function save() {
     try { localStorage.setItem('dsh-learn-v1', JSON.stringify(store)); }
     catch (e) { /* storageDenied: 同上,忽略写入失败 */ }
   }
 
-  var LEARN_IDS = DSH.chapters.filter(function (c) { return c.id !== 'home'; }).map(function (c) { return c.id; });
 
   /* ---------- 主题 ---------- */
   function applyTheme() {
@@ -86,21 +85,8 @@
       a.classList.toggle('active', a.dataset.ch === currentId);
       a.classList.toggle('done', !!store.done[a.dataset.ch]);
     });
-    var doneCount = LEARN_IDS.filter(function (id) { return store.done[id]; }).length;
-    var pct = Math.round(doneCount / LEARN_IDS.length * 100);
-    var fg = $('#progressRingFg');
-    if (fg) {
-      var C = 2 * Math.PI * 10;
-      fg.setAttribute('stroke-dasharray', C.toFixed(2));
-      fg.setAttribute('stroke-dashoffset', (C * (1 - pct / 100)).toFixed(2));
-    }
-    var t = $('#progressPct'); if (t) t.textContent = pct + '%';
-    $$('.modcard').forEach(function (p) {
-      var m = DSH.modules.find(function (x) { return x.id === p.dataset.mod; });
-      if (!m) return;
-      var done = DSH.chapters.filter(function (c) { return c.module === m.id && c.id !== 'home'; })
-        .every(function (c) { return store.done[c.id]; });
-      p.classList.toggle('done2', done);
+    $$('.idx-item').forEach(function (a) {
+      a.classList.toggle('done', !!store.done[a.dataset.ch]);
     });
     $$('.done-btn').forEach(function (b) {
       var on = !!store.done[b.dataset.ch];
@@ -114,11 +100,10 @@
     if (!DSH.chapters.some(function (c) { return c.id === id; })) id = 'home';
     currentId = id;
     $$('.chapter').forEach(function (s) { s.classList.toggle('active', s.id === 'ch-' + id); });
-    document.title = (id === 'home' ? 'DSH 互动学堂' : DSH.chapters.find(function (c) { return c.id === id; }).title + ' · DSH 互动学堂');
+    document.title = (id === 'home' ? 'How to RSI · 造一个能改进自己的 Agent' : DSH.chapters.find(function (c) { return c.id === id; }).title + ' · How to RSI');
     window.scrollTo(0, 0);
     closeSidebar();
     refreshNav();
-    requestAnimationFrame(observeReveals);
   }
 
   /* ---------- 章节页脚(上一章/下一章/完成) ---------- */
@@ -152,89 +137,23 @@
     });
   }
 
-  /* ---------- 揭示动画 ---------- */
-  var revealObserver = null;
-  function observeReveals() {
-    if (!('IntersectionObserver' in window)) { $$('.reveal').forEach(function (n) { n.classList.add('in'); }); return; }
-    if (!revealObserver) {
-      revealObserver = new IntersectionObserver(function (entries) {
-        entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); revealObserver.unobserve(en.target); } });
-      }, { threshold: 0.08 });
-    }
-    $$('#ch-' + currentId + ' .reveal:not(.in)').forEach(function (n) { revealObserver.observe(n); });
-  }
-
-  /* ---------- 首页：统计、路径、轨道、打字机 ---------- */
+  /* ---------- 首页:目录索引与静态终端 ---------- */
   function buildHome() {
-    var pkgTotal = DSH.packageGroups.reduce(function (a, g) { return a + g.pkgs.length; }, 0);
-    var stats = [
-      { n: DSH.modules.length, l: '学习模块', suf: '' },
-      { n: DSH.chapters.length - 1, l: '互动章节', suf: '' },
-      { n: pkgTotal, l: '载体工作区包', suf: '+' },
-      { n: DSH.experiments.length, l: '实战关卡', suf: '' },
-    ];
-    var row = $('#statsRow');
-    stats.forEach(function (s, i) {
-      var c = el('div', 'card statcard reveal d' + (i + 1));
-      c.innerHTML = '<div class="bignum" data-target="' + s.n + '" data-suf="' + s.suf + '">0</div><div class="lbl">' + s.l + '</div>';
-      row.appendChild(c);
-    });
-    // 数字滚动
-    var counted = false;
-    var io = new IntersectionObserver(function (ens) {
-      ens.forEach(function (en) {
-        if (en.isIntersecting && !counted) {
-          counted = true;
-          $$('.bignum').forEach(function (b) {
-            var target = parseInt(b.dataset.target, 10), suf = b.dataset.suf || '';
-            if (reducedMotion) { b.textContent = target + suf; return; }
-            var t0 = performance.now();
-            (function tick(t) {
-              var k = Math.min(1, (t - t0) / 1100);
-              b.textContent = Math.round(target * (1 - Math.pow(1 - k, 3))) + suf;
-              if (k < 1) requestAnimationFrame(tick);
-            })(t0);
-          });
-          io.disconnect();
-        }
-      });
-    }, { threshold: 0.4 });
-    io.observe(row);
-
-    var grid = $('#modGrid');
-    DSH.modules.forEach(function (m, i) {
+    var host = $('#homeIndex');
+    DSH.modules.forEach(function (m) {
       var chs = DSH.chapters.filter(function (c) { return c.module === m.id && c.id !== 'home'; });
-      var first = chs[0];
-      var card = buttonize(el('div', 'card modcard reveal d' + (i % 4 + 1)));
-      card.dataset.mod = m.id;
-      card.innerHTML = '<div class="nv">' + icon(m.icon, 18) + '</div><div><h3>' + esc(m.name) + '</h3><p>' + esc(m.desc) + '</p>' +
-        '<div class="mc-meta">' + chs.length + ' 章 · 从「' + esc(first.title) + '」开始</div></div>';
-      card.addEventListener('click', function () { go(first.id); });
-      keyActivate(card);
-      grid.appendChild(card);
+      host.appendChild(el('h4', 'idx-mod', esc(m.name) + ' — ' + esc(m.desc)));
+      chs.forEach(function (c) {
+        var a = el('a', 'idx-item', '');
+        a.href = '#/' + c.id;
+        a.dataset.ch = c.id;
+        a.innerHTML = '<span class="idx-num">' + c.num + '</span><span class="idx-title">' + esc(c.title) + '</span>' +
+          '<span class="idx-blurb">' + esc(c.blurb) + '</span>' + CHECK_SVG;
+        host.appendChild(a);
+      });
     });
 
-    // 轨道芯片:RSI 回路的两侧——改进手段(内圈)与持久事实(外圈)
-    var r1 = ['cordis_define', 'eval', 'rollback', 'agent.inject'];
-    var r2 = ['ctx.sessions', 'ctx.storage', 'ctx.tools', 'ctx.sandbox', 'ctx.llm', 'ctx.agents'];
-    function fill(ringSel, names) {
-      var ring = $(ringSel);
-      if (!ring) return;
-      names.forEach(function (nm, i) {
-        var a = (360 / names.length) * i - 90;
-        var rad = a * Math.PI / 180;
-        var node = el('span', 'orbit-node', '<i></i>' + nm);
-        node.style.left = (50 + 50 * Math.cos(rad)) + '%';
-        node.style.top = (50 + 50 * Math.sin(rad)) + '%';
-        node.style.marginLeft = '-40px';
-        node.style.marginTop = '-13px';
-        ring.appendChild(node);
-      });
-    }
-    fill('#orbitR1', r1);
-    fill('#orbitR2', r2);
-
-    // 英雄区打字机:一个 RSI 回路
+    // 静态终端摘录:一个 RSI 回路(不做打字机,保持纸面感)
     var lines = [
       { t: '$ 诊断 → 提出改动 → cordis_define(写代码)', c: 't-blue' },
       { t: '$ cordis_run(挂载) → 沙箱执行 → eval(评估)', c: 't-blue' },
@@ -244,28 +163,7 @@
     ];
     var pre = $('#heroTerm');
     if (pre) {
-      if (reducedMotion) {
-        pre.innerHTML = lines.map(function (l) { return '<span class="' + l.c + '">' + esc(l.t) + '</span>'; }).join('\n');
-      } else {
-        var li = 0, ci = 0, out = '';
-        (function type() {
-          if (li >= lines.length) {
-            setTimeout(function () { li = 0; ci = 0; out = ''; type(); }, 6000);
-            return;
-          }
-          var line = lines[li];
-          ci++;
-          var cur = out + '<span class="' + line.c + '">' + esc(line.t.slice(0, ci)) + '</span>';
-          pre.innerHTML = cur + '<span class="cursor"></span>';
-          if (ci >= line.t.length) {
-            out = cur + '\n';
-            li++; ci = 0;
-            setTimeout(type, li === 2 ? 700 : 350);
-          } else {
-            setTimeout(type, line.t.charCodeAt(ci) > 255 ? 46 : 22);
-          }
-        })();
-      }
+      pre.innerHTML = lines.map(function (l) { return '<span class="' + l.c + '">' + esc(l.t) + '</span>'; }).join('\n');
     }
   }
 
@@ -708,6 +606,138 @@
     var txt = $('#expBarTxt'); if (txt) txt.textContent = done + ' / ' + DSH.experiments.length + ' 关已通过';
   }
 
+  /* ---------- 评测范式对照表 ---------- */
+  function buildEvalTable() {
+    var tb = $('#evalTable');
+    if (!tb) return;
+    DSH.evalParadigms.forEach(function (p) {
+      var tr = el('tr', '',
+        '<td><b>' + esc(p.name) + '</b></td>' +
+        '<td>' + esc(p.who) + '</td>' +
+        '<td>' + esc(p.what) + '</td>' +
+        '<td>' + esc(p.layer) + '</td>' +
+        '<td>' + esc(p.games) + '</td>' +
+        '<td><code>' + esc(p.used) + '</code></td>');
+      tb.appendChild(tr);
+    });
+  }
+
+  /* ---------- 常见评测基准表 ---------- */
+  function buildEvalBench() {
+    var tb = $('#evalBenchTable');
+    if (!tb) return;
+    DSH.evalBenchmarks.forEach(function (b) {
+      var tr = el('tr', '',
+        '<td><b>' + esc(b.name) + '</b></td>' +
+        '<td>' + esc(b.what) + '</td>' +
+        '<td><code>' + esc(b.lvl) + '</code></td>' +
+        '<td>' + esc(b.note) + '</td>');
+      tb.appendChild(tr);
+    });
+  }
+
+  /* ---------- 评测门模拟器(keep/rollback + 作弊哨兵) ---------- */
+  /* 教学模型:7 个黄金任务,agent 当前能对其中 5 个。注入"自改"会修好坏任务或弄坏好任务;
+     作弊模式下 agent 会报告假分数——哨兵能抓出来。 */
+  function buildEvalGate() {
+    var host = $('#evalGateSim');
+    if (!host) return;
+    host.innerHTML =
+      '<div class="sim-ctl">' +
+        '<button class="btn small primary" id="egRun">▶ 注入一次自改并评测</button>' +
+        '<button class="btn small" id="egAuto">▶ 连续 5 轮</button>' +
+        '<button class="btn small" id="egReset">↺ 重置</button>' +
+        '<span class="switch" id="egCheat"><span class="sw"></span>作弊改动</span>' +
+        '<span class="switch" id="egSent"><span class="sw"></span>哨兵检测</span>' +
+        '<span class="sim-result" id="egResult"></span>' +
+      '</div>' +
+      '<div class="eg-tasks" id="egTasks"></div>' +
+      '<div class="sim-log" id="egLog">当前版本 v0:能对 5/7 任务(基线 5 分)。注入自改后跑评测:报告分 ≥ 基线则保留,否则回滚。</div>';
+    var passing = [true, true, true, true, true, false, false];
+    var baseline = 5;
+    var ver = 0;
+    var cheat = true, sentinel = false;
+    function score() { var n = 0; passing.forEach(function (p) { if (p) n++; }); return n; }
+    function renderTasks() {
+      var box = $('#egTasks');
+      box.innerHTML = '';
+      DSH.evalTasks.forEach(function (t, i) {
+        var d = el('details', 'eg-task' + (passing[i] ? ' pass' : ' fail'));
+        d.innerHTML = '<summary>' + (passing[i] ? '✓' : '✗') + ' ' + esc(t.q) + '</summary><div class="eg-exp">期望:<code>' + esc(t.expect) + '</code></div>';
+        box.appendChild(d);
+      });
+    }
+    function logLine(html) { var lg = $('#egLog'); lg.innerHTML += '<div>» ' + html + '</div>'; lg.scrollTop = lg.scrollHeight; }
+    function roll() {
+      ver++;
+      var before = passing.slice();
+      var desc, delta = 0;
+      var failIdx = [], passIdx = [];
+      passing.forEach(function (p, i) { (p ? passIdx : failIdx).push(i); });
+      if (failIdx.length && (Math.random() < 0.65 || !passIdx.length)) {
+        var i = failIdx[Math.floor(Math.random() * failIdx.length)];
+        passing[i] = true; delta = 1; desc = '修好任务 ' + DSH.evalTasks[i].q;
+      } else if (passIdx.length) {
+        var j = passIdx[Math.floor(Math.random() * passIdx.length)];
+        passing[j] = false; delta = -1; desc = '弄坏任务 ' + DSH.evalTasks[j].q;
+      } else { desc = '无可用改动(全对)'; }
+      var real = score();
+      var reported = real;
+      // 作弊模式:弄坏了任务却报告满分
+      var faked = cheat && delta < 0 && Math.random() < 0.7;
+      if (faked) reported = DSH.evalTasks.length;
+      var verdict;
+      if (faked && sentinel) {
+        passing = before;
+        verdict = '<span class="warn2">哨兵拦截:报告 ' + reported + '/7 但轨迹显示没真跑 → 按作弊回滚</span>';
+      } else if (reported >= baseline) {
+        if (faked) {
+          baseline = reported;
+          verdict = '<span class="warn2">保留(被骗过):报告 ' + reported + '/7,实测只有 ' + real + '/7——基线被污染成 ' + baseline + ',此后真改动也难达标</span>';
+        } else {
+          baseline = reported;
+          verdict = '<span class="ok3">保留:实测 ' + reported + '/7 ≥ 基线,新基线 ' + baseline + '</span>';
+        }
+      } else {
+        passing = before;
+        verdict = '<span class="warn2">回滚:报告 ' + reported + '/7 < 基线 ' + baseline + ',改动撤销</span>';
+      }
+      logLine('v' + ver + ' 注入自改:{' + desc + '} → 报告 ' + reported + '/7 实测 ' + real + '/7 → ' + verdict);
+      renderTasks();
+      $('#egResult').textContent = '基线 ' + baseline + '/7';
+    }
+    $('#egRun').addEventListener('click', roll);
+    $('#egAuto').addEventListener('click', function () { var n = 0; var t = setInterval(function () { roll(); if (++n >= 5) clearInterval(t); }, reducedMotion ? 10 : 350); });
+    $('#egCheat').addEventListener('click', function () { cheat = !cheat; this.classList.toggle('on2', cheat); this.setAttribute('aria-checked', cheat ? 'true' : 'false'); });
+    $('#egSent').addEventListener('click', function () { sentinel = !sentinel; this.classList.toggle('on2', sentinel); this.setAttribute('aria-checked', sentinel ? 'true' : 'false'); });
+    var swCheat = buttonize($('#egCheat'), 'switch'); keyActivate(swCheat);
+    var swSent = buttonize($('#egSent'), 'switch'); keyActivate(swSent);
+    swCheat.classList.add('on2'); swCheat.setAttribute('aria-checked', 'true');
+    swSent.setAttribute('aria-checked', 'false');
+    $('#egReset').addEventListener('click', function () {
+      passing = [true, true, true, true, true, false, false]; baseline = 5; ver = 0;
+      $('#egLog').innerHTML = '当前版本 v0:能对 5/7 任务(基线 5 分)。注入自改后跑评测:报告分 ≥ 基线则保留,否则回滚。';
+      $('#egResult').textContent = '';
+      renderTasks();
+    });
+    renderTasks();
+  }
+
+  /* ---------- 实战项目:自改评测管线 ---------- */
+  function buildEvalProject() {
+    var host = $('#evalProjectList');
+    if (!host) return;
+    DSH.evalProject.forEach(function (ph, i) {
+      var card = el('div', 'card flat proj-card');
+      card.innerHTML =
+        '<div class="pj-head"><span class="pj-phase">' + esc(ph.phase) + '</span><span class="pj-icon">' + icon(ph.icon, 16) + '</span><h3>' + esc(ph.t) + '</h3></div>' +
+        '<p class="pj-goal">' + esc(ph.goal) + '</p>' +
+        '<ol class="pj-steps">' + ph.steps.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ol>' +
+        '<div class="exp-verify">验收:' + esc(ph.check) + '</div>';
+      host.appendChild(card);
+    });
+  }
+
   /* ---------- 包版图探索器 ---------- */
   function buildPkgExplorer() {
     var host = $('#pkgExplorer');
@@ -992,7 +1022,6 @@
         '<button class="btn primary" id="quizRetry">再来一次</button>' +
         '<a class="btn" href="#/glossary">回顾术语表</a></div></div>';
       $('#quizRetry').addEventListener('click', function () { i = 0; score = 0; results = []; renderQ(); });
-      if (score >= 10) confetti();
     }
     renderQ();
   }
@@ -1154,39 +1183,7 @@
     if (m) m.remove();
   }
 
-  /* ---------- 彩带 ---------- */
-  function confetti() {
-    if (reducedMotion) return;
-    var cv = document.createElement('canvas');
-    cv.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:99';
-    cv.width = innerWidth; cv.height = innerHeight;
-    document.body.appendChild(cv);
-    var ctx2 = cv.getContext('2d');
-    var colors = ['#4d6bfe', '#8b5cf6', '#22d3ee', '#34d399', '#fbbf24', '#fb7185'];
-    var parts = [];
-    for (var i = 0; i < 160; i++) {
-      parts.push({
-        x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * 0.4,
-        vx: (Math.random() - 0.5) * 2.4, vy: 2 + Math.random() * 3.2,
-        s: 4 + Math.random() * 6, r: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.24,
-        c: colors[i % colors.length],
-      });
-    }
-    var t0 = performance.now();
-    (function frame(t) {
-      ctx2.clearRect(0, 0, cv.width, cv.height);
-      parts.forEach(function (p) {
-        p.x += p.vx; p.y += p.vy; p.r += p.vr;
-        ctx2.save(); ctx2.translate(p.x, p.y); ctx2.rotate(p.r);
-        ctx2.fillStyle = p.c; ctx2.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.62);
-        ctx2.restore();
-      });
-      if (t - t0 < 3200) requestAnimationFrame(frame);
-      else cv.remove();
-    })(t0);
-  }
-
-  /* ---------- 侧栏(移动端)与滚动进度 ---------- */
+  /* ---------- 侧栏(移动端) ---------- */
   function closeSidebar() {
     $('#sidebar').classList.remove('open');
     $('#sideMask').classList.remove('show');
@@ -1215,11 +1212,6 @@
       save(); applyTheme();
     });
     $('#searchBtn').addEventListener('click', openPalette);
-    window.addEventListener('scroll', function () {
-      var h = document.documentElement;
-      var max = h.scrollHeight - h.clientHeight;
-      $('#scrollProgress').style.width = (max > 0 ? (h.scrollTop / max * 100) : 0) + '%';
-    }, { passive: true });
     document.addEventListener('keydown', function (e) {
       if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); if (palette.open) closePalette(); else openPalette(); return; }
       if (e.key === 'Escape') { closePalette(); return; }
@@ -1253,6 +1245,10 @@
     buildCarriers();
     buildSafety();
     buildExperiments();
+    buildEvalTable();
+    buildEvalBench();
+    buildEvalGate();
+    buildEvalProject();
     buildFooters();
     buildCodeblocks();
     bindChrome();
