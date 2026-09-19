@@ -25,3 +25,5 @@ jobs:
         run: python3 -m unittest discover -s tests -v
       - name: Run reproducible synthetic examples
         run: python3 labs/eval_lab.py demo --output "$RUNNER_TEMP/rsi-eval-lab"
+      - name: Run RepoOps tool loop and durable reports
+        run: python3 -m projects.repoops.runner demo --output "$RUNNER_TEMP/repoops-lab"

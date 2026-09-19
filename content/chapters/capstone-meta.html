@@ -1,0 +1,31 @@
+<section class="chapter" id="ch-capstone-meta">
+  <span class="ch-kicker">实战主线 P10 · 第 14–15 周 · 前置：P9、R1–R3</span>
+  <h1>检验改进器的改进，而不只是解题器的改进</h1>
+  <p class="lead">研究问题：利用历史搜索经验更新修改器，是否能在新的任务家族和同样的总资源下，比冻结修改器更快找到好候选？这是项目的研究深度所在；证据不足是允许的结论。</p>
+  <h2>清楚命名两个被修改对象</h2>
+  <p><code>S</code> 是处理 RepoOps 任务的解题策略；<code>I</code> 是生成 S 的候选并选择探索方向的改进器。P9 主要改变 S。这里允许改变 I 的修改提示、失败抽样或候选选择策略中的一个部分。基础模型权重、评分器、任务权限、资源边界固定。系统变得更有权限不是这一实验的处理变量。</p>
+  <div class="codeblock"><div class="cb-head">本站实验定义</div><pre data-lang="text">search(I, start_S, dev_tasks, B) → selected_S
+meta_gain = E[U(search(I_updated, S0, D, B))]
+          - E[U(search(I_frozen,  S0, D, B))]
+其中 U 在搜索不可见的任务上测量；每次完整搜索才是一条实验重复。</pre></div>
+  <h2>实验安排</h2>
+  <ol>
+    <li><strong>分开元训练与迁移任务。</strong>用家族 A 的历史搜索更新 I，在新家族 B 上比较两种 I。B 的失败轨迹在终选前不能泄漏给更新过程；要在 B 上继续学习，就另设更外层测试。</li>
+    <li><strong>从共同起点出发。</strong>两组共享 S0、模型、工具、开发数据可见范围、候选空间和最终选择规则。避免 updated 组直接从更好的已优化解题器开始。</li>
+    <li><strong>先做单次迁移。</strong>冻结 I_updated 后，在新任务上做完整搜索重复；确认信号后，再设计多轮更新。不要第一天就同时改搜索、记忆、工具和评分。</li>
+    <li><strong>核算元训练成本。</strong>同时报告包含更新 I 的全部成本与摊销后的复用成本。若 I 能复用 N 次，给出总成本随 N 的变化，不能隐去一次性训练费。</li>
+    <li><strong>记录学习曲线。</strong>x 轴是累计预算或资源，不是迭代编号；y 轴是开发选择表现。最终确认结果单独列出，避免在最终集反复测曲线导致泄漏。</li>
+    <li><strong>消融。</strong>冻结 I 的记忆、打乱反馈与保留等量文本、禁止选择策略更新，至少完成其中一项；每项都说明试图排除的解释。</li>
+  </ol>
+  <h2>把论文机制转成可检验问题</h2>
+  <p>STOP 提供改进器反馈参与后续改进的研究线索；DGM 提示探索档案不必只保留当前最高分；HGM 讨论对子代潜力的估计与选择。三者的搜索对象、成本假设和实验环境不同，不能把本站的小任务实验称为这些论文的完整复现。具体机制和局限先读 <a href="#/paper-lab">R2</a>。<cite data-source="stop"></cite><cite data-source="dgm"></cite><cite data-source="hgm"></cite></p>
+  <h2>三种结果如何写</h2>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>观察</th><th>可以支持</th><th>还不能支持</th></tr></thead><tbody>
+    <tr><td>同分布选择集更高</td><td>该搜索过程更擅长优化这份开发数据</td><td>独立泛化、迁移、递归收益</td></tr>
+    <tr><td>新家族上预算匹配结果更好</td><td>在所测范围内的改进器迁移收益</td><td>无限持续改进或更大规模同样成立</td></tr>
+    <tr><td>区间过宽、不同种子分歧大</td><td>当前预算下证据不足</td><td>收益不存在，或必然存在只差算力</td></tr>
+  </tbody></table></div>
+  <p>如果搜索重复数量很少，直接展示每次结果与局限。预算控制住也不保证因果解释正确：更丰富的先验、候选空间差异、反馈格式变化都可能解释结果，因此要靠消融逐项收窄。</p>
+  <div class="research-exercise"><h3>最终研究产物</h3><p>交付 4–6 页技术报告：问题、方法、协议、主要结果、消融、失败案例与威胁有效性的因素；附可运行脚本和 manifest。口头答辩第一分钟就说清楚自己的证据达到哪一层。对研究工程岗，这比把几十篇论文名堆在技能栏更能展示实际判断。</p></div>
+  <p class="research-next">下一步：<a href="#/capstone-career">P11 作品集与就业闭环</a>。</p>
+</section>

@@ -15,6 +15,7 @@ TOC_END = '<!-- END RESEARCH NOSCRIPT TOC -->'
 
 def render():
     chapters = json.loads((ROOT / 'content/research-chapters.json').read_text())
+    capstone = json.loads((ROOT / 'content/capstone-chapters.json').read_text())
     sources = json.loads((ROOT / 'content/sources.json').read_text())
     source_map = {s['id']: s for s in sources}
     if len(source_map) != len(sources):
@@ -32,7 +33,7 @@ def render():
                     html.escape(s['version']) + '</td><td>' + html.escape(s['scope']) + '</td></tr>')
     table = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>来源</th><th>版本</th><th>本轮核对范围</th></tr></thead><tbody>' + ''.join(rows) + '</tbody></table></div>'
     bodies = []
-    for c in chapters:
+    for c in chapters + capstone:
         body = (ROOT / 'content/chapters' / (c['id'] + '.html')).read_text().strip()
         if f'id="ch-{c["id"]}"' not in body:
             raise ValueError(f'wrong section ID: {c["id"]}')
@@ -46,7 +47,7 @@ def render():
             raise ValueError('expected one research block')
     else:
         page = page.replace('  </main>', generated + '\n\n  </main>', 1)
-    toc = TOC_START + '\n' + '\n'.join('<li><a href="#ch-' + c['id'] + '">' + html.escape(c['num'] + ' ' + c['title']) + '</a></li>' for c in chapters) + '\n' + TOC_END
+    toc = TOC_START + '\n' + '\n'.join('<li><a href="#ch-' + c['id'] + '">' + html.escape(c['num'] + ' ' + c['title']) + '</a></li>' for c in chapters + capstone) + '\n' + TOC_END
     if TOC_START in page:
         page = re.sub(re.escape(TOC_START) + '.*?' + re.escape(TOC_END), lambda _: toc, page, flags=re.S)
     else:
@@ -60,6 +61,9 @@ def render():
     js += '  DSH.modules.splice(2, 0, {id: "research", name: "研究主线 · 深度优先", desc: "定义 → 精读 → 评测 → 实验 → 开放问题", icon: "book"});\n'
     js += '  var after = DSH.chapters.findIndex(function (c) { return c.id === "carriers"; }) + 1;\n'
     js += '  DSH.chapters.splice.apply(DSH.chapters, [after, 0].concat(chapters));\n'
+    js += '  var capstone = ' + json.dumps(capstone, ensure_ascii=False, indent=2) + ';\n'
+    js += '  DSH.modules.splice(3, 0, {id: "capstone", name: "实战主线 · RepoOps Lab", desc: "项目交付 → 工程深度 → 实验研究 → 求职证据", icon: "book"});\n'
+    js += '  DSH.chapters.splice.apply(DSH.chapters, [after + chapters.length, 0].concat(capstone));\n'
     js += '  DSH.sources = ' + json.dumps(sources, ensure_ascii=False, indent=2) + ';\n})();\n'
     return {ROOT / 'index.html': page, ROOT / 'assets/js/research-data.js': js}
 

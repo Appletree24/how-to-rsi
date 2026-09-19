@@ -8,8 +8,8 @@
 
 ## 编辑与生成
 
-1. 新研究章节编辑 `content/chapters/<id>.html`，导航登记在 `content/research-chapters.json`。
-2. 一手来源登记在 `content/sources.json`，写清实际核对范围。使用 `<cite data-source="id"></cite>` 引用。
+1. 新章节编辑 `content/chapters/<id>.html`；研究导航登记在 `content/research-chapters.json`，实战导航登记在 `content/capstone-chapters.json`。
+2. 来源登记在 `content/sources.json`，写清类型与实际核对范围。使用 `<cite data-source="id"></cite>` 引用。面试自述仅支持考察主题，技术解释需官方文档/源码；本站练习不得标为企业原题。
 3. 原有章节仍在 `index.html`，原有交互数据在 `assets/js/data.js`；不要手改 index 中 BEGIN/END GENERATED RESEARCH 之间的块。
 4. 运行 `python scripts/build_research.py`，提交源文件与生成物。
 

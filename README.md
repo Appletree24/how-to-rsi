@@ -8,7 +8,26 @@ DSH / Cordis 是运行时工程案例之一。可修改运行时、单次跑分�
 
 直接打开 [index.html](index.html)，无需构建、联网或安装依赖。也可运行 `python -m http.server 8080` 后访问 `http://127.0.0.1:8080`。
 
-建议优先走网站中的 **研究主线 R1–R8**：
+建议从网站的 **RepoOps Lab 实战主线 P0–P11** 开始，遇到机制与实验问题回查 **研究主线 R1–R8**。
+
+## RepoOps Lab：16 周项目与就业主线
+
+一个持续演进的项目：仓库故障工单 → 检索与工具调用 → 独立评分 → 可靠调度 → 故障定位 → 公平实验 → 隔离修复 → 反思搜索 → 改进器更新消融。
+
+12 个章节包含前置知识、实现步骤、失败练习、验收与求职证据。结合 3 份招聘原文、候选人面试自述与编辑整理，以及 mini-SWE-agent、Inspect AI、Harbor、GEPA 的固定源码入口。面经不是企业标准题库；本站训练题单独标注。
+
+```sh
+python -m projects.repoops.runner demo
+```
+
+仅需 Python 标准库。已有 12 个原创公开任务、受限工具循环、独立规则 grader、SQLite 续跑与轨迹报告，以及可选本机 Ollama 适配器。**规则策略的教学成绩不是 LLM 能力结果。** Go 控制面、混合检索、Harbor/GEPA 集成与递归实验是循序渐进的实现作业，当前没有声称完成整套生产平台。
+
+- [配套项目与运行说明](projects/repoops/README.md)
+- [实现工作簿：接口、SQL、竞态、实验与反例](docs/capstone/implementation-workbook.md)
+- [岗位、面经与源码映射](docs/capstone/source-map.md)
+- [求职证据与反馈台账模板](templates/career-evidence.md)
+
+## 研究主线
 
 | 顺序 | 核心问题 | 学习产物 |
 | --- | --- | --- |
@@ -41,7 +60,7 @@ python -m unittest discover -s tests -v
 ## 来源与维护
 
 - [内容审计](docs/content-audit.md)：本轮发现、修正与待完成事项。
-- [来源台账](content/sources.json)：23 项一手来源，区分全文指定章节、摘要/元数据与作者文档的核对范围。
+- [来源台账](content/sources.json)：区分论文、官方文档/源码、招聘原文与面试自述，并记录版本和核对范围。
 - [实验卡模板](templates/experiment-card.md)：先登记假设、预算和数据使用协议，再运行。
 - [论文笔记模板](templates/paper-note.md)：分开机制、作者证据、本站分析和未证明结论。
 - [贡献指南](CONTRIBUTING.md)：新增内容的验收标准与校验命令。

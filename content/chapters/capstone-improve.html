@@ -1,0 +1,40 @@
+<section class="chapter" id="ch-capstone-improve">
+  <span class="ch-kicker">实战主线 P9 · 第 12–13 周 · 前置：R2/R3、P7/P8</span>
+  <h1>反思优化：固定预算下，反馈究竟值不值钱</h1>
+  <p class="lead">让一个优化器读取开发失败轨迹，提出提示词或检索参数候选，然后在独立选择数据上比较。你的任务是证明反馈的作用，而不是证明多运行几次可以找到更高分。</p>
+  <h2>先限制候选能改什么</h2>
+  <p>第一轮只允许修改 <code>system_prompt</code> 与证据选择策略的有限参数；工具权限、评分器、数据拆分和总预算固定。候选是一个可序列化对象，带 parent_id、变更摘要、代码/配置 hash 和生成成本。拒绝含有 schema 外字段的候选；扩大改动范围之前先建立测试与隔离。</p>
+  <h2>读懂 GEPA 的接入点</h2>
+  <p>精读固定提交的 <code>GEPAAdapter</code> 与 <code>EvaluationBatch</code>。evaluate 返回逐样本 outputs、scores 和可选 trajectories；make_reflective_dataset 把轨迹转成可供修改器使用的反馈。数组必须一一对应，个别失败留在批次中；系统性配置错误应显式中断。GEPA 的反思搜索不是模型权重训练，也不会自动保护你的最终测试集。<cite data-source="gepa-code"></cite><cite data-source="gepa-overview"></cite></p>
+  <div class="codeblock"><div class="cb-head">课程接口草图 · 按固定版本实现，非已提供的 GEPA 插件</div><pre data-lang="python">def evaluate(batch, candidate, capture_traces=False):
+    rows = run_repoops(batch, frozen_model, candidate, frozen_budget)
+    return EvaluationBatch(
+        outputs=[r.answer for r in rows],
+        scores=[float(r.passed) for r in rows],
+        trajectories=rows if capture_traces else None,
+    )
+
+def make_reflective_dataset(candidate, evaluation_batch, components_to_update):
+    # 只从开发轨迹提取：任务目标、动作、工具观察、失败类别。
+    # 不包含确认集、隐藏 grader 源码或外部密钥。
+    return feedback_by_component</pre></div>
+  <h2>把实验做成三组，而非单条上涨曲线</h2>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>组别</th><th>候选来源</th><th>控制什么</th></tr></thead><tbody>
+    <tr><td>固定策略</td><td>不搜索，用初始候选</td><td>记录起点和推理预算</td></tr>
+    <tr><td>随机/无反馈搜索</td><td>同一候选空间中采样，或生成器不读失败轨迹</td><td>与反思组同总搜索预算、终选规则和模型</td></tr>
+    <tr><td>轨迹反思搜索</td><td>读取失败原因后修改候选</td><td>只增加反馈信息这一处理变量</td></tr>
+  </tbody></table></div>
+  <p>固定策略是参考点；对“反思是否更有效”的主要归因来自后两组的预算匹配比较。若一次修改需要额外的 reflection 模型调用，它也计入搜索预算。不能只控制评测次数却忽略昂贵的候选生成。</p>
+  <h2>逐步实施与停止规则</h2>
+  <ol>
+    <li>预先确定 train/dev_select/final 三种用途和访问者；用 dev_select 反复挑候选，就承认它是选择集。最终确认仅用于最后一个冻结候选。</li>
+    <li>给搜索总预算设硬上限：候选生成、反思、候选评估、重试都记账；每次调用前预留额度，结束后结算，避免多个 worker 同时超支。</li>
+    <li>先跑少量候选，检查反馈到底包含可行动的错误信息；如“缺少当前版本证据”，而非只有“得分低”。</li>
+    <li>至少做多个完整搜索种子；种子数由 pilot 方差和预算决定。报告每次搜索的终选结果，别只展示最好一条曲线。</li>
+    <li>做一项机制消融：删除错误反馈、删除检索证据或冻结选择器。选一个主要假设，避免小数据上同时搜索大量故事。</li>
+  </ol>
+  <h2>失败也有研究价值</h2>
+  <p>常见结果是 dev 分数持续上升，最终任务没有提升；或者成功率上升，但成本比超限。前者应检查选择偏差、同源任务与反馈泄漏，后者应比较约束后的收益。搜索档案可以保留低分但多样的候选用于探索；生产 incumbent 仍要过独立发布门，两者不是同一个集合。</p>
+  <div class="research-exercise"><h3>验收与项目故事</h3><p>交付 candidate archive、完整预算账本、三组对照与至少一项消融。答辩时能指出一个没有起效的机制，以及你据何停止。简历可以写完成了受约束的候选搜索实验；除非确有证据，不写“实现递归自我提升”。下一章专门检验更强命题。</p></div>
+  <p class="research-next">下一步：<a href="#/capstone-meta">P10 改进器更新消融</a>。</p>
+</section>

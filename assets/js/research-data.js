@@ -77,6 +77,118 @@
   DSH.modules.splice(2, 0, {id: "research", name: "研究主线 · 深度优先", desc: "定义 → 精读 → 评测 → 实验 → 开放问题", icon: "book"});
   var after = DSH.chapters.findIndex(function (c) { return c.id === "carriers"; }) + 1;
   DSH.chapters.splice.apply(DSH.chapters, [after, 0].concat(chapters));
+  var capstone = [
+  {
+    "id": "capstone",
+    "num": "P0",
+    "title": "RepoOps Lab：项目总览与岗位地图",
+    "short": "项目总览",
+    "blurb": "16 周构建、三类岗位、源码路线与真实面经证据。",
+    "icon": "book",
+    "module": "capstone"
+  },
+  {
+    "id": "capstone-data",
+    "num": "P1",
+    "title": "P1 任务契约与数据集",
+    "short": "任务数据",
+    "blurb": "任务、证据、评分与拆分；跑出第一份完整实验。",
+    "icon": "book",
+    "module": "capstone"
+  },
+  {
+    "id": "capstone-agent",
+    "num": "P2",
+    "title": "P2 有边界的 Agent 循环",
+    "short": "Agent 循环",
+    "blurb": "工具协议、终止状态、模型适配与预算。",
+    "icon": "book",
+    "module": "capstone"
+  },
+  {
+    "id": "capstone-retrieval",
+    "num": "P3",
+    "title": "P3 检索、上下文与记忆",
+    "short": "检索记忆",
+    "blurb": "从词法基线到混合检索，检索与生成分别归因。",
+    "icon": "book",
+    "module": "capstone"
+  },
+  {
+    "id": "capstone-grading",
+    "num": "P4",
+    "title": "P4 独立评分与评测质量",
+    "short": "可信评分",
+    "blurb": "校准、反例、拒答、证据与污染测试。",
+    "icon": "book",
+    "module": "capstone"
+  },
+  {
+    "id": "capstone-platform",
+    "num": "P5",
+    "title": "P5 从脚本到可靠调度服务",
+    "short": "可靠调度",
+    "blurb": "Go 控制面、租约、fencing、幂等与恢复。",
+    "icon": "book",
+    "module": "capstone"
+  },
+  {
+    "id": "capstone-observability",
+    "num": "P6",
+    "title": "P6 轨迹、成本与故障定位",
+    "short": "可观测性",
+    "blurb": "trace、失败分层、尾延迟、成本账本与事故演练。",
+    "icon": "book",
+    "module": "capstone"
+  },
+  {
+    "id": "capstone-experiments",
+    "num": "P7",
+    "title": "P7 公平比较与统计判断",
+    "short": "实验判断",
+    "blurb": "配对、聚类、预算、确认集与三态决策。",
+    "icon": "book",
+    "module": "capstone"
+  },
+  {
+    "id": "capstone-sandbox",
+    "num": "P8",
+    "title": "P8 迁移到隔离执行与开源基准",
+    "short": "隔离执行",
+    "blurb": "Harbor 任务、mini-SWE-agent 基线与独立 verifier。",
+    "icon": "book",
+    "module": "capstone"
+  },
+  {
+    "id": "capstone-improve",
+    "num": "P9",
+    "title": "P9 固定预算下的反思优化",
+    "short": "反思优化",
+    "blurb": "GEPA 接口、失败轨迹、搜索账本与消融。",
+    "icon": "book",
+    "module": "capstone"
+  },
+  {
+    "id": "capstone-meta",
+    "num": "P10",
+    "title": "P10 检验改进器的改进",
+    "short": "递归研究",
+    "blurb": "冻结改进器对照、全搜索重复与元收益。",
+    "icon": "book",
+    "module": "capstone"
+  },
+  {
+    "id": "capstone-career",
+    "num": "P11",
+    "title": "P11 从作品证据到求职反馈",
+    "short": "求职闭环",
+    "blurb": "分阶段投递、项目答辩、编码题与作品集。",
+    "icon": "book",
+    "module": "capstone"
+  }
+];
+  DSH.modules.splice(3, 0, {id: "capstone", name: "实战主线 · RepoOps Lab", desc: "项目交付 → 工程深度 → 实验研究 → 求职证据", icon: "book"});
+  DSH.chapters.splice.apply(DSH.chapters, [after + chapters.length, 0].concat(capstone));
   DSH.sources = [
   {
     "id": "gm",
@@ -261,6 +373,110 @@
     "version": "arXiv 2512.08093 · 首次提交 2025-12",
     "checked_at": "2026-09-19",
     "scope": "元数据；修正年份，不代表全文复现"
+  },
+  {
+    "id": "job-evals",
+    "title": "Anthropic · Research Engineer, Model Evaluations",
+    "url": "https://job-boards.greenhouse.io/anthropic/jobs/5198255008",
+    "version": "招聘页，2026-09-19 访问",
+    "scope": "核对职责、最低/优选资格与代表性项目；用于能力分析，不保证持续开放。",
+    "checked_at": "2026-09-19"
+  },
+  {
+    "id": "job-infra",
+    "title": "Anthropic · Software Engineer, Research Infrastructure",
+    "url": "https://job-boards.greenhouse.io/anthropic/jobs/5283063008",
+    "version": "招聘页，2026-09-19 访问",
+    "scope": "核对职责和资格；海外资深岗位样本，不代表国内总体需求。",
+    "checked_at": "2026-09-19"
+  },
+  {
+    "id": "job-applied",
+    "title": "Anthropic · Applied AI, Research Engineer",
+    "url": "https://job-boards.greenhouse.io/anthropic/jobs/5390811008",
+    "version": "招聘页，2026-09-19 访问",
+    "scope": "核对角色说明与职责中的原型、评测和技术沟通；不是面试题来源。",
+    "checked_at": "2026-09-19"
+  },
+  {
+    "id": "interview-dw",
+    "title": "Datawhale 社区 · LLM & VLM & Agent 面试问题总结",
+    "url": "https://github.com/datawhalechina/hello-agents/blob/203e9fac88b23291b407f76549e250fd51c295e3/Extra-Chapter/Extra01-%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93.md",
+    "version": "commit 203e9fac88b23291b407f76549e250fd51c295e3",
+    "scope": "作者称整理自 2025 秋招多次真实技术面试。核对声明与 Agent/RAG/评估主题；个人自述，未独立验证，不作为技术原理依据。",
+    "checked_at": "2026-09-19"
+  },
+  {
+    "id": "interview-byte",
+    "title": "卡码 · 字节 Agent 开发四面面经（转载与编辑整理）",
+    "url": "https://notes.kamacoder.com/interview/llm/20260506bytedance.html",
+    "version": "网页 2026-09-19 访问；原始分享不在本站",
+    "scope": "核对公开转载的候选人经历及编辑提炼的问题主题；未访问付费原帖。不可作为企业标准题库或技术答案权威。",
+    "checked_at": "2026-09-19"
+  },
+  {
+    "id": "mini-code",
+    "title": "mini-SWE-agent · DefaultAgent 源码",
+    "url": "https://github.com/SWE-agent/mini-SWE-agent/blob/04d809ceab9df28f9adaed044884180159172930/src/minisweagent/agents/default.py",
+    "version": "commit 04d809ceab9df28f9adaed044884180159172930",
+    "scope": "核对 run/step/query/execute_actions、预算检查与轨迹保存；未安装或跑榜。",
+    "checked_at": "2026-09-19"
+  },
+  {
+    "id": "inspect-code",
+    "title": "Inspect AI · Task 源码",
+    "url": "https://github.com/UKGovernmentBEIS/inspect_ai/blob/ec4dfc6953784dc45b79de3147530c89868c6e26/src/inspect_ai/_eval/task/task.py",
+    "version": "commit ec4dfc6953784dc45b79de3147530c89868c6e26",
+    "scope": "核对 Task 构造参数及 dataset/solver/scorer、限制、错误处理说明；未实测适配。",
+    "checked_at": "2026-09-19"
+  },
+  {
+    "id": "harbor-code",
+    "title": "Harbor · Trial 源码",
+    "url": "https://github.com/harbor-framework/harbor/blob/2993946dd5b64a46dac3aa766d03065f432a1468/src/harbor/trial/trial.py",
+    "version": "commit 2993946dd5b64a46dac3aa766d03065f432a1468",
+    "scope": "核对 Trial 文件前 180 行：任务/环境/verifier 依赖、路径和初始化关系；非完整生命周期审计。",
+    "checked_at": "2026-09-19"
+  },
+  {
+    "id": "harbor-task",
+    "title": "Harbor 官方 · Create a task",
+    "url": "https://docs.harborframework.com/tutorials/create-a-task",
+    "version": "在线文档 2026-09-19",
+    "scope": "核对任务文件、init/oracle/view 命令与 reward 文件；未在本仓库运行 Harbor。",
+    "checked_at": "2026-09-19"
+  },
+  {
+    "id": "harbor-verifier",
+    "title": "Harbor 官方 · Separate verifier",
+    "url": "https://docs.harborframework.com/core-concepts/tasks/separate-verifier",
+    "version": "在线文档 2026-09-19",
+    "scope": "核对默认共享环境、显式 separate 配置、镜像选择和 artifact 传递；运行时兼容性待学习者验证。",
+    "checked_at": "2026-09-19"
+  },
+  {
+    "id": "gepa-code",
+    "title": "GEPA · GEPAAdapter / EvaluationBatch 源码",
+    "url": "https://github.com/gepa-ai/gepa/blob/15ee314f9c7d34ec153b809d401f42f55c4dcd76/src/gepa/core/adapter.py",
+    "version": "commit 15ee314f9c7d34ec153b809d401f42f55c4dcd76",
+    "scope": "核对接口与逐样本输出/反馈/错误语义，前 180 行；未实现本项目 GEPA 插件。",
+    "checked_at": "2026-09-19"
+  },
+  {
+    "id": "gepa-overview",
+    "title": "GEPA 官方仓库 · 反思优化",
+    "url": "https://github.com/gepa-ai/gepa",
+    "version": "README 2026-09-19",
+    "scope": "核对文本候选、轨迹反馈和适配器定位；未引用宣传收益或声称复现。",
+    "checked_at": "2026-09-19"
+  },
+  {
+    "id": "ollama-chat",
+    "title": "Ollama 官方 · Generate a chat message",
+    "url": "https://docs.ollama.com/api/chat",
+    "version": "在线 API 文档 2026-09-19",
+    "scope": "核对本机 /api/chat、messages、stream、format 和 usage 字段；本仓库只做 HTTP 契约 mock 测试，未运行真实权重。",
+    "checked_at": "2026-09-19"
   }
 ];
 })();

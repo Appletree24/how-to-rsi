@@ -1,0 +1,38 @@
+<section class="chapter" id="ch-capstone-experiments">
+  <span class="ch-kicker">实战主线 P7 · 第 8–9 周 · 前置：R3、P4、P6</span>
+  <h1>把“更好了”变成一份经得住追问的结论</h1>
+  <p class="lead">完成第一份真实 Agent 对照报告。主要比较“是否加入结构化证据检查”；你必须同时说明成功率、可靠性、代价和哪些因素没有被控制住。</p>
+  <h2>先冻结实验卡</h2>
+  <p>用 <a href="templates/experiment-card.md">实验卡</a> 写明：任务目标、主指标、最小有意义收益、预算、停止规则、失败处理、聚类单位、候选选择与最终确认方法。两组共享基础模型修订、任务、工具集合、环境与 grader；只更换一个策略参数。若比较不同模型，直接把实验命名为模型比较，不把模型差异算成 harness 改进。</p>
+  <h2>逐步执行</h2>
+  <ol>
+    <li><strong>小规模 pilot。</strong>只在开发集检查数据格式、失败率、资源成本和预期效应量；pilot 可改设计，但不汇报为最终确认。</li>
+    <li><strong>锁定候选。</strong>保存 prompt、检索参数和 memory 的内容哈希；将测试题和 grader 放在候选不可访问的位置。公开 starter 的 test_public 不满足这个条件。</li>
+    <li><strong>配对运行。</strong>每个任务都跑 A/B，同样的最大模型调用和时间预算；执行顺序随机或交错，降低服务时段漂移。每题重复用于估计随机性，不能把重复当新任务。</li>
+    <li><strong>完整记账。</strong>包含失败和重试，列出两组 token、wall time、运行/搜索/评分成本；模型价格不同则同时给出美元与资源用量。</li>
+    <li><strong>分析后停止。</strong>先算效应和区间，再按预定规则 keep/reject/inconclusive；不能因差一点显著就连续加题看结果，除非已设计序贯方法。</li>
+  </ol>
+  <h2>最小统计推导</h2>
+  <div class="codeblock"><div class="cb-head">任务级配对；同仓库任务需要更高层聚类</div><pre data-lang="text">d_i = mean_r(success_B[i,r]) - mean_r(success_A[i,r])
+delta = mean_i(d_i)
+bootstrap: 重采样独立的任务/家族，保留该簇内全部 A/B 配对和重复
+成本约束: cost_B &lt;= predetermined_ratio * cost_A
+裁决: 严重违规或成本越界 → reject
+      收益下界超过预定阈值 → keep
+      否则 → inconclusive，保留原版本</pre></div>
+  <p>本站旧 <code>labs/eval_lab.py</code> 提供按独立任务假设的保守 Hoeffding 门和描述性 bootstrap；它不会自动识别仓库相关性。当前 12 题只有 6 个服务家族，而且是手工教学夹具，不适用独立同分布总体能力推断。不要把重复运行三次写成“36 个独立任务”。</p>
+  <h2>一个报告应该长什么样</h2>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>项目</th><th>必须填写</th></tr></thead><tbody>
+    <tr><td>比较对象</td><td>A/B 配置 hash，模型与环境修订，唯一变化项</td></tr>
+    <tr><td>样本</td><td>任务、家族、重复数，来源分层与排除数</td></tr>
+    <tr><td>效果</td><td>两组成功率、配对差值、聚类区间与子组结果</td></tr>
+    <tr><td>代价</td><td>每组总预算、实际消耗、失败与重试成本</td></tr>
+    <tr><td>错误</td><td>至少 3 个退化例，是否存在严重违规</td></tr>
+    <tr><td>结论</td><td>按预注册规则裁决；局限与下一项实验</td></tr>
+  </tbody></table></div>
+  <p>例：“增加证据检查在本任务集观察到更高成功率，但 token 增加且区间跨零，所以保留旧版。”这是一份有效结果。不能把开放任务集调参所得分数描述为独立确认，更不能选择最好一次种子来汇报。</p>
+  <h2>预算有限时怎么做</h2>
+  <p>先将总预算分成 pilot、开发、确认和基础设施失败预留四部分，并写入实验卡；任何百分比都应随你的调用成本估算调整。示例计算：20 题×2 组×3 次×每题最多 6 个模型调用，调用上限为 720 次，另算评分调用。成本预估用 pilot 的输入/输出 token 分布和当前 provider 价格，不直接用调用数乘一个固定单价。</p>
+  <div class="research-exercise"><h3>验收与求职动作</h3><p>让另一人按你的 README 从新目录重跑 pilot；他应能找到每个数字的原始 trial。完成后做评测岗位版本的简历：强调实验设计、评分器和误差分析，数字保留样本与预算限定。面试自拟题：“bootstrap 区间不跨零是否就证明可推广？”答：仍受任务抽样、相关性、选择过程和数据污染限制。</p></div>
+  <p class="research-next">下一步：<a href="#/capstone-sandbox">P8 开源基准与隔离环境</a>。</p>
+</section>

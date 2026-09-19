@@ -1,0 +1,33 @@
+<section class="chapter" id="ch-capstone-data">
+  <span class="ch-kicker">实战主线 P1 · 第 1 周 · 前置：JSON、测试、Git</span>
+  <h1>先定义任务，再决定 Agent 怎么写</h1>
+  <p class="lead">这一阶段完成任务集 v0。输入是一张工单及允许访问的文档集合；输出是处置代码和证据 ID；成功由外部规则决定。先让一个不接模型的完整评测跑通，避免把评分器故障误判为模型能力不足。</p>
+  <h2>一条数据同时有三个视图</h2>
+  <p>打开 <a href="projects/repoops/data/tasks.json">tasks.json</a> 的第一条记录。学习夹具把所有内容放在一个文件，便于检查；进入真实实验后必须按访问权限拆开。公开 prompt 告诉 Agent 要处理哪张工单；documents 是工具可访问的环境；expected_answer 和 required_citations 只属于评分器。<code>run_agent</code> 只接收 prompt 与 documents，<code>grade</code> 在循环结束后评分。进程内参数分离是设计习惯，不是防恶意代码的隔离措施。</p>
+  <div class="codeblock"><div class="cb-head">核心契约 · 具体实例见数据文件</div><pre data-lang="json">{
+  "id": "checkout-0", "family": "checkout", "split": "dev",
+  "prompt": "Diagnose incident_id=checkout-incident-0 ...",
+  "documents": [{"id":"checkout-runbook","title":"checkout current runbook","body":"..."}],
+  "expected_answer": "resize_pool",
+  "required_citations": ["checkout-incident-0", "checkout-runbook"]
+}</pre></div>
+  <p>任务 ID 标识具体样本；family 标识可能共享答案模板或环境的相关样本。checkout 的两张工单不能一张进入开发、一张进入确认。公开示例用服务家族拆成 dev 与 test_public；后者已经可见，不能再叫盲测集。</p>
+  <h2>逐步实现</h2>
+  <ol>
+    <li><strong>手工解三题。</strong>写下每题允许的资料、正确处置、是否应拒答、哪些错误是严重错误。遇到人都无法唯一判断的题，先修任务或允许多种答案。</li>
+    <li><strong>检验评分规则。</strong>正确答案但引用不存在的文档应失败；读了旧手册而未读当前证据应失败；未知错误应允许 abstain。不要让“回答自信”影响得分。</li>
+    <li><strong>阅读 load_dataset。</strong>它检查任务 ID、family 跨拆分和证据 ID。扩展作业：加入 prompt 类型、文档长度、答案枚举和空 split 校验，错误信息必须定位到 task_id。</li>
+    <li><strong>补 6 张原创任务卡。</strong>覆盖规则冲突、缺失证据、误导评论、无关检索结果、工具超时和多个正确处置。每张卡配一个人工 oracle 答案与一个应失败的 mutant。</li>
+    <li><strong>保存版本。</strong>记录原始数据来源、使用许可、脱敏规则、family、任务哈希与评分版本。不要把公司的内部工单、客户日志或密钥加入公开作品。</li>
+  </ol>
+  <h2>第一组可复现命令</h2>
+  <div class="codeblock"><div class="cb-head">同一配置自动续跑；保存 stdout 的 run ID</div><pre data-lang="bash">python -m projects.repoops.runner run --policy evidence --limit 2
+python -m projects.repoops.runner run --policy evidence
+python -m projects.repoops.runner report RUN_ID
+python -m projects.repoops.runner run --policy evidence --split test_public</pre></div>
+  <p>把 <code>RUN_ID</code> 替换为前两条命令打印的 64 位值。前两次 ID 应一致，已落库 trial 不再运行；数据、代码、prompt、模型版本或预算变化会生成新 ID。报告的 <code>complete</code> 为 false 时，只能用于调试，不能拿部分成功样本汇报总成绩。重复次数变化也属于新实验。</p>
+  <h2>数据集扩展不能靠换词凑题数</h2>
+  <p>正式作品的第一版可从 20–40 个经人工确认的任务开始，这只是课程规模建议，不是统计充分性的保证。按故障机制和仓库来源分层，记录原始任务、改写任务与自动生成任务。十张共用同一处置规则的工单可能只提供很少的独立信息；置信区间要在家族或仓库层聚类。不要用开发时看过的旧题重新命名为确认集。</p>
+  <div class="research-exercise"><h3>验收与面试证据</h3><p>交付 <code>dataset-card.md</code>：目标工作流、任务来源、正负例、拆分依据、oracle、已知泄漏和排除项。请另一人只读任务描述独立标 5 题，记录分歧。能回答“为什么你的 40 题不是 40 个独立样本”“一次评分失败能否归因给 Agent”才过关。</p><details><summary>本站练习：为什么不一开始用 LLM 自动生成一万题？</summary><p>规模会掩盖任务相关性、标签偏差与模版重复。先用小样本检验任务有效性与评分器，再扩展生成、去重和人工审计。自动生成可以增广训练/开发数据，但不能替代独立的目标任务分布。</p></details></div>
+  <p class="research-next">下一步：<a href="#/capstone-agent">P2 Agent 循环</a>。理论回查：<a href="#/research-contract">R1 系统边界</a>。</p>
+</section>
