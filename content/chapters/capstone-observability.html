@@ -1,0 +1,36 @@
+<section class="chapter" id="ch-capstone-observability">
+  <span class="ch-kicker">实战主线 P6 · 第 7 周 · 前置：P5、基本统计与日志</span>
+  <h1>一次回归，能否说清楚究竟坏在哪里</h1>
+  <p class="lead">当通过率从昨天的结果下降，先分清模型、检索、数据、评分器和基础设施，再决定回滚什么。本阶段做一个能支持排障的结果视图，而非堆满图表的展示页。</p>
+  <h2>从现有报告开始</h2>
+  <p><code>report RUN_ID</code> 已输出完整 trial、顺序事件、状态、调用数、耗时和 usage。离线策略没有 token 数据，因此 usage=null；model_calls 是调用次数，不是美元。summary 的 macro_success 在每题内先平均重复试验，再对题平均。完整性不满足时显著标注 partial。</p>
+  <div class="codeblock"><div class="cb-head">扩展事件协议 · 在单调时钟上计算耗时</div><pre data-lang="json">{
+  "experiment_id":"...", "trial_id":"...", "attempt_id":"...",
+  "trace_id":"...", "span_id":"...", "parent_span_id":"...",
+  "kind":"model|tool|environment|grader",
+  "started_at":"UTC timestamp", "duration_ms":123,
+  "status":"ok|error|cancelled", "error_class":null,
+  "input_tokens":100, "output_tokens":20,
+  "artifact_sha256":"...", "component_revision":"..."
+}</pre></div>
+  <h2>实现顺序</h2>
+  <ol>
+    <li>建立实验→trial→attempt→模型/工具 span 的父子关系。worker 重试不能复用 attempt_id，跨进程传递 trace 上下文。</li>
+    <li>将轨迹事件与最终结果关联，展示“失败发生前最后两个动作”；默认只展示运行元数据，文档正文与用户输入按需要保存和脱敏。</li>
+    <li>加入四类视图：按状态计数、按任务家族成功率、延迟分布、资源消耗。不要把“成功请求的平均耗时”称为整体响应时间。</li>
+    <li>建立用量账本：每次已发请求都有记录，provider 返回值和估计值分列，重试费用单列；价格表独立带日期/版本，本教程不固化实时价格。</li>
+    <li>做版本差异页：模型、prompt、检索索引、评分器、镜像、任务集、种子、并发和预算。一次变更多个组件时，禁止直接归因模型。</li>
+  </ol>
+  <h2>三个指标要讲清楚分母</h2>
+  <p><strong>端到端完成率</strong>以全部预定 trial 为分母，服务超时也算失败。<strong>模型条件下的任务成功率</strong>只有在预先约定的基础设施排除规则下才计算，并同时给出排除数量。<strong>每个成功任务成本</strong>用全部相关成本除以成功任务数，包含失败、重试和必要的评分成本；成功数为零时报告未定义，不能返回零成本。</p>
+  <p>尾延迟至少分排队、环境准备、模型和工具执行、验证。低样本 p95 可能极不稳定，直接列样本量和原始分位。比较并发策略时固定数据和模型，吞吐改善不等于单次推理更快；拥塞与 provider 限流可能让两者反向变化。</p>
+  <h2>排障演练：故意引入一个回归</h2>
+  <ol>
+    <li>先冻结 baseline，然后随机挑一类故障注入：旧检索索引、读工具返回空、评分规则改严、provider 错误比例增加。</li>
+    <li>只给排障者 dashboard 和匿名版本变更，不预告故障。要求先列两个可区分假设，再选最小验证实验。</li>
+    <li>对同一份轨迹重新评分：如果回归消失，优先查 grader；给相同模型 oracle 证据：如果恢复，优先查检索；看失败时间分布与 provider 状态：确定是否基础设施。</li>
+    <li>记录发现、定位、修复和验证时间，输出带证据的复盘，而不是事后补一个完美故事。</li>
+  </ol>
+  <div class="research-exercise"><h3>验收与答辩</h3><p>交付一份事故报告和可点击到失败 trial 的本地结果视图；用截图或录屏展示排查过程。Model Evaluations 招聘页明确把异常结果归因、运行可靠性和可解释监控列入工作，因此这是评测工程能力的重要证据。<cite data-source="job-evals"></cite>本站练习：“通过率涨了 4%，你会立刻上线吗？”先问分母、完整性、任务组成、成本与不确定性，再进入 P7。</p></div>
+  <p class="research-next">下一步：<a href="#/capstone-experiments">P7 实验设计</a>。</p>
+</section>
