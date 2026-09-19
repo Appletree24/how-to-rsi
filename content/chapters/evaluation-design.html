@@ -1,0 +1,38 @@
+<section class="chapter" id="ch-evaluation-design">
+  <span class="ch-kicker">研究主线 R3 · 统计与实验设计</span>
+  <h1>分数上涨之后，还要排除什么</h1>
+  <p class="lead">一个任务跑十次，与十个独立任务各跑一次，回答的是不同问题。先确定独立样本和选择过程，再决定置信区间与裁决门。</p>
+  <h2>三套数据，三种权限</h2>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>数据</th><th>用途</th><th>允许反馈</th></tr></thead><tbody>
+    <tr><td>开发集 D_dev</td><td>诊断失败、改代码、调提示词</td><td>可公开题目和详细轨迹；其分数不能当独立泛化证据</td></tr>
+    <tr><td>选择集 D_select</td><td>在冻结的候选集合中选择版本</td><td>记录所有查询；多轮反馈会让它逐渐成为训练信号</td></tr>
+    <tr><td>确认集 D_confirm</td><td>对预先选定的候选和基线做最终比较</td><td>候选与判定规则先冻结；看过结果再调参，应更换确认数据或采用有效的自适应协议</td></tr>
+  </tbody></table></div>
+  <p>“不允许写测试文件”只保护测试完整性；“不允许读文件”也挡不住反复查询总分的反馈泄漏。自适应数据分析研究正是处理重复使用数据后的泛化问题。按仓库、任务模板或时间切分，还要排除近重复样本。<cite data-source="adaptive"></cite></p>
+  <h2>配对比较与不确定性</h2>
+  <p>每题 i，基线与候选各跑 R 次：<code>d_i = mean_r(y_candidate,i,r − y_baseline,i,r)</code>，再算 <code>Δ̂ = mean_i(d_i)</code>。同题配对能减少任务难度差异的干扰。随机化运行顺序；同 seed 不能保证不同模型/API 的随机过程相同。</p>
+  <p>bootstrap 时抽样单位应是<strong>独立任务</strong>，同一题的重复运行一起抽。如果同一仓库的 30 个 issue 高度相关，应按仓库聚类，而不是把 30 个 issue 当 30 份独立证据。数据太少、全部成功或失败时，普通 percentile bootstrap 会产生过窄甚至退化的区间。</p>
+  <p>本仓库实验另外使用保守的单侧 Hoeffding 界。对独立、同目标分布抽样的任务，<code>d_i ∈ [−1,1]</code>：</p>
+  <div class="codeblock"><div class="cb-head">固定一次比较的下界</div><pre data-lang="text">lower = Δ̂ − sqrt(2 × log(1/α) / N)
+keep requires lower &gt; δ_min
+             AND cost within budget
+             AND no observed critical violation</pre></div>
+  <p>它控制的是这个预先规定比较中的单侧误差概率，代价是需要更多任务。α=0.05、N=80 时半径约 0.274；若差值仅 0.03，当然无法据此宣布改进。这个结果比“50% 与 53% 看起来更好”诚实。代码输出的上界也是单侧界，两者不能合称一个 95% 双侧区间。</p>
+  <h2>为什么搜索次数越多，越容易“进步”</h2>
+  <p>若每次检验独立且原假设都真，K 次 α 检验至少一次误报的概率为 <code>1 − (1 − α)^K</code>。K=20、α=0.05 时约 64.2%。实际候选常相关，所以这个数字是教学算例；它不是任意搜索过程的精确误报率。</p>
+  <p>预先固定 K 个比较时，Bonferroni 使用 α/K 可控制家族错误率，且不要求比较独立；但它不能修复由相同确认数据反馈生成候选的适应性问题。持续查看结果直到通过，也不能继续引用一次性置信区间。</p>
+  <div class="sim" id="selectionBiasLab"><p>离线实验：<code>python labs/eval_lab.py selection-bias --candidates 30</code>。所有候选真实成功率均为 50%，观察筛选后的开发分数与新数据分数。</p></div>
+  <h2>pass@k 与 pass^k：回答相反的问题</h2>
+  <p>若一题 n 次尝试有 c 次成功，<code>pass@k = 1 − C(n−c,k)/C(n,k)</code> 估计抽 k 次至少一次成功；<code>pass^k = C(c,k)/C(n,k)</code> 对应抽 k 次全成功。约定 n−c&lt;k 时前式为 1，c&lt;k 时后式为 0，且必须满足 k≤n。它们在独立同分布尝试下分别对应 <code>1−(1−p)^k</code> 和 <code>p^k</code>。前者体现多次尝试的潜力，后者关注可靠性。<cite data-source="humaneval"></cite> <cite data-source="tau"></cite></p>
+  <p>有一个正确答案不代表你能免费选出它；选择器也会出错并消耗预算。发布报告必须写清重试次数、选择规则、超时如何计分。失败记录不能被过滤后再算均值。</p>
+  <h2>预注册一个最小比较</h2>
+  <ul>
+    <li>主指标：任务宏平均成功率；次指标：成本、延迟分位数、严重违规率。</li>
+    <li>固定模型版本、harness commit、数据/评分器/环境版本和 R；候选数与总搜索预算提前登记。</li>
+    <li>先设 δ_min 与成本上限，再生成候选；指定 task 或 repo 为聚类单位。</li>
+    <li>三态结论：keep、reject、inconclusive。证据不足时保留当前版本，不能说“已证明两者相同”。</li>
+    <li>同时提供逐题结果、全体候选账本、失败类型和原始轨迹位置。没有观测到严重违规不等于风险为零。</li>
+  </ul>
+  <details class="research-exercise"><summary>练习：把每题重复从 3 次增到 30 次，置信区间能缩小 √10 吗？</summary><p>对固定题目上的运行噪声可能有帮助；对跨题泛化不能直接这样算。任务数没有增加。若把所有运行当独立任务抽样，会产生伪重复。实验程序刻意保留任务聚类，重复相同观测不会凭空扩大独立样本量。</p></details>
+  <p class="research-next">下一步：<a href="#/evaluator-integrity">让这些数值来自可信测量</a>。</p>
+</section>

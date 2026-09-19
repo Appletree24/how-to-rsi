@@ -1,0 +1,37 @@
+<section class="chapter" id="ch-paper-lab">
+  <span class="ch-kicker">研究主线 R2 · 机制精读</span>
+  <h1>读懂机制、假设与反事实</h1>
+  <p class="lead">论文标题不是一个实证结论。阅读时同时画出“被修改的系统”和“固定的外部控制器”，再找足以推翻作者解释的替代机制。</p>
+  <h2>先给四篇工作各找一个位置</h2>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>工作</th><th>核心对象</th><th>精读入口</th><th>不能直接推出</th></tr></thead><tbody>
+    <tr><td>Gödel Machine <cite data-source="gm"></cite></td><td>以形式证明支持自修改</td><td>switching 条件、公理与效用建模</td><td>任意现实环境都可及时找到证明</td></tr>
+    <tr><td>STOP <cite data-source="stop"></cite></td><td>让代码改进器改进自身</td><td>元效用如何由下游任务构造</td><td>基础模型也在自我训练</td></tr>
+    <tr><td>DGM <cite data-source="dgm"></cite></td><td>能编辑自身的编码 agent 档案</td><td>§3、§4.3、附录 C.2/C.4/E</td><td>每个入档候选都优于父代</td></tr>
+    <tr><td>HGM <cite data-source="hgm"></cite></td><td>支系潜力估计与搜索资源分配</td><td>Assumption 1、§3.2–3.3、附录 D</td><td>实际估计器继承 oracle 的最优性</td></tr>
+  </tbody></table></div>
+  <h2>DGM：入档、选父代与上线是三个不同决定</h2>
+  <p>论文 v3 的算法把通过有效性检查的候选加入档案，不要求它即时胜过父代。其父代权重含 <code>sigmoid(10 × (score − 0.5)) / (1 + n_children)</code>，其中子代计数指仍有代码编辑能力的子代；这会抑制已经被反复展开的节点，方向不是“孩子越多越优先”。<cite data-source="dgm"></cite></p>
+  <p><strong>本站分析：</strong>研究档案可以保存弱分支，用户正在使用的版本却不必随之降级。维护两个引用：<code>archive</code> 供探索，<code>incumbent</code> 供使用。若把它们都叫 keep，就会把“允许搜索暂时退步”误解为“允许生产版本退步”。</p>
+  <div class="codeblock"><div class="cb-head">教学抽象 · 不复刻具体实现</div><pre data-lang="text">parent = choose_parent(archive)
+child = improve(parent, development_feedback)
+if valid_for_further_search(child):
+    archive.add(child, parent=parent.id, evidence=development_score)
+# 另一个、低频且独立的发布决定：
+if confirm_frozen_candidate(child, incumbent) == "keep":
+    incumbent = child</pre></div>
+  <p>最关键的对照：让初始 agent 始终担任修改者，与让改进后的 agent 继续参与修改比较。还应分别关闭档案探索、打乱诊断反馈、增加普通 best-of-N 的采样预算。只有对照回答了不同问题，消融才有解释力。</p>
+  <h2>HGM：CMP 有三种不同的含义</h2>
+  <p>理论 CMP 关心未来搜索后，从某个支系终选出来的 agent 的期望效用；§3.3 的在线估计量则合并支系成功/失败计数，并配合自适应评估。附录 D 的回顾性实证目标用后代中最好的经验均值，且排除支系根。这三者不能互换。<cite data-source="hgm"></cite></p>
+  <p>定理的限制包含：只关心最终 agent、试验可重复、证明不耗预算、每次自改耗一单位预算。实际系统里的有限样本估计、非平稳任务和异构计算成本并未因此得到最优性保证。</p>
+  <p><strong>本站算例：</strong>支系 A 有一个 9/10 和一个 1/10 的后代；B 有两个 6/10。按合并通过率，A=50%、B=60%；按当前最佳后代，A=90%、B=60%。指标选错会让结论反转。若给 A 的强后代再分配更多测试，合并通过率也会改变，即使没有生成更强的后代——因此必须把搜索策略和观测过程一起分析。</p>
+  <h2>一个可做的元改进实验</h2>
+  <ol>
+    <li>准备若干独立起点与任务族，固定基础模型和总调用/token 预算。</li>
+    <li>A 组冻结改进器；B 组允许更新改进器；C 组用同预算随机搜索。每组重复完整搜索轨迹，不能仅重复末代测评。</li>
+    <li>各组只在开发数据上选终选候选；对新任务集运行一次预先规定的确认实验。</li>
+    <li>报告终选效用、达到目标所需预算、失败搜索比例和成本曲线。不只展示最成功的一条轨迹。</li>
+  </ol>
+  <p>如果 B 只在训练过的仓库占优，跨仓库没有优势，应收窄为“这个任务分布上的搜索收益”。如果 B 优势在预算对齐后消失，优先接受“更多计算解释了涨分”。这些都是有价值的负结果。</p>
+  <details class="research-exercise"><summary>练习：为什么“后代越好”不一定证明祖先更会改进？</summary><p>强祖先可能获得了更多展开预算、更容易的任务、更强的外部模型或人工帮助。比较时应固定剩余预算、随机化资源分配，并用独立重复的完整搜索衡量祖先的边际贡献。仅从一棵已经选优的树做相关分析，不能单独建立因果解释。</p></details>
+  <p class="research-next">下一步：<a href="#/evaluation-design">把反事实落实成评测协议</a>。</p>
+</section>

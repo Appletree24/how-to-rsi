@@ -1,0 +1,74 @@
+[
+  {
+    "id": "research-contract",
+    "num": "R1",
+    "title": "研究问题与系统边界",
+    "short": "问题定义",
+    "blurb": "自修改、自改收益、递归收益；固定预算与反事实。",
+    "icon": "book",
+    "module": "research"
+  },
+  {
+    "id": "paper-lab",
+    "num": "R2",
+    "title": "STOP / DGM / HGM 精读",
+    "short": "机制精读",
+    "blurb": "档案、CMP、oracle 假设与元改进消融。",
+    "icon": "book",
+    "module": "research"
+  },
+  {
+    "id": "evaluation-design",
+    "num": "R3",
+    "title": "评测的统计与实验设计",
+    "short": "实验设计",
+    "blurb": "配对比较、bootstrap、选择偏差、数据分离与 pass@k。",
+    "icon": "book",
+    "module": "research"
+  },
+  {
+    "id": "evaluator-integrity",
+    "num": "R4",
+    "title": "评分器与信任边界",
+    "short": "评分器",
+    "blurb": "judge 校准、外部验证、CoT 边界与副作用回滚。",
+    "icon": "book",
+    "module": "research"
+  },
+  {
+    "id": "research-map",
+    "num": "R5",
+    "title": "研究路线地图",
+    "short": "路线地图",
+    "blurb": "自训练、记忆、元学习、程序搜索与开放式环境。",
+    "icon": "book",
+    "module": "research"
+  },
+  {
+    "id": "reproducible-lab",
+    "num": "R6",
+    "title": "可运行评测实验",
+    "short": "运行实验",
+    "blurb": "零 API 成本的合成实验、三态裁决与结果协议。",
+    "icon": "book",
+    "module": "research"
+  },
+  {
+    "id": "research-roadmap",
+    "num": "R7",
+    "title": "学习里程碑与开放问题",
+    "short": "研究路线",
+    "blurb": "以实验证据为产物的学习路径、作品集与负结果。",
+    "icon": "book",
+    "module": "research"
+  },
+  {
+    "id": "research-sources",
+    "num": "R8",
+    "title": "来源与证据台账",
+    "short": "来源台账",
+    "blurb": "论文版本、核对范围与内容维护规则。",
+    "icon": "book",
+    "module": "research"
+  }
+]

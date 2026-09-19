@@ -531,15 +531,13 @@
     var tb = $('#carrierTable tbody');
     if (!tb) return;
     DSH.carriers.forEach(function (c) {
-      var stars = '';
-      for (var i = 1; i <= 5; i++) stars += i <= c.score ? '★' : '☆';
       var tr = el('tr', '',
         '<td><b>' + esc(c.name) + '</b><div class="muted small">' + esc(c.note) + '</div></td>' +
         '<td>' + esc(c.mech) + '</td>' +
         '<td>' + esc(c.gran) + '</td>' +
         '<td>' + esc(c.persist) + '</td>' +
         '<td>' + esc(c.approval) + '</td>' +
-        '<td><span class="stars" title="' + c.score + '/5">' + stars + '</span></td>');
+        '<td>' + esc(c.evidence) + '</td>');
       tb.appendChild(tr);
     });
   }
@@ -1277,7 +1275,7 @@
   function paletteIndex() {
     var ix = [];
     DSH.chapters.forEach(function (c) {
-      ix.push({ type: '章节', label: c.title, sub: c.blurb, act: function () { go(c.id); } });
+      ix.push({ type: '章节', label: c.title, sub: c.blurb, body: ($('#ch-' + c.id) || {}).textContent || '', act: function () { go(c.id); } });
     });
     DSH.glossary.forEach(function (g) {
       ix.push({ type: '术语', label: g.t + ' (' + g.en + ')', sub: g.d.slice(0, 40) + '…', act: function () { go('glossary'); setTimeout(function () { glossFilter(g.en.split(' ')[0]); }, 60); } });
@@ -1302,7 +1300,7 @@
     var mask = el('div', 'palette-mask');
     mask.id = 'paletteMask';
     mask.innerHTML = '<div class="palette" role="dialog" aria-modal="true" aria-label="全局搜索"><div class="p-in">' + icon('book', 16) +
-      '<input id="paletteInput" type="search" placeholder="搜索章节、术语、包、工具、命令…" autocomplete="off" aria-label="全局搜索">' +
+      '<input id="paletteInput" type="search" placeholder="搜索正文、章节、术语、包、工具、命令…" autocomplete="off" aria-label="全局搜索">' +
       '<span class="kbd">Esc</span></div><div class="p-results" id="paletteResults" role="listbox"></div></div>';
     document.body.appendChild(mask);
     mask.addEventListener('click', function (e) { if (e.target === mask) closePalette(); });
@@ -1331,7 +1329,7 @@
     var hits = [];
     for (var i = 0; i < palette.items.length && hits.length < 60; i++) {
       var it = palette.items[i];
-      var hay = (it.label + ' ' + it.sub + ' ' + it.type).toLowerCase();
+      var hay = (it.label + ' ' + it.sub + ' ' + it.type + ' ' + (it.body || '')).toLowerCase();
       if (!needle || hay.indexOf(needle) >= 0) hits.push(it);
     }
     hits.sort(function (a, b) {

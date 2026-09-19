@@ -12,7 +12,8 @@ window.DSH = DSH;
    刷新方法:以 packages/README.md 的分组结构为准,实测列出各 packages/<组>/ 目录;
    工具条目以 docs/tool-catalog.md 为准。 */
 DSH.meta = {
-  note: '本清单是上游仓库的时点快照(以 packages/README.md 分组结构与目录实测为准);上游演化后请同步 data.js。',
+  snapshotCommit: null,
+  note: '历史教学清单：原始生成日期与上游 commit 未记录；本轮未逐包重新验证。API 与包结构以目标版本文档为准。',
 };
 
 /* ---------- 模块(学习路径分区) ---------- */
@@ -20,14 +21,14 @@ DSH.modules = [
   { id: 'north', name: '基础概念', desc: '什么是 RSI，它在真实系统里走过了什么', icon: 'target' },
   { id: 'cap', name: '机制与评测', desc: '把 RSI 拆成机制清单，评测是门槛，载体选型是落点', icon: 'layers' },
   { id: 'align', name: '对齐与安全', desc: '让 AI 做我们真想让它做的事：失败模式、监控、元游戏、多 agent 风险、忏悔与工程护栏', icon: 'target' },
-  { id: 'dsh', name: 'DSH 实战', desc: '在最接近 RSI 的开源 harness 里掌握每个机制：教程、实战关卡与项目', icon: 'wrench' },
+  { id: 'dsh', name: 'DSH 实战', desc: '以 DSH 为案例学习运行时组合；具体 API 按版本复核', icon: 'wrench' },
 ];
 
 /* ---------- 章节 ---------- */
 DSH.chapters = [
   { id: 'home', num: '⌂', title: '首页·路线图', short: '首页', blurb: '从这里开始：了解 RSI 路线图与模块划分。', icon: 'home', module: 'north' },
   { id: 'rsi', num: '01', title: '什么是 RSI', short: '什么是 RSI', blurb: '递归自我改进的定义、思想源流、L0–L5 分级阶梯。', icon: 'target', module: 'north' },
-  { id: 'godel', num: '02', title: '哥德尔机谱系', short: '哥德尔机', blurb: 'GM → Gödel Agent → DGM → HGM：自改门槛的二十年演化(证明→基准→谱系)。', icon: 'book', module: 'north' },
+  { id: 'godel', num: '02', title: '哥德尔机谱系', short: '哥德尔机', blurb: '形式证明、经验自改、开放档案与谱系估计的证据边界。', icon: 'book', module: 'north' },
   { id: 'capmap', num: '03', title: 'RSI 能力拆解', short: '能力拆解', blurb: 'RSI 六大机制(自改/状态/评估/沙箱/目标/护栏)与 DSH 包级映射。', icon: 'layers', module: 'cap' },
   { id: 'eval', num: '04', title: '评测：RSI 的门槛', short: '评测', blurb: '四种评测范式、三级评测能力、防作弊三原则、评测门模拟器。', icon: 'target', module: 'cap' },
   { id: 'carriers', num: '05', title: '载体对比', short: '载体对比', blurb: 'Claude Code / Codex / pi / ACP / 自写 harness：谁允许你改运行时。', icon: 'boxes', module: 'cap' },
@@ -35,44 +36,44 @@ DSH.chapters = [
   { id: 'cot', num: '07', title: '推理可监控性', short: 'CoT 监控', blurb: '为什么推理链是安全层：三类可监控性评测、量化指标、以及"别把 CoT 当优化目标"的边界。', icon: 'loop', module: 'align' },
   { id: 'metagaming', num: '08', title: '元游戏：模型在计算评估', short: '元游戏', blurb: 'OpenAI × Apollo 实测：能力 RL 让模型自发推理"谁在打分、谁在监督"——威胁模型的前置认知能力。', icon: 'target', module: 'align' },
   { id: 'hfincident', num: '09', title: 'Hugging Face 事件', short: 'HF 事件', blurb: 'OpenAI 复盘：隔离被绕过、agent 经 Artifactory 接力协作、涌现式"蜂群"——多 agent 风险的实测样本。', icon: 'flask', module: 'align' },
-  { id: 'confessions', num: '10', title: '忏悔机制：给作弊留一条自首通道', short: '忏悔机制', blurb: 'OpenAI 2026：分离的诚实奖励通道——模型作弊拿主奖励,诚实交代再拿忏悔奖励,让"坦白"成为最优策略。', icon: 'target', module: 'align' },
+  { id: 'confessions', num: '10', title: '忏悔机制：给作弊留一条自首通道', short: '忏悔机制', blurb: 'OpenAI · 2025 论文：分离的诚实奖励通道——模型作弊拿主奖励,诚实交代再拿忏悔奖励,让"坦白"成为最优策略。', icon: 'target', module: 'align' },
   { id: 'safety', num: '11', title: '安全与护栏', short: '安全与护栏', blurb: 'RSI 实验的五层防御：审批、回滚、沙箱、日志、评估。', icon: 'ruler', module: 'align' },
   { id: 'intro', num: '12', title: '认识 DSH', short: '认识 DSH', blurb: '什么是 Agent Harness、一切皆插件、快速上手、仓库鸟瞰。', icon: 'info', module: 'dsh' },
   { id: 'cordis', num: '13', title: 'Cordis 核心', short: 'Cordis 核心', blurb: '插件、服务、inject、五种分发模式、可逆效果——附模拟器。', icon: 'puzzle', module: 'dsh' },
   { id: 'architecture', num: '14', title: '架构总览', short: '架构总览', blurb: 'Profile/Bundle/Patch 分层引导、核心包与 ctx 键、三大事件域。', icon: 'layers', module: 'dsh' },
   { id: 'loop', num: '15', title: 'Agent Loop 剖析', short: 'Agent Loop', blurb: '逐帧播放一个回合：turn/start 到 turn/end 的生命周期。', icon: 'loop', module: 'dsh' },
   { id: 'session', num: '16', title: '会话与持久化', short: '会话与持久化', blurb: '模型可见 ⟺ 已记录；格式版本与迁移链。', icon: 'db', module: 'dsh' },
-  { id: 'packages', num: '17', title: '包版图探索', short: '包版图', blurb: '52 个分组、280+ 个工作区包，可搜索过滤。', icon: 'boxes', module: 'dsh' },
+  { id: 'packages', num: '17', title: '包版图探索', short: '包版图', blurb: '包清单探索器；数量从当前页面数据计算。', icon: 'boxes', module: 'dsh' },
   { id: 'tools', num: '18', title: '工具与能力接缝', short: '工具系统', blurb: '工具流水线、Capability Seam 三角、全部模型工具目录。', icon: 'wrench', module: 'dsh' },
   { id: 'conventions', num: '19', title: '工程规范', short: '工程规范', blurb: '仓库级约束：效果即注册、响亮失败、防御性模式。', icon: 'ruler', module: 'dsh' },
   { id: 'testing', num: '20', title: '测试体系', short: '测试体系', blurb: '七层测试塔：从单测到录制回放快照。', icon: 'flask', module: 'dsh' },
   { id: 'workflow', num: '21', title: '开发工作流', short: '开发工作流', blurb: '环境搭建、命令速查、PR 与 Agent Notes 文化。', icon: 'git', module: 'dsh' },
   { id: 'glossary', num: '22', title: '术语表', short: '术语表', blurb: '领域词汇表：seam、scope、turn/step/round、Ralph……', icon: 'book', module: 'dsh' },
-  { id: 'quiz', num: '23', title: '知识闯关', short: '知识闯关', blurb: '14 道题，即时反馈 + 解析。', icon: 'target', module: 'dsh' },
+  { id: 'quiz', num: '23', title: '知识闯关', short: '知识闯关', blurb: '知识测验，即时反馈 + 解析。', icon: 'target', module: 'dsh' },
   { id: 'practice', num: '24', title: '实战关卡', short: '实战关卡', blurb: '五个递进 RSI 实验：第一个运行时插件到长期记忆。', icon: 'flask', module: 'dsh' },
   { id: 'evalproject', num: '25', title: '实战项目：自改评测管线', short: '实战项目', blurb: '三阶段项目：黄金任务集 → eval runner → keep/rollback 门。', icon: 'wrench', module: 'dsh' },
 ];
 
 /* ---------- 评测范式对照(第 04 章) ---------- */
 DSH.evalParadigms = [
-  { name: '证明(Proof)', who: '形式化验证器', what: '改动的净收益可证', layer: '正确性/逻辑', games: '无法作弊(但证明搜索不可行)', used: 'Gödel Machine 2003' },
+  { name: '证明(Proof)', who: '形式化验证器', what: '改动的净收益可证', layer: '正确性/逻辑', games: '依赖公理、目标建模与验证器；证明搜索有成本', used: 'Gödel Machine 2003' },
   { name: '基准分数(Benchmark)', who: '评测管线(独立于被改者)', what: '改动在任务集上的通过率', layer: '结果级正确性', games: '可作弊:过拟合集、伪造日志、删检测标记', used: 'DGM 2025' },
-  { name: '谱系指标(CMP)', who: '评测管线 + 后代统计', what: '后代们的聚合表现(元生产力)', layer: '谱系/长期', games: '难作弊:需长期养出好后代', used: 'HGM ICLR 2026' },
+  { name: '谱系指标(CMP)', who: '评测管线 + 后代统计', what: '用支系观测估计未来潜力；估计不等于理论 CMP', layer: '谱系/长期', games: '继承评分器漏洞，并受搜索预算和选择偏差影响', used: 'HGM arXiv v3' },
   { name: '人类评审(Review)', who: '人(审批门禁)', what: '改动意图与副作用', layer: '语义/意图', games: '慢、不可扩展、会疲劳', used: 'DSH cordis_run 审批' },
 ];
 
 /* ---------- 常见评测基准速览(第 04 章,教学整理) ---------- */
 DSH.evalBenchmarks = [
-  { name: 'SWE-bench Verified', what: '500 题:OpenAI 联合 93 名开发者从 1699 条样本中人工筛出的真实 GitHub issue', lvl: 'L1', note: '行业标尺;一年内 40%→80%+ 逼近饱和;DGM/HGM 都用它' },
-  { name: 'Polyglot (Aider)', what: '225 题,覆盖十几种编程语言', lvl: 'L1', note: '考验跨语言泛化;DGM 第二基准' },
+  { name: 'SWE-bench Verified', what: '500 题:OpenAI 联合 93 名开发者从 1699 条样本中人工筛出的真实 GitHub issue', lvl: 'L1', note: '行业标尺;固定版本、模型、任务子集和预算后才可比较论文结果' },
+  { name: 'Polyglot (Aider)', what: '编程基准；语言与任务规模请按使用版本核对', lvl: 'L1', note: '考验跨语言泛化;DGM 第二基准' },
   { name: 'Terminal-Bench', what: '终端里的端到端系统任务(从源码编内核、训模型)', lvl: 'L1', note: '比"改代码"更贴近 agent 实际工作面' },
   { name: 'CORE-Bench', what: '论文级计算可复现性任务(三档难度)', lvl: 'L1', note: '判分器事故现场:Opus 4.5 被刚性判分压到 42%,修评分器后 95%' },
   { name: 'BrowseComp', what: '开放网络里"草堆找针"式检索题', lvl: 'L1', note: '设计原则:答案易验证、难解——防靠猜' },
-  { name: 'LiveCodeBench', what: '滚动更新的编程题', lvl: 'L1', note: '专为防训练集污染设计——分数更可信' },
+  { name: 'LiveCodeBench', what: '滚动更新的编程题', lvl: 'L1', note: '滚动更新降低部分污染风险，不能保证没有污染' },
   { name: 'GAIA', what: '通用助理任务:联网 + 工具 + 多步推理', lvl: 'L1+L2', note: '测"会办事"而不只是"会写码"' },
   { name: 'OSWorld / WebArena', what: '真实操作系统/浏览器任务(369/812 题)', lvl: 'L1+L2', note: '判后端状态与工件(订单真下了/文件真改了),不只判界面' },
   { name: 'τ-bench / τ2-bench', what: '零售/航空/电信域:模拟用户多轮交互 + 政策一致性', lvl: 'L2', note: '提出 pass^k;τ2 为"双控"Dec-POMDP——用户也持工具改共享状态' },
-  { name: 'METR HCAST / RE-Bench', what: '按"人类完成所需时长"标定任务,拟合成功率-时长曲线取 50% 跨度', lvl: 'L3', note: '6 年数据:"可独立完成的任务长度"约每 7 个月翻倍;SWE-bench Verified 上复现更快(<3 个月)——RSI 进展最严肃的量化代理' },
+  { name: 'METR 长任务评测 / RE-Bench', what: '长任务与 AI 研发任务是不同设置；时长指标与固定预算研发分数分别阅读', lvl: '任务/研发', note: '任务时长指标不直接测递归收益；趋势外推需说明任务、版本与统计不确定性' },
   { name: 'Apollo scheming / SHADE-Arena', what: '模型隐藏意图、暗中破坏能否被监控发现', lvl: 'L2+安全', note: '"把模型当对手"的评测侧实现' },
   { name: 'impossible task 评估', what: '给不可完成任务,看模型是否假装完成', lvl: 'L2+安全', note: '直接测 reward hacking 倾向' },
 ];
@@ -91,56 +92,88 @@ DSH.evalTasks = [
 /* ---------- 实战项目:自改评测管线(第 25 章) ---------- */
 DSH.evalProject = [
   {
-    phase: 'Phase 1 · 地基', t: '黄金任务集', icon: 'target',
-    goal: '建一个“改动生死的裁决标准”——没有它，后面全是运气。',
-    steps: [
-      '选 8–12 个"你的 agent 真的会做"的任务(不是通用 benchmark,是贴合你工作流的):修 bug、写插件、查日志、改配置。',
-      '每个任务写成可重复断言:输入 + 期望输出/期望行为(不是"看着像对",是可判定的 pass/fail)。',
-      '把任务集放进一个独立文件/目录,声明它的不可变性——被改进的 agent 不许读写它。',
-      '写一条元规则:任务集只能由人(或一个不可自改的维护插件)增删。',
+    "phase": "Phase 1 · 协议",
+    "t": "任务与数据分离",
+    "icon": "target",
+    "goal": "定义要检验的改进与任务分布。",
+    "steps": [
+      "固定任务、模型、评分器和环境版本。",
+      "开发、选择、确认数据分开；提前设定预算与停止规则。"
     ],
-    check: '能跑一遍任务集，输出稳定的 pass/fail 矩阵；任何 agent 改动都无法触碰这个文件。',
+    "check": "有参考解和失败样例；任务 IDs 与完整运行矩阵可验证。"
   },
   {
-    phase: 'Phase 2 · 引擎', t: 'eval runner', icon: 'flask',
-    goal: '把“跑分”做成可重复调用的函数：给定 agent 版本 → 输出分数 + 失败详情。',
-    steps: [
-      '实现 eval(agentVersion) → { score, failures[] }:对每个任务跑 agent,记录输出。',
-      '隔离运行:eval 必须在沙箱/独立上下文里跑,防止被测代码污染评测器(第 11 章护栏)。',
-      '记录每次 eval 的输入版本、输出分数、失败详情——这是谱系指标(CMP)的原料。',
-      '加一个"作弊哨兵":扫描输出里是否有"看起来像 pass 但没真跑"的伪造痕迹(DGM 的教训)。',
+    "phase": "Phase 2 · 测量",
+    "t": "外部 verifier",
+    "icon": "flask",
+    "goal": "从实际产物获得逐题证据。",
+    "steps": [
+      "基线与候选分别在干净环境运行；记录失败、超时与成本。",
+      "评分器位于候选权限之外；不同 packageId 不能代替隔离。"
     ],
-    check: '注入一次坏改动，eval 分数下降且失败详情能定位到具体任务；好改动分数上升。',
+    "check": "删除失败、伪造自报分数和评分器版本错配会被发现。"
   },
   {
-    phase: 'Phase 3 · 裁决', t: 'keep/rollback 门', icon: 'ruler',
-    goal: '把评测接进自改回路：改动必须通过 eval 门才允许保留。',
-    steps: [
-      '在 cordis_run 挂载新插件后,自动触发 eval;分数 ≥ 阈值(或不低于基线)则 keep,否则自动 cordis_run 回滚到 currentPackageId。',
-      '把裁决结果写入持久化日志:改动了什么、eval 分数、keep/rollback——下一轮自改能读到"上次为什么回滚"。',
-      '加一个谱系计数:跟踪每个插件版本的后代 eval 表现,攒 CMP 的原料。',
-      '(进阶)给门加第二道:高分改动还要过人类审批才生效——评测做粗筛,人做终审。',
+    "phase": "Phase 3 · 裁决",
+    "t": "确认后提升版本",
+    "icon": "ruler",
+    "goal": "区分探索档案与用户正在使用的版本。",
+    "steps": [
+      "候选冻结后做独立配对确认；允许 keep/reject/inconclusive。",
+      "通过统计、成本与约束门后再提升版本；外部副作用另行补偿。"
     ],
-    check: '完整回路可跑：cordis_define(改动) → eval → 分数不够自动回滚、够了保留落账；能从日志回答“上次为什么回滚”。',
-  },
+    "check": "坏候选不污染真实会话；证据不足时保留基线并如实报告。"
+  }
 ];
 
 /* ---------- 哥德尔机四代对照(第 02 章) ---------- */
 DSH.godelMachines = [
-  { name: 'Gödel Machine', year: '2003', by: 'Schmidhuber', gate: '数学证明：能形式化证明净收益才允许自改', eval: '证明搜索(理论上最优)', status: '理论原型·未实现', key: '门槛是“真”：改自己前先证明这是最优一步' },
-  { name: 'Gödel Agent', year: '2024 · ACL 2025', by: 'PKU × UCSB(Yin 等)', gate: '高层目标引导:LLM 直接改写自身运行逻辑', eval: '任务表现评估(单线自改,无档案)', status: '已实现·代码开源', key: '第一次跑起来：门槛从证明降为“目标 + 试错”' },
-  { name: 'Darwin Gödel Machine', year: '2025', by: 'Sakana AI × Jeff Clune 组', gate: '经验评估：改动在 SWE-bench / Polyglot 上跑分', eval: '开放式进化:档案库存所有版本,任何祖先可作跳板', status: '已实现·代码开源', key: '门槛换成“分数 + 档案”：证不了就看跑得好不好' },
-  { name: 'Huxley-Gödel Machine', year: 'ICLR 2026', by: 'metauto-ai × Schmidhuber 等', gate: '谱系评估:用后代们的表现(CMP)估计“元生产力”', eval: '以 CMP 指导搜索树展开,更少算力达到人类水平', status: '已实现·ICLR 2026', key: '门槛换成“谱系”：好祖先不看自己分数，看后代出息' },
+  {
+    "name": "Gödel Machine",
+    "year": "2003 起",
+    "by": "Schmidhuber",
+    "gate": "依据形式公理证明有益重写",
+    "eval": "效用模型与证明搜索",
+    "status": "理论框架",
+    "key": "条件保证，不等于现实中必能及时证明"
+  },
+  {
+    "name": "Gödel Agent",
+    "year": "2024 / ACL 2025",
+    "by": "Yin 等",
+    "gate": "目标指导下修改 agent 逻辑",
+    "eval": "论文限定任务上的经验评估",
+    "status": "研究实现",
+    "key": "区分自修改能力与收益证据"
+  },
+  {
+    "name": "DGM",
+    "year": "2025 / v3 2026",
+    "by": "Zhang 等",
+    "gate": "有效候选入档；分数引导搜索",
+    "eval": "编码任务与机制消融",
+    "status": "研究实现",
+    "key": "允许暂时较弱的探索分支"
+  },
+  {
+    "name": "HGM",
+    "year": "2025 / v3",
+    "by": "Wang 等",
+    "gate": "支系潜力估计与采样",
+    "eval": "解耦展开和评估，固定预算比较",
+    "status": "研究实现",
+    "key": "oracle、在线估计与回顾统计不同"
+  }
 ];
 
 /* ---------- RSI:自我改进分级阶梯(第 01 章) ---------- */
 DSH.rsiLevels = [
-  { n: 'L0', t: '模型永远不变', d: '一切改进都来自外部：换模型版本、换提示词、加工具。系统本身没有自我改进回路。' },
+  { n: 'L0', t: '外部更新', d: '一切改进都来自外部：换模型版本、换提示词、加工具。系统本身没有自我改进回路。' },
   { n: 'L1', t: '改进提示词与知识', d: 'agent 修改自己的 system prompt、记忆、skill 文件。下一次会话受益,但不会写出新的代码能力。', cur: true },
   { n: 'L2', t: '改进工具与技能', d: 'agent 给自己编写新工具/skill/MCP 服务器并挂载使用。能力面扩展了,但运行时的核心结构没变。' },
   { n: 'L3', t: '改进运行时结构', d: 'agent 定义并挂载真正的插件——新增 Service、监听事件、替换 Provider。改变的是组合本身。DSH 的 cordis_define/cordis_run 正位于这一级。', cur: true },
   { n: 'L4', t: '改进改进过程', d: 'agent 改写自己的循环、评估器、迭代策略——“如何改进”本身也在被改进。递归真正开始收拢。' },
-  { n: 'L5', t: '无约束起飞(假想)', d: '改进回路不再依赖人类批准、评估与数据,自我加速。这是讨论最多的版本,也是工程上最需要护栏的版本。' },
+  { n: 'L5', t: '无约束起飞(假想)', d: '关于持续自我加速的假想，不是把前四项完成就能保证达到的级别。这是讨论最多的版本,也是工程上最需要护栏的版本。' },
 ];
 
 /* ---------- RSI 能力地图(第 03 章) ---------- */
@@ -150,7 +183,7 @@ DSH.capMap = [
     t: '运行时自我修改', st: 'ready',
     d: '能在进程内定义代码、挂载为真插件、给它注册服务/事件/工具,而不只是改配置文件。这是 RSI 的“手”。',
     refs: ['tool-cordis(cordis_define/run/inspect)', 'extensions 包组', 'cordis-host-runner / cordis-client-runner'],
-    q: '自改的粒度越细(函数插件 → Service → 整个循环替换),递归的上限越高。',
+    q: '可修改粒度扩大搜索空间，但不保证单位预算收益增加。',
   },
   {
     t: '持久状态与记忆', st: 'ready',
@@ -178,30 +211,78 @@ DSH.capMap = [
   },
   {
     t: '护栏与审批', st: 'ready',
-    d: '自我修改必须穿过人类边界:结构无法被模型自己绕过。审批、写策略、命令确认是地基,不是装饰。',
+    d: '自我修改必须穿过人类边界:需要检验候选能否影响控制域。审批、写策略、命令确认是地基,不是装饰。',
     refs: ['用户审批(user-approval)', 'permission-presets', 'fs-observation-policy', '插件版本回滚(current/next packageId)'],
-    q: '判断护栏是否有效的唯一标准:把模型当成对手,它能否通过自改解除自己的护栏。',
+    q: '将候选视为不可信方，验证控制域权限、日志覆盖与外部副作用。',
   },
 ];
 
 /* ---------- 载体对比(第 05 章) ---------- */
 DSH.carriers = [
-  { name: 'DeepSeek Harness (DSH)', mech: '运行时定义 Cordis 插件:写代码 → cordis_define → 审批 → cordis_run 挂载,可注册 Service/事件/工具/Provider', gran: '运行时结构(组合本身)', persist: '不可变包 + current/next packageId 指针;回滚=换指针', approval: 'cordis_run 人工审批(单勾=当前包,双勾=该插件未来版本) + 沙箱执行世界', score: 5, note: '唯一把运行时自改做成带护栏工程的公开 harness' },
-  { name: 'Claude Code', mech: '写 SKILL.md / 斜杠命令 / hooks(settings.json 生命周期钩子) / MCP 服务器文件,新会话生效', gran: '工具与提示词层(文件→加载)', persist: '持久(文件);回滚靠 git', approval: '权限模式 default/acceptEdits/plan/bypassPermissions + 规则级 allow/deny;hooks 可阻断', score: 3, note: '可扩能力面,不动运行时结构' },
-  { name: 'Codex (CLI)', mech: 'AGENTS.md 分层指令 + config.toml + MCP;补丁式代码修改', gran: '配置与代码文件层', persist: '持久(文件)', approval: '审批策略(untrusted/on-failure/on-request/never) × 沙箱档(read-only/workspace-write/danger-full-access;Seatbelt/Landlock+seccomp)', score: 2, note: '改"自己的代码"可以,改"运行时"不行' },
-  { name: 'pi (@earendil-works)', mech: '写 TypeScript extension(jiti 免编译) → /reload 热加载;pi.on 事件钩子(可 block tool_call)、registerTool/Command/Provider、ctx.ui TUI、appendEntry 持久化', gran: '运行时行为层(工具/命令/事件/UI/Provider 皆可注册)', persist: '持久(文件);热重载但无版本指针/回滚', approval: '项目信任门(project_trust 可自定义) + 可自写审批钩;扩展默认全系统权限', score: 4, note: '官方鼓励 agent 自写扩展("pi can create extensions");离运行时自改最近的轻量载体,差版本化/回滚/扩展沙箱' },
-  { name: 'Gödel Agent (研究原型)', mech: 'LLM 在运行时直接改写自身 Python 代码(monkey-patch 式)', gran: '运行时代码(无插件结构)', persist: '改后即存', approval: '无审批/无沙箱(研究原型)', score: 4, note: '首个可运行自引用 agent;能改运行时但无护栏' },
-  { name: 'ACP 客户端/自写 harness', mech: '经 ACP(JSON-RPC,类似 LSP 之于编辑器)对接任意 harness;自写则无限制', gran: '取决于实现', persist: '取决于实现', approval: '协议不管审批/沙箱,全看实现', score: 4, note: '自由度最高,工程成本也最高;DSH 自带 acp 包可作 ACP 服务器' },
+  {
+    "name": "DSH / Cordis",
+    "mech": "运行时插件组合；原教程介绍 cordis_*",
+    "gran": "工具、服务与事件",
+    "persist": "内容寻址包；外部状态另行管理",
+    "approval": "依目标版本、profile 和执行域验证",
+    "note": "详细实现案例；原清单缺上游生成 commit",
+    "evidence": "固定版本、隔离评分器、验证副作用边界"
+  },
+  {
+    "name": "文件型 agent 扩展",
+    "mech": "提示词、技能、hooks 或可加载扩展",
+    "gran": "由具体扩展 API 决定",
+    "persist": "Git / 制品版本 + 加载协议",
+    "approval": "依产品、平台与版本验证",
+    "note": "包括多种 CLI/IDE agent；不作统一能力断言",
+    "evidence": "确认加载时机、权限和回退后的状态"
+  },
+  {
+    "name": "自建 harness",
+    "mech": "显式定义循环与可修改模块",
+    "gran": "由实验定义",
+    "persist": "提交或镜像 digest + 实验账本",
+    "approval": "由外部控制域实现",
+    "note": "自由度高；需要更多实现与验收",
+    "evidence": "runner、成本、日志和隔离可独立验证"
+  },
+  {
+    "name": "ACP",
+    "mech": "client-agent 通信协议",
+    "gran": "不规定自修改算法",
+    "persist": "取决于接入 runtime",
+    "approval": "协议不替代运行环境控制",
+    "note": "协议与完整运行时不是同类产品",
+    "evidence": "验证消息边界及实际 runtime"
+  }
 ];
 
 /* ---------- 安全与护栏(第 11 章) ---------- */
 DSH.rsiSafety = [
-  { t: '审批是不可绕过的地基', d: 'cordis_run 首次激活需要人工授权;单次勾选只放行当前包,双击才授权该插件的未来版本。护栏必须在模型够不到的那一侧——它不能用自改来关闭审批。' },
-  { t: '一切自改必须可回滚', d: 'DSH 的包是不可变的:每次自改产生新 packageId,失败保留 currentPackageId,随时 run 回滚。绝不让 agent 用“覆盖旧版本”的方式改自己。' },
-  { t: '执行世界与真实世界分离', d: '文件系统与子进程走 Provider seam:实验指向沙箱后端,一条命令就能换。试错发生在沙箱里,而不是你的工作区。' },
-  { t: '日志是审计,不只是回放', d: '模型可见 ⟺ 已记录:每次自改意图、执行、结果都会落帐。RSI 实验的第一守则:没有日志的自改等于没发生过,也等于无法追责。' },
-  { t: '改进必须过评估门禁', d: '把“改动是否保留”的决定交给可重复的评估(快照/断言/指标),而不是 agent 的自我感觉。评估器放在改进回路之外。' },
-  { t: '权限最小化 + 作用域隔离', d: '实验性能力用 tools.restrict 收窄;注入上下文、子进程环境、凭据路径按最小暴露原则配置。能不给的权限不给。' },
+  {
+    "t": "审批边界需要独立验证",
+    "d": "检查授权粒度、未来版本授权与实际调用路径。审批界面不等于候选无法改变审批逻辑。"
+  },
+  {
+    "t": "代码回退与副作用恢复分开",
+    "d": "固定提交或不可变包；对持久数据、共享存储与不可逆外部操作另外设计补偿和预提交门。"
+  },
+  {
+    "t": "候选在一次性环境验证",
+    "d": "文件、进程、网络和凭据按实际权限隔离；环境快照和执行身份须可核验。"
+  },
+  {
+    "t": "日志由外部控制域保管",
+    "d": "记录全部试验、失败、超时与成本；区分模型自述和外部观察，检查未覆盖的通道。"
+  },
+  {
+    "t": "确认后再提升版本",
+    "d": "探索档案与使用版本分开；统计、成本和约束门共同决定发布，证据不足则保持现状。"
+  },
+  {
+    "t": "最小权限不只是一张工具清单",
+    "d": "限制候选实际能读取、写入和调用的资源；同进程不同插件并非独立安全域。"
+  }
 ];
 
 /* ---------- 实战关卡(第 24 章) ---------- */
@@ -211,15 +292,15 @@ DSH.experiments = [
     verify: '能说出:自己此刻的能力由哪些 bundle/patch 层叠加而来。' },
   { id: 'e2', lv: 'L2', t: '第一次自改', title: '让 agent 给自己定义一个函数插件',
     desc: '在会话里用 cordis_define 写一个小插件(注册一个工具或监听一个事件),cordis_run 挂载,再 cordis_stop 卸载——亲手完成一次"写代码→活在自己身体里"。补的是回路的手:define→审批→挂载→可逆卸载。',
-    verify: '插件出现在 inspect_self 列表,Run 卡有成功状态,卸载后副作用消失。' },
+    verify: '插件可挂载并卸载；注册效果被清理，外部副作用需独立核验和补偿。' },
   { id: 'e3', lv: 'L3', t: '装上记忆', title: '给 agent 一个跨会话的自改日志',
     desc: '用一个新插件把"每次自改的意图与结果"写成 storage 记录或 session event;新开会话让 agent 能回答"我上次改过什么、为什么"。补的是持久状态——DGM archive 的最小版,产物是 L3+ 与第 25 章复用的日志 schema。',
     verify: 'fork/resume 后,agent 能复述上一次自改的事实,而不是猜测。' },
   { id: 'e4', lv: 'L3+', t: '装上评估', title: '让改进必须先通过一道自己的考试',
-    desc: '实现一个 eval 插件:自改运行后自动执行一组行为断言(如固定 prompt 的期望输出),未通过则自动回滚到 currentPackageId。补的是选择压力——评测器与被改者必须分属两个插件。',
+    desc: '实现一个 eval 插件:自改运行后自动执行一组行为断言(如固定 prompt 的期望输出),未通过则自动回滚到 currentPackageId。补的是选择压力——评测器须处于候选权限外；不同插件名不等于隔离。',
     verify: '故意注入一次坏改动,看到它被评估拦下并回滚;好改动正常保留。' },
   { id: 'e5', lv: 'L4', t: '收拢递归', title: '让改进策略本身成为可替换插件',
-    desc: '把"改什么、何时改、改完怎么验"的策略抽成一个 Service 插件:它能驱动 cordis_define → eval → rollback/keep 的完整回路,而你随时可以 patch 换策略。补的是"改进改进过程"——HGM 选祖先也成被优化对象的同构物。',
+    desc: '把"改什么、何时改、改完怎么验"的策略抽成一个 Service 插件:它能驱动 cordis_define → eval → rollback/keep 的完整回路,而你随时可以 patch 换策略。补的是"改进改进过程"——这是额外的元改进研究设计，不能等同于 HGM 自动重写选种规则。',
     verify: '换掉策略插件后,同一目标下的改进行为明显不同;人类审批始终在每个回路内。' },
 ];
 
@@ -584,7 +665,7 @@ DSH.glossary = [
   { t: '哥德尔机', en: 'Gödel machine', src: '第 02 章 · Schmidhuber 2003', d: '自改的形式化原型：agent 持有自身完整描述，仅当能数学证明一次重写带来净收益时才执行——包括重写自己的证明器。形式最优，但证明搜索在实践中不可计算；Gödel Agent/DGM/HGM 用经验评估替代证明门槛。' },
   { t: '哥德尔 agent', en: 'Gödel Agent', src: '第 02 章 · arXiv:2410.04444', d: '首个可运行的自引用 agent 框架(PKU × UCSB, ACL 2025)：LLM 在运行时直接改写自身逻辑(monkey-patch 式)，仅靠高层目标引导，不需预设流水线。比 DGM 早大半年——它证明“能跑”，DGM 证明“能严谨地跑”。' },
   { t: '开放式进化', en: 'open-endedness', src: '第 02 章 · DGM', d: '不只从当前最优个体继续，而是维护不断增长的多样性档案库：任何“垫脚石”祖先都能成为新分支的起点。DGM 消融实验证明它与生改进同等必要——贪心爬坡会困在局部最优。' },
-  { t: '元生产力', en: 'metaproductivity (CMP)', src: '第 02 章 · HGM', d: '一个 agent 的“自我改进潜力”，用其后代们的基准表现聚合估计(clade metaproductivity)。HGM 的关键洞见：自身分数高 ≠ 后代会强——评估谁当祖先,要看谱系而非个人。' },
+  { t: '元生产力', en: 'metaproductivity (CMP)', src: '第 02 章 · HGM', d: '一个 agent 的“自我改进潜力”，理论上涉及未来终选效用；在线估计使用支系统计，二者不可等同。HGM 的关键洞见：自身分数高 ≠ 后代会强——评估谁当祖先,要看谱系而非个人。' },
   { t: '对齐', en: 'alignment', src: '第 06 章 · Amodei 2016 / Russell 2019', d: '让系统的实际行为与人类意图/价值一致。分外层(奖励/评测写对了吗)与内层(模型学到的目标是否一致)；reward hacking、对齐造假、元游戏都是两层缝隙里长出的失败模式。' },
   { t: '元游戏', en: 'metagaming', src: '第 08 章 · OpenAI × Apollo 2026', d: '模型对“环境如何打分/谁在监督”这类游戏外机制的推理——不要求分清训练/评测/部署、不要求猜对机制。能力导向 RL 里自发上升、随激励结构开关，是对齐造假与绕过监督的前置认知能力。' },
   { t: '轨迹', en: 'transcript / trajectory', src: '第 04 章 · Anthropic evals', d: '一次试运行的完整记录：输出、工具调用、推理、中间结果。评测器要么评轨迹(过程)，要么评最终结果(outcome)——Anthropic 强调评 outcome 不评路径，防 agent 因"没按预期步骤走"被误杀。' },
