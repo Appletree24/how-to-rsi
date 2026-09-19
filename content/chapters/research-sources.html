@@ -1,0 +1,19 @@
+<section class="chapter" id="ch-research-sources">
+  <span class="ch-kicker">研究主线 R8 · 来源与证据</span>
+  <h1>哪些结论已核对，哪些仍是待验证假设</h1>
+  <p class="lead">核对日期：2026-09-19。这里记录本轮研究主线的来源和核对范围，不代表对旧站每个 API、每条事件报道和每个性能数字做过完整复现。</p>
+  <h2>三种证据标签</h2>
+  <ul>
+    <li><strong>来源报告</strong>：论文/作者文档报告了某个机制或结果。必须写清版本、设置；没有本仓库独立验证的含义。</li>
+    <li><strong>本站分析</strong>：推导、反例和实验设计建议。读者应能看到假设及替代解释。</li>
+    <li><strong>本仓库运行</strong>：有命令、输入、seed、代码与结果。合成数据始终标注“教学实验”，不升级为模型能力证据。</li>
+  </ul>
+  <h2>本轮修正的关键判断</h2>
+  <p>DGM 的档案保留不是单调涨分门；父代子代数权重方向原先写反。HGM 的理论 CMP、在线估计量和回顾性统计不是同一个量。DSH 的 packageId 不是权限隔离证明，插件回滚也不回滚外部副作用。运行时可修改性不构成 RSI 能力的充分条件。对应审计与后续工作在 <code>docs/content-audit.md</code>。</p>
+  <h2>一手来源台账</h2>
+  <p>“摘要/元数据”只支持路线定位；标为“全文指定章节”的条目才支持本轮相应机制修正。没有使用二手转述充当论文证据。</p>
+  <!-- SOURCE_TABLE -->
+  <h2>更新规则</h2>
+  <p>条目用稳定 ID 引用，核对范围保存在 <code>content/sources.json</code>。修改论文结论需同时更新版本与定位；模型/产品能力要写检查时点。包数量由实际数据计算；原 DSH 清单缺失生成时的上游 commit，不能事后给它补一个“已核对”的假精确版本。</p>
+  <p>新增章节源文件在 <code>content/chapters/</code>；<code>python scripts/build_research.py</code> 将其嵌入静态页面，仍可 file:// 离线阅读。<code>--check</code> 检查生成物同步，<code>scripts/check_content.py</code> 检查本地链接、路由、来源和遗留错误断言。网页不需要构建服务器或联网才能阅读。</p>
+</section>

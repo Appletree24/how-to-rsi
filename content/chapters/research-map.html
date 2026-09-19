@@ -1,0 +1,29 @@
+<section class="chapter" id="ch-research-map">
+  <span class="ch-kicker">研究主线 R5 · 广度服务于问题</span>
+  <h1>RSI 周围有哪些真正不同的研究路线</h1>
+  <p class="lead">同样叫 self-improvement，更新的可能是答案、记忆、模型权重、程序、搜索器或任务分布。用“更新什么、谁给反馈、闭环停在哪里”建立地图，比收集框架名更稳定。</p>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>路线与入口</th><th>变化的对象</th><th>与递归的关系</th><th>优先做的对照</th></tr></thead><tbody>
+    <tr><td>Self-Refine <cite data-source="self-refine"></cite></td><td>同一任务上的答案</td><td>迭代反馈并不自动积累可迁移的改进器</td><td>同预算直接多采样、无反馈重写</td></tr>
+    <tr><td>Reflexion <cite data-source="reflexion"></cite></td><td>语言反馈与经验记忆</td><td>不用更新权重也可能改变后续行为</td><td>清空记忆、打乱记忆、跨任务迁移</td></tr>
+    <tr><td>Voyager <cite data-source="voyager"></cite></td><td>技能库与探索任务</td><td>积累可执行技能；须另证技能是否提高后续学习效率</td><td>固定课程、移除技能检索、相同探索步数</td></tr>
+    <tr><td>STaR <cite data-source="star"></cite></td><td>生成推理数据后微调权重</td><td>参数层自训练，不等于训练算法自动演化</td><td>同规模外部数据、只筛答案、跨题型测试</td></tr>
+    <tr><td>MAML <cite data-source="maml"></cite></td><td>便于适应任务的初始化</td><td>显式优化“如何快速学”；外部元优化过程通常固定</td><td>相同适应步数、随机初始化、任务族外迁移</td></tr>
+    <tr><td>AutoML-Zero <cite data-source="automl-zero"></cite></td><td>学习算法程序</td><td>搜索训练算法；仍需说明搜索器是否变化</td><td>随机搜索、搜索空间限制、计算预算对齐</td></tr>
+    <tr><td>ADAS <cite data-source="adas"></cite></td><td>agent 设计</td><td>固定 meta-agent 也能产出更好的 agent；是重要外部优化基线</td><td>冻结与更新改进器、相同模型与候选预算</td></tr>
+    <tr><td>STOP / DGM / HGM <cite data-source="stop"></cite> <cite data-source="dgm"></cite> <cite data-source="hgm"></cite></td><td>代码改进器、agent、搜索与选择</td><td>必须分别检查自引用、档案、估计器与控制策略</td><td>见 R2 的固定改进器与完整搜索消融</td></tr>
+    <tr><td>POET <cite data-source="poet"></cite></td><td>环境与解法共同演化</td><td>任务分布也在变化；平均分跨轮次未必可比</td><td>冻结环境、移除迁移、外部固定审计任务</td></tr>
+    <tr><td>FunSearch <cite data-source="funsearch"></cite></td><td>由外部 evaluator 检验的程序</td><td>程序搜索与 agent 自修改有共同组件，但不是同一主张</td><td>固定搜索器、普通采样、候选与验证成本</td></tr>
+  </tbody></table></div>
+  <h2>三条经常被漏掉的基础线</h2>
+  <p><strong>优化与统计：</strong>选择偏差、bandit 资源分配、best-arm identification、序贯检验。解决“测谁、测几次、何时停止”，而不只是“怎么生候选”。先做 R3 的选择偏差实验，再理解 HGM 为什么把展开与评估解耦。</p>
+  <p><strong>系统与可复现性：</strong>内容寻址、确定的环境快照、幂等任务、故障分类、事件日志、预算调度。其价值是让算法比较成立。没有完整失败记录，再复杂的谱系统计也可能只统计幸存者。</p>
+  <p><strong>开放式搜索与目标漂移：</strong>新颖性不等于用户效用，多样性也不保证持续改进。保持外部审计目标固定，分别报告覆盖、新颖性和任务效用；任务难度增加时不能直接比较原始通过率。</p>
+  <h2>什么时候读哪一条</h2>
+  <ul>
+    <li>想做 Agent Evaluation：优先 R3/R4、HumanEval 的指标、τ-bench 的可靠性、judge 校准。</li>
+    <li>想做自改搜索研究：先复现固定预算基线，再进入 STOP、DGM、HGM 与开放式搜索。</li>
+    <li>想做训练方向：先补优化、任务分布、数据筛选和遗忘，再读 STaR/MAML；不必从运行时插件入门。</li>
+    <li>想做 harness 工程：围绕评分器隔离、任务执行和实验账本读 DSH；包名的熟练度不能替代实验设计能力。</li>
+  </ul>
+  <p>这是一张按机制组织的入门地图，不宣称覆盖截至今天的所有论文，也不以论文年份决定优先级。每条新增路线必须解释它能帮助排除哪种错误结论。</p>
+</section>

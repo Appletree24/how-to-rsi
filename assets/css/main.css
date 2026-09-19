@@ -928,3 +928,16 @@ html:not(.js) .noscript-toc a { display: inline-block; padding: 2px 0; }
 .lc-actions { align-items: center; }
 .lc-actions .btn.danger { color: var(--rose); }
 .lc-actions .btn.danger:hover { border-color: var(--rose); }
+
+/* Research chapters share the existing paper typography and both themes. */
+cite[data-source] { font: 0.78em var(--sans); font-style: normal; white-space: nowrap; }
+.research-exercise { border-block: 1px solid var(--line); padding: 14px 0; margin: 28px 0; }
+.research-exercise summary { cursor: pointer; font-family: var(--sans); font-weight: 600; }
+.research-exercise summary:focus-visible { outline: 2px solid var(--acc); outline-offset: 4px; }
+.research-next { margin-top: 30px; font-family: var(--sans); }
+.research-lab-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; }
+.research-lab-controls label { display: grid; gap: 5px; font-family: var(--sans); }
+.research-lab-controls input, .research-lab-controls select {
+  max-width: 180px; padding: 6px 10px; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 4px; font: inherit;
+}
+.research-lab-controls input:focus-visible, .research-lab-controls select:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }

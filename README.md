@@ -1,51 +1,76 @@
-# how-to-rsi · 造一个能改进自己的 Agent
+# how-to-rsi · 理解、检验与实现自我改进
 
-一个纯静态、可离线使用的交互式学习与实践站：目标是 **RSI(Recursive Self-Improvement,递归自我改进)**。DeepSeek Harness(dsh) 是本站的实战载体——它是目前公开实现中唯一让 agent 把新代码变成"自己身体的一部分"（运行时 Cordis 插件）的 harness。
+一个中文、纯静态、可离线阅读的 RSI 学习与实验仓库。**深度优先：从可检验定义、论文机制和实验设计走到可复核的结果；广度用于建立研究路线之间的联系。**
 
-## 使用方法
+DSH / Cordis 是运行时工程案例之一。可修改运行时、单次跑分上涨、改进效率提高与持续自我加速，是不同的主张。
 
-直接双击打开 `index.html` 即可(无需构建、无需联网、无外部依赖)。
+## 从哪里开始
 
-如果希望用本地服务器访问(可选)：
+直接打开 [index.html](index.html)，无需构建、联网或安装依赖。也可运行 `python -m http.server 8080` 后访问 `http://127.0.0.1:8080`。
+
+建议优先走网站中的 **研究主线 R1–R8**：
+
+| 顺序 | 核心问题 | 学习产物 |
+| --- | --- | --- |
+| R1 研究问题与系统边界 | 谁在改谁？预算和不变量是什么？ | 一个可证伪的研究协议 |
+| R2 STOP / DGM / HGM 精读 | 档案、CMP 与 oracle 假设有何区别？ | 机制对照与消融设计 |
+| R3 统计与实验设计 | 涨分来自改进，还是选择偏差？ | 配对比较、数据分离、停止规则 |
+| R4 评分器与信任边界 | 测量可信吗？回滚撤回了什么？ | judge 校准与外部验证设计 |
+| R5 研究路线地图 | 自训练、记忆、元学习、程序搜索如何关联？ | 按问题选择论文与基线 |
+| R6 可运行实验 | 评测门如何处理噪声、失败和成本？ | 本地可复现的合成实验报告 |
+| R7 里程碑与开放问题 | 学到什么才算能做研究/工程？ | 一个真实任务比较与机制消融计划 |
+| R8 来源与证据 | 哪些是作者报告，哪些是本仓库实测？ | 带版本和核对范围的来源台账 |
+
+原有基础概念、机制与评测、对齐与安全、DSH 教程继续保留。全局搜索支持章节正文；原来的模拟器、包/工具探索器、主题和本地学习进度仍可使用。无 JavaScript 时，正文和新章节目录仍可阅读。
+
+## 运行第一个实验
+
+仅需 **Python 3.10+ 标准库**，不需要 API key：
 
 ```sh
-# 任选其一
-cd <本目录>
-python -m http.server 8080
-npx serve .
+python labs/eval_lab.py demo --output lab-output
+python labs/eval_lab.py compare lab-output/improvement.input.json
+python labs/eval_lab.py selection-bias --candidates 30 --seed 17
+python -m unittest discover -s tests -v
 ```
 
-然后打开 http://127.0.0.1:8080。
+实验演示选择偏差、任务级配对比较、保守单侧统计界和 `keep / reject / inconclusive` 三态裁决。包括成本超限、严重违规、超时、缺失/重复 trial 和伪造自报分数的检查。详见 [实验说明](labs/README.md)。
 
-## 内容与结构
+**这些数据是合成观测，不是模型能力结果。** 本仓库尚未完成真实 agent 的递归收益复现，也未实现候选执行沙箱或完整 DSH 适配器。代码 hash 用于标识输入，不是完整性防护或安全证明。
 
-四个模块，先学后做：
+## 来源与维护
 
-- **基础概念**：什么是 RSI、自我改进分级阶梯(L0–L5)、RSI 回路的最小形状；哥德尔机四代谱系(2003 原型 → 2024 Gödel Agent → DGM → HGM)、"贪心爬坡 vs 开放档案"模拟器、AlphaEvolve 近邻辨析
-- **机制与评测**：实现 RSI 的六项机制 ↔ DSH 包级映射(自改/记忆/评估/沙箱/目标/护栏)；评测专章(四种范式/三级能力/防作弊/评测门模拟器)；载体对比(谁让你改运行时——选型维度与落点)
-- **对齐与安全**：对齐总览(外层/内层、失败模式动物园、四层方法论地图)；推理可监控性(CoT 安全层)；元游戏——模型自发推理"谁在打分、谁在监督"；Hugging Face 事件复盘(多 agent 涌现协调)；忏悔机制(分离奖励通道让"主动交代作弊"成为最优策略)；安全与护栏(五层防御清单)
-- **DSH 实战**：12 章交互教程(认识 DSH → Cordis → 架构 → Agent Loop → 持久化 → 包版图 → 工具 → 规范 → 测试 → 工作流 → 术语 → 14 题测验) → 五个递进实战关卡(L1 读图 → L4 策略插件化) → 实战项目「自改评测管线」(黄金任务集 → eval runner → keep/rollback 门)
+- [内容审计](docs/content-audit.md)：本轮发现、修正与待完成事项。
+- [来源台账](content/sources.json)：23 项一手来源，区分全文指定章节、摘要/元数据与作者文档的核对范围。
+- [实验卡模板](templates/experiment-card.md)：先登记假设、预算和数据使用协议，再运行。
+- [论文笔记模板](templates/paper-note.md)：分开机制、作者证据、本站分析和未证明结论。
+- [贡献指南](CONTRIBUTING.md)：新增内容的验收标准与校验命令。
+- GitHub Actions：自动检查生成一致性、本地链接、JS 语法和 Python 实验。
 
-交互与全局能力：
+旧 DSH 包/工具清单未保存生成时的上游 commit，本轮没有逐包验证其时效性；精确 API 应以目标版本为准。原站 L0–L5 是教学索引，不是通用成熟度标准。研究主线核对日期：**2026-09-19**。
 
-- 事件分发模拟器、Agent Loop 逐帧播放器(含会话日志磁带)、包版图探索器(52 组 / 280+ 包)、工具目录探索器(按包归组的全部工具条目)、扩展点选择器、可搜索术语表、14 题测验(带解析与彩蛋)、实战关卡 checklist(带验收标准)
-- Ctrl/Cmd+K 命令面板搜索、←/→ 翻章、亮/暗主题(默认纸面浅色)、学习进度持久化(localStorage)、代码一键复制、响应式 + 减动效适配
-- 可访问性：全站可键盘操作(焦点环/跳转链接/ARIA 标注)；禁用 JavaScript 时自动降级为带目录的纯阅读模式
+## 目录与内容检查
 
-设计取向：排版优先的极简博客风——纸张底、衬线正文、单一强调色、无渐变/发光/玻璃拟态、无入场动画，内容密度优先。
-
-## 内容来源与可信度
-
-- **RSI 概念章节为教学整理**（非学术论文），安全章节只讨论"有审批、可回滚、可评估"的工程实现。
-- **DSH 章节**整理自 deepseek-harness 仓库的权威文档：`AGENTS.md`、`docs/architecture.md`、`docs/cordis-primer.md`、`docs/testing.md`、`docs/glossary.md`、`docs/defensive-patterns.md`、`packages/README.md` 等；包/工具清单取自仓库实测时点快照(见 data.js 的 DSH.meta)。标注"教学示意"的代码片段为示意性质。DSH 处于 developer preview，一切以仓库为准。
-- **载体对比表**为教学整理，基于各产品公开文档与发布形态，随版本演进可能变化。
-
-## 目录结构
-
+```text
+content/chapters/          新增研究章节的可编辑 HTML 源文
+content/sources.json       一手来源与核对范围
+content/research-chapters.json  研究导航清单
+index.html                原章节 + 生成嵌入的研究章节，可直接离线打开
+assets/js/data.js          原课程与 DSH 历史清单
+assets/js/research-data.js  生成的研究导航与来源数据
+assets/js/research.js       浏览器端选择偏差实验
+labs/eval_lab.py           Python 标准库评测方法实验
+tests/                    评测协议与统计裁决的回归测试
+scripts/                  生成与内容一致性检查
 ```
-index.html            单页应用(全部章节正文)
-assets/css/main.css   设计系统与动画
-assets/js/data.js     内容数据(模块/章节/包/工具/术语/测验/RSI 数据…)
-assets/js/app.js      路由、交互组件、动效引擎
-assets/favicon.svg    站点图标
+
+维护内容需要 Python 3.10+ 和 Node.js 18+（读取现有 JS 数据、语法检查）；读网页不需要它们：
+
+```sh
+python scripts/build_research.py
+python scripts/check_content.py
+node --check assets/js/app.js
+node --check assets/js/research.js
 ```
+
+编辑 `content/chapters/` 后重新生成并一同提交 `index.html`、`research-data.js`。浏览器不在运行时请求章节文件，因此保留 `file://` 使用方式。

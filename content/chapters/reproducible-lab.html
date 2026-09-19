@@ -1,0 +1,37 @@
+<section class="chapter" id="ch-reproducible-lab">
+  <span class="ch-kicker">研究主线 R6 · 可运行方法实验</span>
+  <h1>零 API 成本，先把评测做对</h1>
+  <p class="lead">仓库提供 Python 3.10+ 标准库实验。它演示统计与数据协议，使用合成观测，不调用模型、不执行候选代码，也不是 DGM/HGM 的能力复现。</p>
+  <h2>十分钟运行</h2>
+  <div class="codeblock"><div class="cb-head">在仓库根目录运行</div><pre data-lang="bash">python labs/eval_lab.py demo --output lab-output
+python labs/eval_lab.py compare lab-output/improvement.input.json
+python labs/eval_lab.py selection-bias --candidates 30 --seed 17
+python -m unittest discover -s tests -v</pre></div>
+  <p>demo 输出五份输入、五份结果和汇总。每份结果包括逐任务宏平均差、按任务聚类的 bootstrap 区间、保守单侧界、成本、裁决及输入 SHA-256。固定输入和 seed 可重现统计结果。</p>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>合成场景</th><th>预期裁决</th><th>学到什么</th></tr></thead><tbody>
+    <tr><td>80 题上，20% → 80%，同成本</td><td>keep</td><td>足够大的效应可以通过保守统计门</td></tr>
+    <tr><td>表现相同</td><td>inconclusive</td><td>不能证明提升；不等于证明等效</td></tr>
+    <tr><td>80% → 20%</td><td>reject</td><td>明显回归</td></tr>
+    <tr><td>高分但有严重违规</td><td>reject</td><td>约束不能被平均分抵消</td></tr>
+    <tr><td>高分但成本翻倍</td><td>reject</td><td>超过提前规定的 1.25 倍成本上限</td></tr>
+  </tbody></table></div>
+  <h2>不要相信摘要，检查输入协议</h2>
+  <p>程序要求基线和候选拥有相同的完整 task×run 矩阵；重复 ID、缺失失败、非有限成本、非布尔结果、伪装成功的 timeout/crash 都会报错。<code>reported_score</code> 不参与计算。重复运行保留在任务簇内，不被当成更多独立任务。</p>
+  <p><code>candidate_frozen: true</code> 是调用者声明，不是程序证明；<code>confirmation</code> 标签不能证明数据从未被看过。模型、环境与评分器的全局标识是同条件比较的契约，真实运行需要外部 verifier 核实这些标识。输入文件的可修改性也意味着这个工具不能防御同账号下的恶意候选。</p>
+  <h2>从玩具实验升级到真实评测</h2>
+  <ol>
+    <li>把合成输入替换为独立 runner 的观察。逐题从干净环境运行基线和候选，保存产物与外部断言结果。</li>
+    <li>把 <code>cost_units</code> 映射到预先规定的统一成本，例如 token 预算；同时额外保留搜索成本和墙钟时间。</li>
+    <li>先用开发集修好 runner，再冻结候选、评分器、任务清单与裁决参数；独立确认集只有一次决定用途。</li>
+    <li>将代码快照、模型精确版本、数据/容器 digest、完整轨迹和失败分类写进实验卡。</li>
+    <li>需要处理相关任务、连续上线或自适应采样时，升级统计协议；不要直接把本 lab 的独立任务假设带过去。</li>
+  </ol>
+  <p>本轮没有运行真实模型实验，所以没有声称提高任何 agent 的性能。真正的下一份成果应是一份可复核的真实任务比较，而不是把合成数字放进 leaderboard。</p>
+  <h2>三个扩展作业</h2>
+  <ol>
+    <li>把候选数改为 1、10、100，记录开发分数与新数据分数之差。解释为什么 winner's curse 随选择加强。</li>
+    <li>注入缺失失败记录、重复成功记录与高分违规，验证门为什么拒绝这些输入/候选；为新失败模式增加回归测试。</li>
+    <li>实现按 repo_id 聚类的比较，构造“一个仓库大量近重复题”的例子，和按题聚类对照。</li>
+  </ol>
+  <p>详细协议、输入字段与运行边界见 <a href="labs/README.md">仓库 labs</a>；本地源码位于 <code>labs/eval_lab.py</code>。</p>
+</section>
