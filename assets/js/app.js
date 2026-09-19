@@ -96,11 +96,13 @@
   }
   function go(id) { location.hash = '#/' + id; }
   function route() {
-    var id = (location.hash || '#/home').replace(/^#\//, '') || 'home';
-    if (!DSH.chapters.some(function (c) { return c.id === id; })) id = 'home';
+    var id = (location.hash || '#/home').replace(/^#\/?/, '') || 'home';
+    // 'lc' 是隐藏页:不在 DSH.chapters 里(不进导航/搜索/翻页链),但要放行路由
+    if (id !== 'lc' && !DSH.chapters.some(function (c) { return c.id === id; })) id = 'home';
     currentId = id;
     $$('.chapter').forEach(function (s) { s.classList.toggle('active', s.id === 'ch-' + id); });
-    document.title = (id === 'home' ? 'How to RSI · 造一个能改进自己的 Agent' : DSH.chapters.find(function (c) { return c.id === id; }).title + ' · How to RSI');
+    var lc = DSH.chapters.find(function (c) { return c.id === id; });
+    document.title = (id === 'home' ? 'How to RSI · 造一个能改进自己的 Agent' : (lc ? lc.title : '刷题笔记') + ' · How to RSI');
     window.scrollTo(0, 0);
     closeSidebar();
     refreshNav();
@@ -152,19 +154,6 @@
         host.appendChild(a);
       });
     });
-
-    // 静态终端摘录:一个 RSI 回路(不做打字机,保持纸面感)
-    var lines = [
-      { t: '$ 诊断 → 提出改动 → cordis_define(写代码)', c: 't-blue' },
-      { t: '$ cordis_run(挂载) → 沙箱执行 → eval(评估)', c: 't-blue' },
-      { t: '  ✔ 通过:keep · assistant/message 落帐', c: 't-green' },
-      { t: '  ✘ 失败:run 回滚到 currentPackageId', c: 't-y' },
-      { t: '  日志即记忆:下一轮改进从 session.v3.jsonl 读起', c: 't-dim' },
-    ];
-    var pre = $('#heroTerm');
-    if (pre) {
-      pre.innerHTML = lines.map(function (l) { return '<span class="' + l.c + '">' + esc(l.t) + '</span>'; }).join('\n');
-    }
   }
 
   /* ---------- Cordis 理念卡 ---------- */
@@ -1049,6 +1038,191 @@
       document.body.removeChild(ta);
     }
   }
+  /* ---------- 隐藏页:刷题笔记(#/lc,口令加密,localStorage 存密文) ---------- */
+  // 威胁模型:防"拿到这个 origin 存储/导出的密文"的人——AES-GCM 密文 + PBKDF2 口令派生密钥,不落明文。
+  // 防不了"正在用这台已解锁浏览器的人",也防不了改源码的人——静态站没有服务端,这是上限。
+  var LC = { key: null, notes: [], sel: null, salt: null };
+  var LC_KEY = 'lc-notes-v1';
+  var te = new TextEncoder(), td = new TextDecoder();
+  // 分块 base64:整包密文可能上百 KB,String.fromCharCode.apply(null, 大数组) 会撞参数上限 RangeError
+  function b64e(buf) {
+    var u8 = buf instanceof Uint8Array ? buf : new Uint8Array(buf), s = '', CH = 0x8000;
+    for (var i = 0; i < u8.length; i += CH) s += String.fromCharCode.apply(null, u8.subarray(i, i + CH));
+    return btoa(s);
+  }
+  function b64d(s) { return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); }); }
+  function lcStore() {
+    try { return JSON.parse(localStorage.getItem(LC_KEY) || 'null'); } catch (e) { return null; }
+  }
+  // 落盘形状:{salt, verify, payload};payload = 整个 notes 数组的 AES-GCM 密文,明文只存在内存里
+  // 返回 true/false,不吞异常:调用方据它决定能否提示"已保存"——配额满/加密失败必须让上层知道,否则静默丢数据
+  async function lcPersist() {
+    try {
+      var payload = await lcEncrypt(LC.key, JSON.stringify(LC.notes));
+      localStorage.setItem(LC_KEY, JSON.stringify({ salt: b64e(LC.salt), verify: LC.verify, payload: payload }));
+      return true;
+    } catch (e) { return false; }
+  }
+  function lcMsg(t, isErr) { var m = $('#lcGateMsg'); if (m) { m.textContent = t; m.style.color = isErr ? 'var(--rose)' : 'var(--muted)'; } }
+  async function lcDerive(pass, salt) {
+    var km = await crypto.subtle.importKey('raw', te.encode(pass), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: salt, iterations: 250000, hash: 'SHA-256' },
+      km, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+  }
+  async function lcEncrypt(key, plain) {
+    var iv = crypto.getRandomValues(new Uint8Array(12));
+    var ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, te.encode(plain));
+    return b64e(iv) + '.' + b64e(ct);
+  }
+  async function lcDecrypt(key, payload) {
+    var p = payload.split('.');
+    var pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64d(p[0]) }, key, b64d(p[1]));
+    return td.decode(pt);
+  }
+  // 校验口令并载入:解密 verify 得 'ok' → 口令对;再解密 payload 得 notes。错口令 AES-GCM 直接抛异常。
+  async function lcUnlockWith(pass, st) {
+    try {
+      var key = await lcDerive(pass, b64d(st.salt));
+      if ((await lcDecrypt(key, st.verify)) !== 'ok') return null;
+      LC.key = key;
+      LC.salt = b64d(st.salt);                 // 同步内存 salt:导入新密文包后 persist/export 才用对
+      LC.notes = st.payload ? JSON.parse(await lcDecrypt(key, st.payload)) : [];
+      return key;
+    } catch (e) { return null; }
+  }
+  function lcShow(main) {
+    $('#lcGate').hidden = main;
+    $('#lcMain').hidden = !main;
+    if (main) renderLcList();
+  }
+  function lcGateMode(setup) {
+    $('#lcPass2').style.display = setup ? '' : 'none';
+    $('#lcUnlock').textContent = setup ? '设口令并解锁' : '解锁';
+    $('#lcGateInfo').innerHTML = setup
+      ? '<span class="t">首次使用:设一个口令</span>口令只存在你脑子里——不落盘、不上传,丢失无法找回。它是加密密钥的源头。数据存本浏览器 localStorage;换浏览器/设备用「导出」搬密文,口令不变即可解开。'
+      : '<span class="t">已加密</span>输入口令解锁。内容是 AES-GCM 密文,口令经 PBKDF2 派生密钥。';
+  }
+  function renderLcList() {
+    var q = ($('#lcSearch').value || '').toLowerCase();
+    var box = $('#lcList');
+    box.innerHTML = '';
+    var list = LC.notes.filter(function (n) {
+      if (!q) return true;
+      return (n.num + ' ' + n.title + ' ' + n.tags + ' ' + n.idea).toLowerCase().indexOf(q) >= 0;
+    });
+    $('#lcCount').textContent = '共 ' + LC.notes.length + ' 题' + (q ? ' · 命中 ' + list.length : '');
+    list.forEach(function (n) {
+      var b = el('button', 'lc-item' + (LC.sel === n.id ? ' sel' : ''));
+      b.innerHTML = '<span class="li-top"><span class="li-num">' + esc(n.num || '—') + '</span>' +
+        '<span class="li-title">' + esc(n.title || '(未命名)') + '</span>' +
+        '<span class="li-diff ' + esc(n.diff) + '">' + esc(n.diff) + '</span></span>' +
+        (n.tags ? '<span class="li-tags">' + esc(n.tags) + '</span>' : '');
+      b.addEventListener('click', function () { LC.sel = n.id; fillLcEditor(n); renderLcList(); });
+      box.appendChild(b);
+    });
+  }
+  function fillLcEditor(n) {
+    $('#lcEmpty').hidden = true;
+    $('#lcEditor').hidden = false;
+    $('#lcNum').value = n.num || ''; $('#lcTitle').value = n.title || '';
+    $('#lcDiff').value = n.diff || 'Medium'; $('#lcTags').value = n.tags || '';
+    $('#lcLink').value = n.link || ''; $('#lcIdea').value = n.idea || '';
+    $('#lcCode').value = n.code || ''; $('#lcNote').value = n.note || '';
+    $('#lcSavedHint').textContent = '';
+  }
+  function buildLC() {
+    if (!$('#ch-lc')) return;
+    // WebCrypto 只在 secure context 可用;file:// 多数浏览器算,但旧内核/个别浏览器不一定 → 明确提示而非静默失败
+    if (!window.crypto || !window.crypto.subtle) {
+      $('#lcGateInfo').innerHTML = '<span class="t">当前环境不支持加密</span>这个页面需要 WebCrypto(secure context)。请用 <code>python -m http.server</code> 起本地服务后经 http://127.0.0.1 访问,或换新版 Chrome/Firefox/Safari 打开。';
+      $('#lcPass').disabled = $('#lcPass2').disabled = $('#lcUnlock').disabled = true;
+      return;
+    }
+    var st = lcStore();
+    var setup = !st || !st.payload;          // 无存储或无密文 → 设口令模式;初始化快照,设密成功后即置 false
+    if (st && st.salt) { LC.salt = b64d(st.salt); LC.verify = st.verify; }
+    lcGateMode(setup);
+    lcShow(false);
+
+    $('#lcUnlock').addEventListener('click', async function () {
+      var p1 = $('#lcPass').value;
+      if (setup) {
+        if (p1.length < 10) { lcMsg('口令至少 10 位——它是加密密钥的源头,太短能被离线穷举', true); return; }
+        if (p1 !== $('#lcPass2').value) { lcMsg('两遍口令不一致', true); return; }
+        LC.salt = crypto.getRandomValues(new Uint8Array(16));
+        LC.key = await lcDerive(p1, LC.salt);
+        LC.verify = await lcEncrypt(LC.key, 'ok');   // 校验密文:下次验证口令用
+        LC.notes = [];
+        if (!(await lcPersist())) { lcMsg('写入 localStorage 失败(配额/隐私模式?),未建立存储', true); return; }
+        setup = false; lcShow(true); lcMsg('');
+      } else {
+        // 每次解锁重读最新密文:不用捕获的 st(可能是设密前的空快照),否则丢本次保存
+        if (!(await lcUnlockWith(p1, lcStore()))) { lcMsg('口令不对', true); return; }
+        lcShow(true); lcMsg('');
+      }
+    });
+    $('#lcPass').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('#lcUnlock').click(); });
+    $('#lcPass2').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('#lcUnlock').click(); });
+
+    $('#lcNew').addEventListener('click', function () {
+      var n = { id: 'n' + Date.now(), num: '', title: '', diff: 'Medium', tags: '', link: '', idea: '', code: '', note: '' };
+      LC.notes.unshift(n); LC.sel = n.id; fillLcEditor(n); renderLcList(); $('#lcTitle').focus();
+    });
+    $('#lcSave').addEventListener('click', async function () {
+      var n = LC.notes.find(function (x) { return x.id === LC.sel; });
+      if (!n) return;
+      n.num = $('#lcNum').value.trim(); n.title = $('#lcTitle').value.trim();
+      n.diff = $('#lcDiff').value; n.tags = $('#lcTags').value.trim();
+      n.link = $('#lcLink').value.trim(); n.idea = $('#lcIdea').value;
+      n.code = $('#lcCode').value; n.note = $('#lcNote').value;
+      if (!(await lcPersist())) { $('#lcSavedHint').textContent = '写入失败(存储配额满?),数据未落盘'; return; }
+      renderLcList();
+      $('#lcSavedHint').textContent = '已保存(密文落盘) ' + new Date().toLocaleTimeString();
+    });
+    $('#lcDel').addEventListener('click', async function () {
+      var i = LC.notes.findIndex(function (x) { return x.id === LC.sel; });
+      if (i < 0 || !confirm('删掉这题?密文一并清除,不可恢复。')) return;
+      var removed = LC.notes.splice(i, 1)[0];
+      if (!(await lcPersist())) {
+        // 落盘失败 → 内存里放回原索引、恢复选中,不当成已删;否则 UI 与磁盘不一致
+        LC.notes.splice(i, 0, removed); LC.sel = removed.id;
+        $('#lcSavedHint').textContent = '写入失败,删除未落盘';
+        renderLcList(); return;
+      }
+      LC.sel = null;
+      $('#lcEditor').hidden = true; $('#lcEmpty').hidden = false; renderLcList();
+    });
+    $('#lcSearch').addEventListener('input', renderLcList);
+    $('#lcLock').addEventListener('click', function () {
+      LC.key = null; LC.sel = null; LC.notes = []; $('#lcPass').value = ''; $('#lcPass2').value = '';
+      lcGateMode(false); lcShow(false);
+    });
+    // 导出:落的是 {salt, verify, payload}——payload 是整包密文,口令不变即可在别处导入解开
+    $('#lcExport').addEventListener('click', async function () {
+      var payload = await lcEncrypt(LC.key, JSON.stringify(LC.notes));
+      var blob = new Blob([JSON.stringify({ salt: b64e(LC.salt), verify: LC.verify, payload: payload }, null, 2)], { type: 'application/json' });
+      var a = el('a'); a.href = URL.createObjectURL(blob); a.download = 'leetcode-notes.enc.json'; a.click();
+      URL.revokeObjectURL(a.href);
+    });
+    $('#lcImport').addEventListener('click', function () { $('#lcImportFile').click(); });
+    $('#lcImportFile').addEventListener('change', function () {
+      var f = this.files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function () {
+        try {
+          var d = JSON.parse(r.result);
+          if (!d.salt || !d.verify || !d.payload) throw new Error('bad');
+          // 导入的是密文包:替换本地存储,回到锁定态,用原口令解锁
+          localStorage.setItem(LC_KEY, JSON.stringify({ salt: d.salt, verify: d.verify, payload: d.payload }));
+          st = d; LC.salt = b64d(d.salt); LC.verify = d.verify; LC.key = null; LC.notes = []; LC.sel = null;
+          lcGateMode(false); lcShow(false); lcMsg('已导入密文包,输入原口令解锁。');
+        } catch (e) { lcMsg('文件不是有效的导出格式', true); }
+      };
+      r.readAsText(f); this.value = '';
+    });
+  }
+
   function buildCodeblocks() {
     $$('.codeblock').forEach(function (cb) {
       var pre = $('pre', cb);
@@ -1249,6 +1423,7 @@
     buildEvalBench();
     buildEvalGate();
     buildEvalProject();
+    buildLC();
     buildFooters();
     buildCodeblocks();
     bindChrome();
