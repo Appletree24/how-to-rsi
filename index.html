@@ -73,20 +73,22 @@
 
   <!-- ============ 首页 ============ -->
   <section class="chapter" id="ch-home">
-    <div class="hero">
-      <span class="ch-kicker">How to RSI</span>
-      <div class="hero-title">造一个能改进自己的 Agent</div>
-      <p class="hero-sub">RSI(Recursive Self-Improvement)是让 agent 改进“自己如何改进”。这份笔记按五步展开：概念与谱系 → 机制与评测 → 对齐与安全 → 在开源 harness DeepSeek Harness 里实现每个机制 → 实战关卡与项目。</p>
-      <div class="hero-cta">
-        <a class="btn primary" href="#/rsi">从第 01 章开始 →</a>
-        <a class="btn" href="#/evalproject">直接看实战项目</a>
+    <div class="masthead">
+      <div class="hero">
+        <span class="ch-kicker">How to RSI</span>
+        <div class="hero-title">造一个能改进自己的 Agent</div>
+        <p class="hero-sub">RSI(Recursive Self-Improvement)是让 agent 改进“自己如何改进”。这份笔记按五步展开：概念与谱系 → 机制与评测 → 对齐与安全 → 在开源 harness DeepSeek Harness 里实现每个机制 → 实战关卡与项目。</p>
+        <div class="hero-cta">
+          <a class="btn primary" href="#/rsi">从第 01 章开始 →</a>
+          <a class="btn" href="#/evalproject">直接看实战项目</a>
+        </div>
+        <p class="small muted" style="margin-top:12px">⌨ <span class="kbd">←</span> <span class="kbd">→</span> 切换章节 · <span class="kbd">Ctrl K</span> 全局搜索</p>
       </div>
-      <p class="small muted" style="margin-top:12px">⌨ <span class="kbd">←</span> <span class="kbd">→</span> 切换章节 · <span class="kbd">Ctrl K</span> 全局搜索</p>
-    </div>
 
-    <div class="term" style="margin:20px 0 34px">
-      <div class="t-head">一次自改回路(示意)</div>
-      <pre id="heroTerm" aria-hidden="true"></pre>
+      <div class="term">
+        <div class="t-head">一次自改回路(示意)</div>
+        <pre id="heroTerm" aria-hidden="true"></pre>
+      </div>
     </div>
 
     <h2>目录</h2>
@@ -1196,10 +1198,6 @@ pnpm run test:snapshot:record        # 模型成稿变了 → 重录(需密钥),
 
   </main>
 </div>
-
-<footer class="site-footer">
-  <div>How to RSI · 造一个能改进自己的 Agent —— 实战载体 <a href="https://github.com/deepseek-ai/deepseek-harness" target="_blank" rel="noopener">deepseek-ai/deepseek-harness</a>(developer preview)</div>
-</footer>
 
 <script src="assets/js/data.js"></script>
 <script src="assets/js/app.js"></script>

@@ -177,7 +177,6 @@ code {
   flex: 1;
   margin-left: var(--sidebar-w);
   padding: 40px clamp(20px, 5vw, 72px) 90px;
-  max-width: calc(var(--measure) + clamp(20px, 5vw, 72px) * 2);
 }
 
 /* ---------- 章节 ---------- */
@@ -214,7 +213,7 @@ strong { color: var(--text); }
 .divider { height: 1px; background: var(--line-soft); margin: 36px 0; border: 0; }
 
 /* ---------- 网格与卡片 ---------- */
-.grid { display: grid; gap: 14px; margin: 18px 0; max-width: 58rem; }
+.grid { display: grid; gap: 14px; margin: 18px 0; }
 .cols2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .cols3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .cols4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -325,7 +324,7 @@ strong { color: var(--text); }
 .tok-cmd { color: var(--acc); font-weight: 600; }
 
 /* ---------- 表格(细线规则式) ---------- */
-.tbl-wrap { overflow-x: auto; margin: 16px 0; max-width: 62rem; }
+.tbl-wrap { overflow-x: auto; margin: 16px 0; }
 table.tbl { border-collapse: collapse; width: 100%; font-size: 0.88rem; min-width: 560px; font-family: var(--sans); }
 table.tbl th {
   text-align: left; padding: 8px 14px 8px 0; white-space: nowrap;
@@ -359,6 +358,18 @@ table.tbl tbody tr:hover { background: var(--panel-2); }
 }
 .hero-sub { color: var(--muted); font-size: 1.05rem; }
 .hero-cta { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; font-family: var(--sans); }
+
+/* ---------- 首页 masthead:标题 + 终端左右并排 ---------- */
+.masthead {
+  display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 30px; align-items: start;
+}
+.masthead .hero { max-width: none; margin-bottom: 0; }
+.masthead .term { max-width: none; margin: 32px 0 0; }
+@media (max-width: 1180px) {
+  .masthead { grid-template-columns: 1fr; }
+  .masthead .term { margin: 0 0 34px; }
+}
 
 /* 终端摘录(静态展示) */
 .term {
@@ -443,7 +454,7 @@ table.tbl tbody tr:hover { background: var(--panel-2); }
 .sim {
   border: 1px solid var(--line); border-radius: 10px;
   background: var(--panel); padding: 16px; margin: 16px 0;
-  max-width: 62rem; font-family: var(--sans);
+  font-family: var(--sans);
 }
 .sim-stage {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
@@ -490,7 +501,7 @@ table.tbl tbody tr:hover { background: var(--panel-2); }
 .loop-player {
   border: 1px solid var(--line); border-radius: 10px;
   background: var(--panel); padding: 16px; margin: 18px 0;
-  max-width: 62rem; font-family: var(--sans);
+  font-family: var(--sans);
 }
 .loop-dots { display: flex; gap: 5px; align-items: center; margin: 2px 0 14px; flex-wrap: wrap; }
 .loop-dot {
@@ -560,7 +571,7 @@ table.tbl tbody tr:hover { background: var(--panel-2); }
 }
 .searchbar .cnt { font-family: var(--mono); font-size: 0.72rem; color: var(--faint); white-space: nowrap; }
 
-.pkg-group { margin-bottom: 12px; max-width: 62rem; }
+.pkg-group { margin-bottom: 12px; }
 .pkg-group .pg-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; cursor: pointer; padding: 4px 0; }
 .pkg-group .pg-name { font-family: var(--mono); font-weight: 600; color: var(--acc); font-size: 0.9rem; }
 .pkg-group .pg-role { color: var(--muted); font-size: 0.82rem; flex: 1; min-width: 200px; font-family: var(--sans); }
@@ -714,13 +725,6 @@ details.acc .acc-body { padding: 0 8px 14px 22px; color: var(--muted); font-size
 .p-item .p-sub { margin-left: auto; color: var(--faint); font-size: 0.72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40%; }
 .p-empty { text-align: center; color: var(--faint); padding: 22px; font-size: 0.88rem; }
 
-/* ---------- 页脚 ---------- */
-.site-footer {
-  margin-left: var(--sidebar-w); padding: 24px clamp(20px, 5vw, 72px) 44px;
-  border-top: 1px solid var(--line-soft); color: var(--faint); font-size: 0.8rem;
-  font-family: var(--sans);
-}
-
 /* ---------- 扩展点选择器 ---------- */
 .picker-row { display: flex; gap: 11px; align-items: center; flex-wrap: wrap; margin: 14px 0; font-family: var(--sans); }
 select.sel-input {
@@ -872,8 +876,7 @@ html:not(.js) .topbar .top-actions,
 html:not(.js) .topbar .icon-btn,
 html:not(.js) .sidebar,
 html:not(.js) .side-mask { display: none; }
-html:not(.js) .main,
-html:not(.js) .site-footer { margin-left: 0; }
+html:not(.js) .main { margin-left: 0; }
 html:not(.js) .chapter { display: block; }
 html:not(.js) .reveal { opacity: 1; transform: none; }
 html:not(.js) .pyr-row .py-d { max-height: 90px; }
@@ -890,7 +893,7 @@ html:not(.js) .noscript-toc a { display: inline-block; padding: 2px 0; }
 @media (max-width: 1080px) {
   .sidebar { transform: translateX(-105%); transition: transform 0.22s ease; box-shadow: var(--shadow); }
   .sidebar.open { transform: none; }
-  .main, .site-footer { margin-left: 0; max-width: none; }
+  .main { margin-left: 0; max-width: none; }
   #menuBtn { display: inline-flex; }
   .loop-body { grid-template-columns: 1fr; }
   .cols3, .cols4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
