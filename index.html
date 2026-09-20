@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="dark light">
 <script>document.documentElement.classList.add('js');</script>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/main.css?v=20260920g">
+<link rel="stylesheet" href="assets/css/main.css?v=20260920eval">
 </head>
 <body>
 <a class="skip-link" href="#main">跳到正文</a>
@@ -201,19 +201,40 @@ python labs/improver_lab.py --rounds 2 --output lab-output/improver/two-rounds.j
   <p>考虑给解析器加 <code>strip()</code>。如果规格允许首尾空白，而且其余输入的返回值不变，可以尝试证明这个补丁满足规格。如果服务有严格延迟要求，功能正确还不够；如果输入标准实际上禁止空白，接受它反而改变了协议。要判断修改是否有益，需要同时给出环境、目标和成本。</p>
   <p>测试能确认 <code>" 3s "</code> 这条输入是否通过。对有限测试集全通过，仍没有覆盖任意长度的输入、未列出的 Unicode 空白或资源耗尽。形式证明可以覆盖一个明确的输入集合，但前提是实现、规格与所用公理之间的对应可靠。两种方法都不能省略“结论在哪些条件下成立”。</p>
 
-  <h2>Gödel Machine 的比较对象包含“继续寻找”</h2>
-  <p>Gödel Machine 将程序、环境假设和效用写入形式系统，并运行证明搜索。论文 §4.1 的切换条件比较的是：现在执行候选重写的期望效用，与继续当前证明搜索、等待潜在更好重写的期望效用。后者不是“永远保持旧程序”。证明通过后可以重写系统，也可以重写证明搜索本身。结论依赖一致的公理系统及其中可表达的效用模型。<cite data-source="gm"><a href="https://arxiv.org/abs/cs/0309048v5" target="_blank" rel="noopener">[gm]</a></cite></p>
-  <div class="codeblock"><div class="cb-head">切换条件的教学记法；省略论文中的形式编码</div><pre data-lang="text">证明 A ⊢ U(现在执行 switchprog | 当前状态)
-          &gt; U(继续当前证明搜索 | 当前状态)
+  <h2>Gödel Machine：先证明，再修改</h2>
+  <p>上一章用开发集分数决定是否保留候选：先运行，再比较。Gödel Machine 把顺序反过来——不修改，直到先证明修改更好。名字取自哥德尔的自指公式：机器要在描述自身的形式语言里推理并修改自身。<cite data-source="gm"><a href="https://arxiv.org/abs/cs/0309048v5" target="_blank" rel="noopener">[gm]</a></cite>它的可改代码 p 含两部分：与环境交互的初始求解器 e(1)（通常并非最优），和一个证明搜索器；两者都装在 p 里，因此都可能被重写。</p>
+  <p>论文把整机状态记为 s(t)：存储内容、软件 p、输入 x、输出 y 与当前时刻 time 编码在同一变量中，硬件按周期 t = 1,2,…,T 逐条执行指令。效用取剩余生存期的期望累计回报 <code>u(s, Env) = E_µ [Σ r(τ) | s, Env]</code>。这个定义顺手解决了一个记账问题：证明搜索消耗的周期本可用于行动，搜索成本直接计入同一个 u，无需另设“思考预算”。</p>
+  <p>要判断“改了更好”，机器得能推理自己的行为，因此 p(1) 内还编码公理系统 A：每条硬件指令如何改变 s（含指令指针）、各动作与输入的成本和回报、环境产生输入的先验假设（允许的分布集合 M）、算术与概率论公理、初始状态与初始代码自身，以及效用函数 u。把 p 的描述写进 p 并不循环——一段程序可以包含能打印自身的代码。搜索器能下的结论以 A 能表达且能推出的为限：环境的哪部分写进公理，保证就能覆盖哪部分。</p>
+  <div class="codeblock"><div class="cb-head">初始机器的组成；对照论文图 1 的存储示意</div><pre data-lang="text">s(t)：整机状态（硬件逐周期更新）
+├─ p(t)：可改软件
+│   ├─ e(1)：与环境交互的求解器
+│   └─ 证明搜索器：调度证明技术，检查目标定理
+├─ proof / switchprog：增长中的证明与候选重写
+├─ x(t), y(t), time：环境输入、输出、当前周期
+└─ 公理 A 与效用 u：以代码形式编码在 p(1) 内</pre></div>
+  <p>证明搜索运行的是“证明技术”——本身也是程序，可读状态、推导并逐条输出定理，而非按长度枚举所有证明。初始搜索器 BIOPS 按各技术的先验权重分配运行份额，论文 §5 证明它达到 O() 阶最优；但 O() 只约束阶数，常数因子的慢可在日后用一次“被证明有益”的重写消除，包括重写 BIOPS 自己。某个证明技术一旦推出目标定理，<code>check()</code> 便把控制权交给候选 <code>switchprog</code>，后者可改写 p 的任意部分——求解器、搜索器，或两者一起（硬件保留变量除外）。</p>
 
-若获得上述证明，执行 switchprog。
+  <h2>切换定理比较的不是新旧程序</h2>
+  <p>§4.1 的全局最优定理依赖一个容易读漏的细节：目标定理比较的两个分支，是“现在执行 switchprog”与“让 p 原样继续运行”。p 原样运行意味着证明搜索继续，未来还可能产生别的 switchprog——右边这一项隐式包含了所有尚未找到的候选重写。因此证明一旦成立，当前 switchprog 就是给定公理、效用与剩余资源下的全局最优选择，而非一次贪心爬坡。<cite data-source="gm"><a href="https://arxiv.org/abs/cs/0309048v5" target="_blank" rel="noopener">[gm]</a></cite></p>
+  <div class="codeblock"><div class="cb-head">目标定理的教学记法；对应论文式 (2)，省略形式编码</div><pre data-lang="text">u[ s(t₁)⊕(switchbit = '1'), Env ]    ← 现在执行 switchprog
+  &gt;
+u[ s(t₁)⊕(switchbit = '0'), Env ]    ← p 原样运行，证明搜索继续
+
+证出后 check() 置 switchbit 并执行 switchprog。
 没有找到证明，并不等于已经证明 switchprog 无益。</pre></div>
+  <p>这条比较还自动覆盖递归：u 计的是整条未来轨迹，当前比较由此纳入了重写对后续自改的影响——§4.3 称所有元层级折叠进同一个定理，不必为“修改修改器的修改器”另设判定层。</p>
+
   <p><strong>本站算例：</strong>设当前程序还要服务 1,000 个请求，预计成功率为 0.80；一个补丁能将其提升到 0.81。若只比较功能，收益是 10 个成功请求。若寻找和验证这个补丁的时间相当于丢掉 20 个请求，净效用可能变负。另一方面，继续搜索也许能找到 0.90 的方案，却可能等不到。切换命题需要把这些机会成本写进同一个效用模型。</p>
-  <p>这个算例的成功率与成本都是假设值，不是一份形式证明。它指出了困难所在：现实 API 的漂移、用户目标变化、硬件故障，都要么进入模型，要么留在保证之外。把“程序不会违反这个形式规格”写成“它在现实中总会有益”，跨过了尚未证明的一步。</p>
+  <p>这个算例的成功率与成本都是假设值，不是一份形式证明。它标出的是建模负担：要把比较变成定理，0.80 与 0.81、相当于 20 个请求的搜索成本，都得能从公理与效用中推出，而不能只是算例里填的数。</p>
+
+  <h2>自引用要付的两笔账</h2>
+  <p>第一笔是可证性。对任何一致且足够强、可表达基本算术的有效形式系统，都存在“真但证不出”的命题：某个重写确实有益，机器却永远无法证明。资源有限时再扣一层——能证、但来不及在有用时间内证完的改进同样只能放弃；论文借助不可判定性结果说明，可以构造出让目标定理不可证的病态环境与效用组合。也有一个缓解事实：目标定理只要求比较两边大小，不要求算出精确效用——证明“把某子程序提速一倍划算”，不必知道精确的期望回报。</p>
+  <p>第二笔是自观测。证明可以把 s 的当前内容直接转成定理（state2theorem）：环境输入只有运行后才知道，有些事实运行一遍也比从初始状态推出更快。但读取正在变化的状态并不可靠——读指令指针的动作本身就改变指令指针，论文为此给读取加了协议与保留区。“agent 持有自身完整描述”在实现层面不是免费的假设。</p>
+  <p>两笔账合起来划出保证边界：被证明有益的修改，只是有益的修改中“能被 A 表达、又能在限时内证出”的子集。现实部署里的 API 漂移、用户目标变化、硬件故障，要么写进 A 和 u，要么留在保证之外。把“程序不会违反这个形式规格”说成“它在现实中总会有益”，跨过了尚未证明的一步。</p>
   <p>因此，论文中的最优性不能理解为“先枚举所有补丁，再挑出绝对最强者”。也不能反过来写成“证明永远无法触发”。正确的问题是：哪些假设能形式化，哪些改动能在有用的时间内得到证明，建模与证明成本怎样进入效用。</p>
 
   <h2>STOP：把证明问题换成一个可测的元效用</h2>
-  <p>第一章的 I₀ → I₁ 对应另一种做法：运行候选改进器，看它能把下游程序改到什么程度。STOP 用调用语言模型的程序执行这类自应用，基础模型保持固定。它给出了经验搜索路线，不需要先证明每一次修改有益；相应地，有限任务上的得分也不提供 Gödel Machine 那样的形式保证。<cite data-source="stop"><a href="https://arxiv.org/abs/2310.02304v3" target="_blank" rel="noopener">[stop]</a></cite></p>
+  <p>第一章的 I₀ → I₁ 对应另一种做法：运行候选改进器，看它能把下游程序改到什么程度。STOP 用调用语言模型的程序执行这类自应用，基础模型保持固定。它给出了经验搜索路线，不需要先证明每一次修改有益；相应地，有限任务上的得分也不提供 Gödel Machine 那样的形式保证。<cite data-source="stop"><a href="https://arxiv.org/abs/2310.02304v3" target="_blank" rel="noopener">[stop]</a></cite> Gödel Agent 走了另一条路：保留改写自身逻辑的自引用形式，但不设证明门槛，由语言模型在运行时按高层目标直接修改控制逻辑。<cite data-source="godel-agent"><a href="https://arxiv.org/abs/2410.04444v4" target="_blank" rel="noopener">[godel-agent]</a></cite></p>
   <p>这里有两个预算：尝试多少个改进器，以及每个改进器获得多少下游改进机会。上一章训练用了 15 次整组评分，应用又用了 3 次。若只报告应用阶段，就把学习改进器的开销隐藏了。若训练好的策略能服务很多后续任务，训练成本可以摊销，但需要把使用次数明确列出。固定规则的穷举、随机搜索和人工策略都可能是必要的基线。</p>
 
   <h2>为什么暂时退步的候选可能值得保留</h2>
@@ -302,133 +323,146 @@ if confirmation.decision == "keep":
 
   <!-- ============ 04 评测:RSI 的门槛 ============ -->
   <section class="chapter" id="ch-eval">
-    <span class="ch-kicker">Chapter 04 · 模块二 机制与评测</span>
-    <h1>Agent 评测方法</h1>
-    <p class="lead">评测将任务要求转成可观察的结果。在自改循环中，它既用于比较候选，也用于发现旧能力的回归。先从任务、运行记录和评分器的分工开始。</p>
+  <span class="ch-kicker">Chapter 04 · 机制与评测</span>
+  <h1>Agent 评测：从一次运行到发布判断</h1>
+  <p class="lead">客服 Agent 回复“退款已完成”，数据库里却没有退款记录。这次任务应该失败。评测要做的，就是把这样的判断写成可重复执行的检查，再用同一套条件比较改动前后的系统。</p>
+  <p>本章先拆一条退款任务，再看 Claude Code、Bolt 与 Descript 的产品实践、SWE-bench 的补丁验收，以及 LangSmith 的评测工作流。企业实践来自公开资料；退款任务与流程图是本站教学设计，不是企业内部实现。</p>
 
-    <h2>任务、运行与评分</h2>
-    <p>先把零件名说准。一次评测最小的单元是<strong>任务(task)</strong>：一组输入 + 成功标准；跑一次叫<strong>试运行(trial)</strong>——模型输出每次不同，一个任务要跑多个 trial 才有稳定结论。给 trial 打分的是<strong>评分器(grader)</strong>，一个任务可挂多个 grader，每个含多条断言。trial 的完整记录（输出、工具调用、推理、中间结果）叫<strong>轨迹(transcript)</strong>；trial 结束时环境的状态叫<strong>结果(outcome)</strong>——"数据库里真的有预订了吗"，而不是"agent 说订好了"。跑评测的系统叫<strong>评测脚手架(eval harness)</strong>；一组任务的集合叫<strong>评测集(suite)</strong>。</p>
-    <p>注意"评 agent"评的其实是 <strong>agent harness + 模型的组合</strong>——同一个模型换个 scaffold，分数就变了；CORE-Bench 上 Opus 4.5 的 42%→95% 有一半归因于换了约束更少的 scaffold。单轮评测（提示→回答→判分）对早期 LLM 够用；agent 评测难在<strong>错误会传播复合</strong>——第 3 步的小错会扭曲后面二十步，而且前沿模型会找到超出静态评测预期的解法：<a href="https://www.anthropic.com/news/claude-opus-4-5" target="_blank" rel="noopener">Opus 4.5 在 τ2-bench 的订票任务上</a>，政策禁止改 basic economy 机票，它发现"先升舱（政策允许）、再改航班（非 basic economy 允许）"这条合法路径——被判"失败"，却是对用户更好的解。</p>
+  <h2>01 / 先写清楚什么算完成</h2>
+  <div class="eval-task">
+    <h3>例题：取消订单并退回 80 元</h3>
+    <p>用户要求取消自己尚未发货的订单 O-104。测试环境中，该订单实付 80 元、尚无退款。业务规则要求先核验身份，只能退回实际支付的金额，重复请求不能重复退款。</p>
+    <dl class="eval-case-facts">
+      <dt>给 Agent</dt><dd>用户请求、退款政策，以及查询订单、核验身份和发起退款的工具。每次从同一份干净订单快照开始。</dd>
+      <dt>看终态</dt><dd>O-104 已取消；恰好一笔成功退款，金额 80 元、收款人为原付款人；其他订单未改变。</dd>
+      <dt>看过程</dt><dd>执行退款前完成身份核验。这个顺序是业务约束；不要求 Agent 按参考解的固定顺序查询资料。</dd>
+      <dt>另记成本</dt><dd>模型与工具调用费用、墙钟时间、重试次数。超时和崩溃留在任务清单中，不能只汇总成功运行。</dd>
+    </dl>
+  </div>
+  <p>这份输入、初始状态与成功条件组成一个 <strong>task</strong>；从头执行一次是一个 <strong>trial</strong>。对话和工具事件组成可观测的轨迹（trace），退款记录是环境终态（outcome）；读取这些证据并判分的是评分器（grader）。不要用 Agent 的“完成声明”替代终态检查。<cite data-source="anthropic-agent-evals"><a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents" target="_blank" rel="noopener">[anthropic-agent-evals]</a></cite></p>
+  <figure class="eval-figure">
+    <div class="eval-figure-scroll" tabindex="0" role="region" aria-label="图一：一次评测的执行与评分边界，可横向滚动"><img src="assets/figures/eval-trial.svg" alt="任务与干净快照进入 Agent 执行环境；运行产出状态和轨迹，由环境外的评分器独立判分。候选不能写入评分器。"></div>
+    <figcaption>图 1 · 一次 trial 的证据流。运行系统负责保存产物和工具事件，评分系统负责生成结果；把它们画成两个框还不够，执行身份、文件权限与结果写入权限也要分开。本站示意。</figcaption>
+  </figure>
+  <p>先人工走通一个参考解，确认任务可解、评分器能判对；再给它几份错误产物：没有退款、重复退款、金额错误、改了别人的订单。若这些也能通过，应先修评分器，而不是开始比较模型。</p>
 
-    <h2>积累回归任务</h2>
-    <p>单看一次 eval，它只告诉你"这次过没过"。但 eval 的价值在时间轴上累积：开发期它挡住"还没上线就出错"，上线后它把"用户看不见的行为漂移"变成可见信号，再往后它沉淀成回归集——每次改动都拿它跑一遍，新 bug 还没扩散就被抓住。每修一个失败案例就往评测集里加一道题，评测集随使用积累。</p>
-    <p>几个真实的复利路径：<a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents" target="_blank" rel="noopener">Claude Code</a> 先靠员工与用户反馈快速迭代，然后才补 eval——先给"简洁度""文件编辑"这类窄行为出题，再扩展到"过度工程"这种复杂行为，配合生产监控与 A/B 测试持续校准；Descript 把视频编辑 agent 的成功拆成三维（"别搞坏 / 做了我要的 / 做得好"），从人工判分演进到 LLM grader + 定期人工校准，常年并行跑质量基准集与回归集两套题；Bolt 在 agent 已大规模使用后花三个月建起静态分析 + 浏览器 agent + LLM judge 的评测系统。还有一个常被忽略的复利点：<strong>新模型发布时，有 eval 的团队几天内就能完成迁移评估，没 eval 的要猜好几周</strong>——eval 同时是产品与研究之间带宽最高的通信信道。</p>
+  <h2>02 / 把硬约束与质量判断分开</h2>
+  <div class="tbl-wrap"><table class="tbl">
+    <caption>沿用退款任务：不同问题需要不同证据</caption>
+    <thead><tr><th>检查</th><th>实现方式</th><th>结果怎么用</th></tr></thead>
+    <tbody>
+      <tr><td>金额、收款人、重复退款</td><td>代码读取可信状态快照，逐项断言</td><td>任一违规，任务失败</td></tr>
+      <tr><td>身份核验发生在退款之前</td><td>核对工具执行端记录的事件与授权状态</td><td>作为必需约束，不靠模型自述</td></tr>
+      <tr><td>解释是否准确、是否隐瞒失败</td><td>LLM 按明确 rubric 对照工具结果，给出证据位置</td><td>单独报告质量；证据不足标为待审</td></tr>
+      <tr><td>边界案例与评分分歧</td><td>人工复核同一份产物、轨迹与政策</td><td>修订规则或任务，记录评分器版本</td></tr>
+    </tbody>
+  </table></div>
+  <p>“退款没发生，但语气很好”不能被加权平均成成功。可以给身份核验、问题识别等步骤部分分，用来定位失败；发布时仍需满足预先规定的硬约束。人审也不是无误的答案：应保留分歧，澄清规则后再校准模型评分器。</p>
+  <details class="eval-details">
+    <summary>一个可复核的 LLM 评分条目</summary>
+    <div class="codeblock"><div class="cb-head">教学 rubric · 只评价“是否如实说明退款状态”</div><pre data-lang="text">输入：用户可见回复 + 可信退款结果
+PASS：退款成功时说明成功；失败或待处理时明确说明尚未完成。
+FAIL：工具报错或状态为 pending，却向用户宣称已到账。
+UNKNOWN：缺少退款结果，无法判断。
+输出：verdict、回复中的原句、所依据的结果字段、简短理由。</pre></div>
+    <p>用人工已标注的样本检验这个条目，重点检查“实际失败却判 PASS”的误放行，以及待审比例。调换模型、提示词或政策后重新校准；不要把 UNKNOWN 静默当成成功，也不要直接从分母删掉。</p>
+  </details>
 
-    <h2>一个好任务长什么样</h2>
-    <p>评测质量上限由任务质量决定。一个能用的 eval 任务有四个硬条件：</p>
-    <ul>
-      <li><strong>真实</strong>：来自真实失败或真实工作流，不是凭空虚构的"应该会做"。最好的题库是 production 里 agent 真栽过的跟头。</li>
-      <li><strong>期望可判定</strong>：成功标准是评分器能读懂的断言——"输出等于 X"、"数据库里有这条记录"、"测试全过"。期望含糊的题判不出稳定分数。</li>
-      <li><strong>环境可隔离</strong>：每次试运行从干净状态开始，上一轮写过的文件/建过的会话不会泄漏到这一轮——共享状态是评测污染最常见的来源（Anthropic 内部 eval 实测：Claude 通过读上一轮 trial 留下的 git 历史拿到不公平优势）。</li>
-      <li><strong>有参考答案</strong>：出题时先自己写出一个正确解，证明这题真的可解，同时验证 grader 配置正确——很多"agent 全挂"的题其实是题出错了。</li>
-    </ul>
-    <p class="small muted">若多次运行全部失败，应检查参考解、环境和评分器，也可能是模型尚不能完成任务。仅凭 pass@100 为 0，无法判断哪种解释更可能。</p>
+  <h2>03 / 工业团队实际怎么做</h2>
+  <p>下面区分两件事：公开资料明确披露了什么，以及我们可以据此怎样设计自己的评测。它们不是同一层证据。</p>
+  <article class="eval-case">
+    <p class="eval-case-label">产品实践 / Anthropic · Claude Code</p>
+    <h3>把“改代码体验变差”拆成具体行为</h3>
+    <p>Anthropic 披露，Claude Code 早期依赖员工和用户反馈迭代，随后先为简洁度、文件编辑等较窄行为补充评测，再覆盖过度工程等复杂行为。自动评测与生产监控、A/B 测试、用户研究配合使用。原文没有给出可直接复制的内部题库或发布阈值。<cite data-source="anthropic-agent-evals"><a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents" target="_blank" rel="noopener">[anthropic-agent-evals]</a></cite></p>
+    <dl class="eval-case-facts">
+      <dt>可以借鉴</dt><dd>把一次具体投诉转成固定输入与可检查产物，不只记一个“用户不满意”的标签。运行时与生产保持接近，保存失败轨迹供复核。</dd>
+      <dt>本站任务设计</dt><dd>给一个只需修边界条件的 issue：先用测试确认问题修复且旧行为未回归，再单独评审新引入的依赖、抽象和文件改动是否必要。不能把 diff 越短直接当作质量越高。</dd>
+      <dt>适用边界</dt><dd>代码测试覆盖功能结果，未必覆盖维护成本；LLM 对“过度设计”的评分需与维护者判断校准，不能取代真实使用反馈。</dd>
+    </dl>
+  </article>
+  <article class="eval-case">
+    <p class="eval-case-label">产品实践 / Bolt 与 Descript</p>
+    <h3>生成的应用能运行，不等于用户任务已完成</h3>
+    <p>据 Anthropic 对客户实践的介绍，Bolt 把静态分析、浏览器 Agent 测试和 LLM judge 组合起来：分别检查生成代码、应用交互与指令遵循。Descript 则把视频编辑质量拆成“不破坏已有内容、完成请求、完成得好”，从人工评分发展到产品团队定义标准的 LLM 评分，并定期人工校准，分别运行质量与回归两套评测。这里依据的是 Anthropic 的公开转述，并非两家公司开源的完整流水线。<cite data-source="anthropic-agent-evals"><a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents" target="_blank" rel="noopener">[anthropic-agent-evals]</a></cite></p>
+    <dl class="eval-case-facts">
+      <dt>可以借鉴</dt><dd>按证据类型分工：静态检查发现编译与类型问题，浏览器实际走用户操作，模型评审检查开放式要求。几项分数保留明细，便于找到退化发生在哪一层。</dd>
+      <dt>本站任务设计</dt><dd>要求生成一个可筛选的订单页。编译通过之后，浏览器选择“已退款”，核对列表与测试数据一致；再检查需求中的空态提示。页面截图好看不能替代筛选功能正确。</dd>
+      <dt>适用边界</dt><dd>浏览器 Agent 本身也会点错或超时。保留操作记录、截图与后端状态，复核是被测应用失败还是测试驱动失败；重试策略必须提前确定。</dd>
+    </dl>
+  </article>
+  <article class="eval-case">
+    <p class="eval-case-label">公开基准实现 / SWE-bench Verified</p>
+    <h3>交付补丁，用两组测试验收</h3>
+    <p>SWE-bench 与 OpenAI Preparedness 合作发布的 Verified，是经过人工质量验证的 500 条任务子集。人工审核的是题目质量与可解性，不是逐次批准模型答案。Agent 接收 issue 与修复前的仓库版本，交付补丁；参考补丁属于评测资料，不能作为待解任务的输入。<cite data-source="swebench-repo"><a href="https://github.com/SWE-bench/SWE-bench/blob/main/README.md" target="_blank" rel="noopener">[swebench-repo]</a></cite><cite data-source="swebench-verified-data"><a href="https://huggingface.co/datasets/princeton-nlp/SWE-bench_Verified" target="_blank" rel="noopener">[swebench-verified-data]</a></cite></p>
+    <dl class="eval-case-facts">
+      <dt>实际执行</dt><dd>官方 harness 在 Docker 环境中应用补丁并运行测试，保留测试输出与逐题报告；不是读取 Agent 最后一条“已修复”消息。</dd>
+      <dt>两组验收</dt><dd><code>FAIL_TO_PASS</code> 检查问题对应的测试是否由失败变为通过；<code>PASS_TO_PASS</code> 检查原有测试是否保持通过。当前判分实现要求两组均满足，才记为 resolved。<cite data-source="swebench-grading"><a href="https://github.com/SWE-bench/SWE-bench/blob/main/swebench/harness/grading.py" target="_blank" rel="noopener">[swebench-grading]</a></cite></dd>
+      <dt>迁移到项目</dt><dd>为历史 bug 固定仓库版本与环境，分别保存修复测试和回归测试。每次比较关联补丁、日志与运行标识，不能只抄一个排行榜分数。</dd>
+      <dt>适用边界</dt><dd>resolved 表示满足这组测试，不代表代码所有性质正确，也不等于生产安全。容器化减少环境差异，但不会自动消除数据泄漏或评分器漏洞。</dd>
+    </dl>
+  </article>
 
-    <h2>评测在改进循环中的作用</h2>
-    <p>开发评测为候选选择提供反馈，确认评测检验冻结后的候选。DGM 使用代理档案与自修改，HGM 进一步研究展开、评估和支系价值估计的资源分配；两者的区别不能缩成“一个评自己，一个评后代”。具体控制流程与对照见 <a href="#/paper-lab">R2</a>。</p>
-    <div class="callout law"><span class="t">要点</span>评测是自改回路的<strong>选择压力</strong>：搜索结果还受候选生成方式、预算、任务构成和执行权限影响。较高代理分数未必对应更好的目标行为。</div>
+  <h2>04 / 从离线比较到上线观测</h2>
+  <p>开发集用来挑候选，确认集用来检验已冻结的候选。两者都可以包含功能检查与回归任务；“能力 / 回归”描述测量目的，“开发 / 确认”描述数据用途，不能一一对应。反复看确认分数再调提示词，这份数据就参与了选择。</p>
+  <figure class="eval-figure">
+    <div class="eval-figure-scroll" tabindex="0" role="region" aria-label="图二：开发、确认与上线观测流程，可横向滚动"><img src="assets/figures/eval-release.svg" alt="生产失败经整理进入开发任务，用于选择候选；候选冻结后才进入独立确认与发布判断。确认结果不回流到同轮选择。"></div>
+    <figcaption>图 2 · 通用的版本比较流程，不是某家公司的内部架构。生产失败可整理成后续开发题；确认结果一旦用于继续调参，就不能再作为该轮独立确认的证据。</figcaption>
+  </figure>
+  <p>比较的对象是<strong>模型 + 提示词 + 工具 + Agent 运行时</strong>。固定任务版本、初始状态与预算；逐题配对运行旧版和新版。任务超时算未完成并保留成本；基础设施故障单独分类，按预先约定的规则处理，不要只给新版补跑到通过。</p>
+  <p>报告至少列出：逐题新旧结果、重要违规、失败类型、成本与延迟，以及差值的不确定性。没有足够证据时保留旧版，记为“结论不足”；平均分更高但出现越权退款，也不能发布。置信区间、重复试验与停止规则见 <a href="#/evaluation-design">R3</a>。</p>
+  <article class="eval-case">
+    <p class="eval-case-label">工具落地 / LangSmith 官方工作流</p>
+    <h3>把线上失败整理成下一轮离线样本</h3>
+    <p>LangSmith 的 dataset 保存样本输入、可选参考输出和元数据；experiment 保存一个应用版本在这些样本上的输出、评分与轨迹。离线运行将样本输入交给被测应用，再由 evaluator 判分；参考输出供评分器使用，不应泄漏给被测应用。<cite data-source="langsmith-eval-concepts"><a href="https://docs.langchain.com/langsmith/evaluation-concepts" target="_blank" rel="noopener">[langsmith-eval-concepts]</a></cite></p>
+    <ol>
+      <li><strong>离线比较：</strong>在同一数据集版本上运行 baseline 与 candidate，对照逐例结果，不只比较均分。</li>
+      <li><strong>线上发现：</strong>检查真实 runs / threads。这里通常没有参考答案，应使用无参考检查或人工复核，不能直接照搬依赖标准答案的离线评分器。</li>
+      <li><strong>人工整理：</strong>把失败或低分记录送入 annotation queue；复核输入、输出与评分标准，纠正参考输出后再用 <code>Add to Dataset</code> 收入回归集。不要把失败回复原封不动存成标准答案。<cite data-source="langsmith-annotation"><a href="https://docs.langchain.com/langsmith/annotation-queues" target="_blank" rel="noopener">[langsmith-annotation]</a></cite></li>
+    </ol>
+    <p class="small muted">这里介绍的是官方文档提供的平台能力与工作流，不是某家客户的部署成绩。平台管理轨迹、数据与实验；任务是否有代表性、rubric 是否合理，仍需使用者验证。本仓库未接入 LangSmith 服务。</p>
+  </article>
 
-    <h2>谁评谁：四种范式</h2>
-    <div class="tbl-wrap">
-      <table class="tbl">
-        <thead><tr><th>范式</th><th>谁在评</th><th>评什么</th><th>测量对象</th><th>防作弊性</th><th>代表</th></tr></thead>
-        <tbody id="evalTable"></tbody>
-      </table>
-    </div>
-    <p class="small muted">对可执行不可信候选的经验评测，应隔离候选与结果判定权限。这个工程要求不等于所有自改理论都假设外部裁决者；Gödel Machine 的自引用证明系统需要按它的公理与切换条件单独分析。</p>
+  <h2>05 / 一次做对与每次做对</h2>
+  <p>假设同一题每次通过的概率为 <code>p = 0.75</code>，各次独立且条件不变。给三次机会，至少做对一次的概率是 <code>1 − 0.25³ = 98.44%</code>；三次全部做对的概率只有 <code>0.75³ = 42.19%</code>。这是理想化算例，不是某个产品的实测。</p>
+  <figure class="eval-figure">
+    <div class="eval-figure-scroll" tabindex="0" role="region" aria-label="图三：成功率指标对比，可横向滚动"><img src="assets/figures/eval-reliability.svg" alt="单次成功率为 75% 时，pass@k 随尝试次数增加上升，pass^k 下降。三次尝试对应 98.44% 与 42.19%。"></div>
+    <figcaption>图 3 · 同一个单题成功率，回答两个不同的问题。蓝线是 k 次至少成功一次；另一条线是 k 次全部成功。各次独立同分布时才可直接使用图中的幂次公式。</figcaption>
+  </figure>
+  <ul>
+    <li><strong>pass@k：</strong>适合能生成多个候选、再验证选解的任务。还要计入 k 次生成与选解成本；用户未必有可靠验证器帮他挑中正确答案。</li>
+    <li><strong>pass^k：</strong>用来观察重复运行的一致性。退款等带副作用的任务不能在生产中为“多试几次”而重复执行；应在重置的测试环境中测量。</li>
+  </ul>
+  <p>真实数据里每题难度不同，不应先取所有题的平均成功率再套幂次公式。HumanEval 的有限样本 pass@k 估计与 τ-bench 的可靠性指标见 <a href="#/evaluation-design">R3</a>；共享缓存、环境故障和相关重试也会破坏独立性。<cite data-source="humaneval"><a href="https://arxiv.org/html/2107.03374v2" target="_blank" rel="noopener">[humaneval]</a></cite><cite data-source="tau"><a href="https://arxiv.org/html/2406.12045v1" target="_blank" rel="noopener">[tau]</a></cite></p>
 
-    <h2>常见基准速览</h2>
-    <p>基准应按目标任务分布选择；不同任务域不能组成单一的 RSI 能力阶梯：</p>
-    <div class="tbl-wrap">
-      <table class="tbl">
-        <thead><tr><th>基准</th><th>测什么</th><th>测量对象</th><th>备注</th></tr></thead>
-        <tbody id="evalBenchTable"></tbody>
-      </table>
-    </div>
-    <p class="small muted"><a href="https://openai.com/index/introducing-swe-bench-verified/" target="_blank" rel="noopener">SWE-bench Verified 的人工筛查</a>说明任务描述与测试本身也需要校验。METR 的<a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank" rel="noopener">任务时间跨度指标</a>则将模型成功率与人类完成任务所需时间联系起来。它描述任务完成能力，单独使用不能识别改进器更新的贡献；研究递归收益仍需 R1 中的冻结改进器与预算对照。</p>
-
-    <h2>评什么：结果、过程与搜索价值</h2>
-    <div class="grid cols3">
-      <div class="card reveal d1"><h3>结果正确性</h3><p>给定输入,输出对不对——单测、断言、黄金答案。最硬、最便宜,但最容易被过拟合:模型可以"背题"。</p></div>
-      <div class="card reveal d2"><h3>过程与副作用</h3><p>不只问"答对了吗",还问"怎么答的"——工具调用轨迹、中间推理、副作用。能抓住"伪造成绩单"的作弊,成本随观测与评分方案变化，需要单独计量。</p></div>
-      <div class="card reveal d3"><h3>支系搜索价值</h3><p>不评这一代,评它的后代——HGM 的支系价值估计。它仍继承底层评分器的漏洞，并受搜索预算和选择偏差影响；谱系聚合不保证防作弊。</p></div>
-    </div>
-    <p class="small muted">这些是不同的测量对象：先定义任务结果，再根据副作用与研究问题补充过程检查和搜索统计，不能将三者看成通用能力等级。</p>
-
-    <h2>谁打分：三类评分器</h2>
-    <p>Anthropic 把 grader 分三类，各自评轨迹(transcript)或结果(outcome)的一部分——关键是选对那一类：</p>
-    <div class="tbl-wrap">
-      <table class="tbl">
-        <thead><tr><th>评分器</th><th>评什么</th><th>强项</th><th>短板</th></tr></thead>
-        <tbody>
-          <tr><td><b>代码级</b>(deterministic)</td><td>断言、单测、静态分析、结果校验、工具调用核对、轨迹指标(轮数/token)</td><td>快、便宜、客观、可复现</td><td>脆：对"换了写法但同样正确"的解会误杀</td></tr>
-          <tr><td><b>模型级</b>(LLM-as-judge)</td><td>rubric 打分、自然语言断言、成对比较、多 judge 共识</td><td>灵活、能评开放式输出、有分寸感</td><td>非确定、更贵、必须和人类评审校准</td></tr>
-          <tr><td><b>人类</b></td><td>专家评审、抽样抽查、A/B 测试、校准 LLM 评分器</td><td>金标准、贴用户判断</td><td>贵、慢、难规模化</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p>LLM judge 落地有三个工程细节：① <strong>给它留退路</strong>——允许返回 "Unknown" 而不是逼它硬编一个判决，否则幻觉直接进分数；② <strong>一个维度一个 judge</strong>——每个维度配独立结构化 rubric，别让一个 judge 一口气评全部维度；③ <strong>和人校准</strong>——在人评过的子集上比对分歧率，分歧收敛后人审降为偶发抽查即可。多组件任务记得<strong>给部分分</strong>：认对问题、验证身份但退款失败的 agent，比第一步就挂的强得多——分数要能表达这个连续谱。总分合成同样有讲究：加权（各 grader 分达阈值）、二元（全过才算）、或混合。</p>
-    <p class="small muted">实践组合：能用代码级就用代码级，需要评"开放式输出/交互质量"才上模型级，人类只用来校准——<strong>评分器可以多个、各司其职</strong>。例：一个编码任务可挂单测(代码级) + rubric 评代码质量(模型级) + 状态校验(数据库里真的写进了吗)。</p>
-
-    <h2>能力评测 vs 回归评测</h2>
-    <p>两种评测目的不同，别混用：<strong>能力评测</strong>选 agent 做不好的题，低通过率起步，用来爬坡——它告诉你"还能更好吗"；<strong>回归评测</strong>选已掌握的题，≈100% 通过，用来防退步——它告诉你"没变坏吗"。一个会"毕业"：当能力评测通过率涨满，它就转成回归集继续跑。对应到 RSI：能力评测是"改进有没有发生"的度量，回归评测是"改动要不要保留"的门——<strong>前者喂给改进回路，后者做 keep/rollback 的裁决</strong>。</p>
-    <p class="small muted"><strong>饱和有欺骗性</strong>：SWE-bench Verified 一年内从 40% 爬到 80%+ 逼近饱和——分数放缓不等于能力停滞，可能只是剩下的题都特别难。代码评审公司 Qodo 一度觉得 Opus 4.5 "没什么提升"，因为他们的一次性编码 eval 捕捉不到长任务上的进步，只好自建一套 agentic eval 框架才看清差距。</p>
-
-    <h2>非确定性怎么算分：pass@k 与 pass^k</h2>
-    <p>agent 每次跑结果不一样，单次通过不代表稳定。在同题各次尝试独立且同分布的理想化条件下，设通过率为 p，有两个互补指标；有限样本组合估计见 <a href="#/evaluation-design">R3</a>：</p>
-    <ul>
-      <li><code>pass@k = 1 − (1−p)^k</code>——k 次尝试<strong>至少过一次</strong>的概率，衡量"给它几次机会能不能做对"。出自代码生成评估（<a href="https://arxiv.org/abs/2107.03374" target="_blank" rel="noopener">Chen et al. 2021, HumanEval 与 pass@k 估计</a>）。编码任务最关心 pass@1：一次做对。</li>
-      <li><code>pass^k = p^k</code>——k 次<strong>全过</strong>的概率，衡量"用户每次都能指望它吗"。由 <a href="https://arxiv.org/abs/2406.12045" target="_blank" rel="noopener">τ-bench</a> 引入测对话一致性：p=0.75 时 pass^3 ≈ 42%，k 越大越残酷。</li>
-    </ul>
-    <p>k=1 时两者相等；k=10 时背道而驰——pass@k 趋近 100%、pass^k 趋近 0%。两者之差本身就是指标：<strong>差越大说明"会做但不稳"</strong>，正是用户侧 agent 最致命的缺陷形态。</p>
-
-    <h2>按 agent 类型看：评测长什么样</h2>
-    <p>Anthropic 按 agent 类型给了各自的评测形态，评测复杂度与 agent 自由度成正比——自由度越大，越不能只判输出文本，必须判环境终态：</p>
-    <ul>
-      <li><strong>编码 agent</strong>：任务 = 需求 + 环境 + 隐藏的测试套件；grader 同时跑 fail-to-pass（该修的修好了）与 pass-to-pass（没把别的弄坏）。SWE-bench Verified 是这一型；<a href="https://www.tbench.ai/" target="_blank" rel="noopener">Terminal-Bench</a> 把任务拉成端到端（从源码编内核、训一个模型）。</li>
-      <li><strong>研究 agent</strong>：产出带引用的报告，没有单一"正确答案"，靠组合检查：groundedness（论点有检索来源支撑）、coverage（必含关键事实清单）、source quality（来源权威而非第一个搜到的）；有客观答案的子题可直接 exact match。<a href="https://arxiv.org/abs/2504.12516" target="_blank" rel="noopener">BrowseComp</a> 专出"易验证、难解"的草堆找针题。rubric 要频繁与专家判断校准。</li>
-      <li><strong>对话 agent</strong>：需要第二个 LLM 扮模拟用户跑多轮轨迹；成功是多维的——工单是否解决（state check）、轮数是否 &lt;10（transcript 约束）、语气是否得体（rubric）。<a href="https://arxiv.org/abs/2506.07982" target="_blank" rel="noopener">τ2-bench</a> 把电信域建成 Dec-POMDP"双控"环境：用户也持有工具、能改共享状态，agent 必须<strong>引导用户一起操作</strong>——no-user 到 dual-control 的切换让各模型分数显著跳水。</li>
-      <li><strong>电脑操作 agent</strong>：真实 OS/浏览器里截图操作；<a href="https://arxiv.org/abs/2307.13854" target="_blank" rel="noopener">WebArena</a> 用 URL + 页面状态 + 后端数据三重校验（订单真下了，不只是出现确认页），<a href="https://os-world.github.io/" target="_blank" rel="noopener">OSWorld</a> 赛后检查文件系统/应用配置/数据库/UI 属性等工件。还有个效率权衡：DOM 操作快但吃 token、截图慢但省 token——Claude for Chrome 专门做了"选对交互方式"的 eval。</li>
-    </ul>
-
-    <h2>怎么防作弊：把模型当对手</h2>
-    <p>DGM 论文的 reward hacking 案例（伪造日志→被发现→下一代学会删检测标记）对应三条防御原则，每条落成可执行检查：</p>
-    <ul>
-      <li><strong>评测器不可自改</strong>：任务集、判分代码、判定逻辑都在被改进者读写权限之外——被改者能调自己的工具，但调不到判分函数；评测代码的变更走人类 PR，不走 agent 自改通道。</li>
-      <li><strong>评测在隔离环境跑</strong>：每个 trial 从干净状态起，被测代码在沙箱里跑、评测器在外面看；评分器不能仅依据候选产生的文本判断是否真实执行。共享状态双向污染：残留文件/git 历史让后面的 trial 占便宜（Anthropic 实测 Claude 读上一轮 git 历史获得不公平优势）；共享 CPU/内存等资源又让多个 trial 因同一环境缺陷<strong>相关失败</strong>，结果失去独立性。</li>
-      <li><strong>看过程不只看结果</strong>：抽查工具调用轨迹与副作用，而不是只对比输出文本——输出会撒谎，轨迹更难编。</li>
-    </ul>
-    <div class="callout warn"><span class="t">反面：评分器也会出错</span>三起真实事故——① Opus 4.5 在 <a href="https://github.com/sierra-research/tau2-bench" target="_blank" rel="noopener">τ2-bench</a> 被判失败，实际是它发现了政策内的更优解；② <a href="https://x.com/sayashk/status/1996334941832089732" target="_blank" rel="noopener">CORE-Bench</a> 把 Opus 4.5 从 42% 改到 95%：刚性判分把 "96.12" 判错（期望 "96.124991…"）、任务描述含糊、随机任务不可复现；③ <a href="https://x.com/metr_evals/status/2001473506442375645" target="_blank" rel="noopener">METR</a> 发现自己 time-horizon 基准里若干任务声明"优化到阈值 X"但判分要求"超过 X"——听话照做的模型反而被罚，无视指令的模型得了高分。判"agent 不行"之前，先排除"题出错了"。</div>
-
-    <h2>把它做成习惯：Anthropic 的八步实践</h2>
-    <p>上面所有原则落成一套流程(<a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents" target="_blank" rel="noopener">Anthropic · Demystifying evals for AI agents</a>)：</p>
-    <div class="codeblock">
-      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 设计一套 agent 评测</div>
-      <pre data-lang="log">1 从失败里出题     真实用户/生产里的失败案例 → 写成可判定任务
-2 任务无歧义       期望可被评分器读懂;写参考答案证明任务可解
-3 题集平衡         既测"该发生的发生了"也测"不该发生的没发生"(避免一边倒优化:
-                   只测"该搜时搜"会养出什么都搜的 agent)
-4 环境干净隔离     每次试运行从干净状态开始;共享状态(残留文件、git 历史、
-                   资源争抢)会污染结果——单向作弊、双向相关失败
-5 评分器想清楚     评结果不评路径;多组件任务给部分分;LLM judge 和人校准;防绕过
-6 读轨迹           不看分数,看 transcript——判断是 agent 错了还是评分器错了
-7 盯评测饱和       通过率涨满的能力评测"毕业"成回归集;分数放缓≠能力停滞
-8 长期维护         评测是活资产,有 owner;评测驱动开发:先写 eval 再实现能力</pre>
-    </div>
-
-    <h2>模拟器：评测门裁决</h2>
-    <p>一个最小的 keep/rollback 门：7 个黄金任务(可展开看期望),每次注入一个随机"自改"后跑评测——分数 ≥ 基线则保留,否则回滚。打开"作弊改动"开关,坏改动会谎报满分;再打开"哨兵检测"看拦截。</p>
+  <h2>06 / 在本仓库走一遍裁决</h2>
+  <p>先运行已有的合成实验，观察同一套规则如何处理提升、回归、高分违规和成本超限。无需模型 API；这些结果只用于检查统计与裁决方法，不证明真实 Agent 能力。</p>
+  <div class="codeblock"><div class="cb-head">在仓库根目录运行 · Python 3.10+</div><pre data-lang="bash">python labs/eval_lab.py demo --output lab-output
+python labs/eval_lab.py compare lab-output/improvement.input.json</pre></div>
+  <p>结合输入中的逐题记录，查看报告里的 <code>delta</code>、区间与 <code>decision</code>，而不只看平均分。接着在生成的输入副本中删掉一条失败记录，重新比较：程序应拒绝不完整的 task × run 矩阵，而不是让删样本后的高分通过。完整字段与场景见 <a href="#/reproducible-lab">R6</a>。</p>
+  <p>接真实 Agent 时，先在 <a href="#/capstone-data">P1</a> 定义任务与快照，在 <a href="#/capstone-grading">P4</a> 接入独立证据评分，再按 <a href="#/capstone-experiments">P7</a> 比较固定预算下的候选。模型版本、任务清单、评分器版本、运行状态、产物位置与费用都应关联同一个 run ID。</p>
+  <details class="eval-details">
+    <summary>交互示意：只看自报分数会怎样？</summary>
+    <p>七个任务的通过状态由随机布尔值模拟，并未实际调用 Agent。默认开启“作弊改动”；点击运行观察虚报分数如何污染基线，再开启“哨兵检测”比较裁决。</p>
     <div class="sim" id="evalGateSim"></div>
-    <p class="small muted">示意：真实评测跑真实任务集,这里是压缩玩具——这里的随机布尔状态不是实际任务执行，哨兵直接读取预设作弊标记，不代表真实检测能力。真实裁决还需独立验证和统计协议，见 <a href="#/evaluation-design">R3</a>。</p>
+    <p class="small muted">哨兵直接读取预设的作弊标记，不是真实检测器。这个玩具用“分数不低于基线”决定保留；实际实验还需独立判分、硬约束和统计协议。</p>
+  </details>
 
-    <h2>把评测落到 DSH</h2>
-    <div class="grid cols2">
-      <div class="card reveal d1"><h3>评测器是独立插件</h3><p>eval 插件与被改进的插件分属不同 packageId,仍需独立执行身份、数据权限与控制面；不同包名或工具列表本身不能证明候选改不到评分器。</p></div>
-      <div class="card reveal d2"><h3>裁决走版本指针</h3><p>eval 分数不够 → <code>cordis_run</code> 回滚到 <code>currentPackageId</code>;分数够 → 保留并写裁决日志。改动的生死由不可变版本号裁决,不靠"删了重写"。</p></div>
-      <div class="card reveal d3"><h3>日志是谱系原料</h3><p>每次 eval 记录"输入版本/输出分数/失败详情",累积下来就是 CMP 的原料——谱系指标是把已记录的评估历史聚合起来。</p></div>
-      <div class="card reveal d4"><h3>人审做终审</h3><p>高分改动再过一道 <code>cordis_run</code> 审批才生效:单勾只放行当前 packageId,双勾才授权该插件的未来版本——评测做粗筛(快、可重复),人做终审(慢、看意图)。两层机制都需要独立验证，不能据此断言无法绕过。</p></div>
-    </div>
-  </section>
+  <h2>接回自改循环：谁可以写成绩？</h2>
+  <p>允许 Agent 改自己的工具，不意味着允许它改评分器、确认集或发布记录。候选生成的日志也是不可信输入；判分应优先使用工具执行端、环境快照和隔离验证器生成的证据。仅把评测器换一个插件名，不能建立权限隔离。评分器误差与绕过案例见 <a href="#/evaluator-integrity">R4</a>。</p>
+  <p>发布判断与版本切换也要分开：确认通过后由受控流程激活候选，保留旧版本及恢复所需状态。回退代码不会撤回已经发生的退款、邮件或数据库写入。DGM / HGM 如何使用任务成绩选择和展开候选，见 <a href="#/paper-lab">R2</a>；支系统计不能修复底层评分器的漏洞。</p>
+  <details class="eval-details">
+    <summary>查阅：证明、任务分数、人审与支系估计的区别</summary>
+    <p>这些方法回答不同问题，不组成能力等级。经验评测给任务分布上的证据；形式化证明依赖公理、建模与证明系统；人审检查意图和副作用；支系估计服务于后续搜索分配。</p>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>范式</th><th>谁在评</th><th>评什么</th><th>测量对象</th><th>限制</th><th>案例</th></tr></thead><tbody id="evalTable"></tbody></table></div>
+    <noscript><p>对照表需 JavaScript；理论与实验差异的静态正文见 <a href="#ch-paper-lab">R2</a>。</p></noscript>
+  </details>
+  <details class="eval-details">
+    <summary>查阅：按任务选择公开基准</summary>
+    <p>修仓库问题、操作浏览器、与用户协作是不同任务分布。先核对任务定义、环境与评分方法，再决定是否适用于自己的 Agent；不把不同榜单拼成一个 RSI 总分。</p>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>基准</th><th>测什么</th><th>测量对象</th><th>备注</th></tr></thead><tbody id="evalBenchTable"></tbody></table></div>
+    <noscript><p>基准索引需 JavaScript；统计方法的静态正文见 <a href="#ch-evaluation-design">R3</a>。</p></noscript>
+  </details>
+</section>
 
   <!-- ============ 05 载体对比 ============ -->
   <section class="chapter" id="ch-carriers">
@@ -1919,7 +1953,7 @@ python -m unittest discover -s tests -v</pre></div>
   <h2>论文、文档与岗位资料</h2>
   <p>“摘要/元数据”只支持路线定位；标为“全文指定章节”的条目用于相应的机制讨论。</p>
   <p>招聘原文用于分析工作能力，个人面试自述和编辑整理只用于抽取考察主题；它们不是公司官方题库，也不支持技术正确性。项目中的步骤与面试练习由本站编写，具体映射见 <a href="docs/capstone/source-map.md">实战来源说明</a>。</p>
-  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>来源</th><th>版本</th><th>阅读范围</th></tr></thead><tbody><tr><td><a href="https://languagelog.ldc.upenn.edu/myl/Good1964.pdf" target="_blank" rel="noopener">Speculations Concerning the First Ultraintelligent Machine</a><br><code>good</code></td><td>I. J. Good · Advances in Computers 6 · 1965</td><td>§2，原刊页 33；机器设计正反馈的历史论述</td></tr><tr><td><a href="https://arxiv.org/abs/cs/0309048v5" target="_blank" rel="noopener">Gödel Machines: Fully Self-Referential Optimal Universal Self-Improvers</a><br><code>gm</code></td><td>arXiv v5 · 2006-12-17（首版 2003）</td><td>§2–4、Theorem 4.1；切换与继续搜索的比较、公理和效用条件</td></tr><tr><td><a href="https://arxiv.org/abs/2310.02304v3" target="_blank" rel="noopener">Self-Taught Optimizer (STOP)</a><br><code>stop</code></td><td>arXiv v3 · COLM 2024</td><td>§3–4、Algorithm 1、式 (2)、§5.2；自应用、元效用与固定模型</td></tr><tr><td><a href="https://arxiv.org/html/2505.22954v3" target="_blank" rel="noopener">Darwin Gödel Machine</a><br><code>dgm</code></td><td>arXiv v3 · 2026-03-12</td><td>§3、§4.3、附录 C.2–C.4、E.1；修改者对照、诊断分工、档案权重、费用口径</td></tr><tr><td><a href="https://arxiv.org/html/2510.21614v3" target="_blank" rel="noopener">Huxley-Gödel Machine</a><br><code>hgm</code></td><td>arXiv v3 · 2025-10-29</td><td>§2、Assumption 1、§3.2–3.3、附录 D；展开/评估分离与 CMP 三种口径</td></tr><tr><td><a href="https://arxiv.org/abs/2410.04444v4" target="_blank" rel="noopener">Gödel Agent</a><br><code>godel-agent</code></td><td>arXiv v4 · ACL 2025</td><td>摘要/元数据；自修改方法定位，未复现实验</td></tr><tr><td><a href="https://arxiv.org/abs/1506.02629" target="_blank" rel="noopener">Generalization in Adaptive Data Analysis and Holdout Reuse</a><br><code>adaptive</code></td><td>arXiv 1506.02629</td><td>摘要；自适应数据复用问题定位</td></tr><tr><td><a href="https://arxiv.org/html/2107.03374v2" target="_blank" rel="noopener">Evaluating Large Language Models Trained on Code</a><br><code>humaneval</code></td><td>arXiv v2</td><td>全文 §2.1、附录 A；pass@k 的组合估计与插件估计偏差</td></tr><tr><td><a href="https://arxiv.org/html/2406.12045v1" target="_blank" rel="noopener">τ-bench: A Benchmark for Tool-Agent-User Interaction</a><br><code>tau</code></td><td>arXiv v1</td><td>全文指标部分；pass^k 可靠性口径</td></tr><tr><td><a href="https://arxiv.org/abs/2306.05685" target="_blank" rel="noopener">Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena</a><br><code>judge</code></td><td>arXiv 2306.05685</td><td>摘要；位置、冗长和自我偏好等 judge 局限</td></tr><tr><td><a href="https://arxiv.org/abs/2210.10760" target="_blank" rel="noopener">Scaling Laws for Reward Model Overoptimization</a><br><code>overoptimization</code></td><td>arXiv 2210.10760</td><td>摘要；代理奖励与目标奖励的偏离</td></tr><tr><td><a href="https://arxiv.org/abs/2312.06942" target="_blank" rel="noopener">AI Control: Improving Safety Despite Intentional Subversion</a><br><code>control</code></td><td>arXiv 2312.06942</td><td>摘要；对手模型下的控制协议定位</td></tr><tr><td><a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/SAFETY.md" target="_blank" rel="noopener">DeepSeek Harness · SAFETY.md</a><br><code>dsh-safety</code></td><td>commit ddefc45fbc7f8e46dd73185e68295696d1297887</td><td>完整文件；实验状态、未审计与隔离限制。不是全仓安全验证</td></tr><tr><td><a href="https://arxiv.org/abs/2303.17651" target="_blank" rel="noopener">Self-Refine: Iterative Refinement with Self-Feedback</a><br><code>self-refine</code></td><td>arXiv 2303.17651</td><td>摘要；推理时反馈改写，无额外训练</td></tr><tr><td><a href="https://arxiv.org/abs/2303.11366" target="_blank" rel="noopener">Reflexion: Language Agents with Verbal Reinforcement Learning</a><br><code>reflexion</code></td><td>arXiv 2303.11366</td><td>摘要；语言反馈与记忆路线</td></tr><tr><td><a href="https://arxiv.org/abs/2305.16291" target="_blank" rel="noopener">Voyager: An Open-Ended Embodied Agent</a><br><code>voyager</code></td><td>arXiv 2305.16291</td><td>摘要；课程、技能与探索路线</td></tr><tr><td><a href="https://arxiv.org/abs/2203.14465" target="_blank" rel="noopener">STaR: Bootstrapping Reasoning With Reasoning</a><br><code>star</code></td><td>arXiv 2203.14465</td><td>摘要；生成、筛选推理与微调闭环</td></tr><tr><td><a href="https://arxiv.org/abs/1703.03400" target="_blank" rel="noopener">Model-Agnostic Meta-Learning</a><br><code>maml</code></td><td>arXiv 1703.03400</td><td>摘要；快速适应的元学习定位</td></tr><tr><td><a href="https://arxiv.org/abs/2003.03384" target="_blank" rel="noopener">AutoML-Zero: Evolving Machine Learning Algorithms From Scratch</a><br><code>automl-zero</code></td><td>arXiv 2003.03384</td><td>摘要；学习算法的程序搜索路线</td></tr><tr><td><a href="https://arxiv.org/abs/2408.08435" target="_blank" rel="noopener">Automated Design of Agentic Systems</a><br><code>adas</code></td><td>arXiv 2408.08435</td><td>摘要与 DGM 相关工作；固定 meta-agent 对照定位</td></tr><tr><td><a href="https://arxiv.org/abs/1901.01753" target="_blank" rel="noopener">Paired Open-Ended Trailblazer (POET)</a><br><code>poet</code></td><td>arXiv 1901.01753</td><td>摘要；环境与解法共同演化定位</td></tr><tr><td><a href="https://deepmind.google/blog/funsearch-making-new-discoveries-in-mathematical-sciences-using-large-language-models/" target="_blank" rel="noopener">Mathematical discoveries from program search with large language models</a><br><code>funsearch</code></td><td>作者机构发布 · 2023-12-14</td><td>作者机构说明；程序搜索与外部评估定位，论文入口未成功读取</td></tr><tr><td><a href="https://code.claude.com/docs/en/sandboxing" target="_blank" rel="noopener">Claude Code · Sandboxing</a><br><code>claude-sandbox</code></td><td>产品文档 · 检查于 2026-09-19</td><td>沙箱文档；纠正旧站“无内置 OS 沙箱”的断言</td></tr><tr><td><a href="https://arxiv.org/abs/2512.08093" target="_blank" rel="noopener">Training LLMs for Honesty via Confessions</a><br><code>confessions</code></td><td>arXiv 2512.08093 · 首次提交 2025-12</td><td>元数据；修正年份，不代表全文复现</td></tr><tr><td><a href="https://job-boards.greenhouse.io/anthropic/jobs/5198255008" target="_blank" rel="noopener">Anthropic · Research Engineer, Model Evaluations</a><br><code>job-evals</code></td><td>招聘页，2026-09-19 访问</td><td>核对职责、最低/优选资格与代表性项目；用于能力分析，不保证持续开放。</td></tr><tr><td><a href="https://job-boards.greenhouse.io/anthropic/jobs/5283063008" target="_blank" rel="noopener">Anthropic · Software Engineer, Research Infrastructure</a><br><code>job-infra</code></td><td>招聘页，2026-09-19 访问</td><td>核对职责和资格；海外资深岗位样本，不代表国内总体需求。</td></tr><tr><td><a href="https://job-boards.greenhouse.io/anthropic/jobs/5390811008" target="_blank" rel="noopener">Anthropic · Applied AI, Research Engineer</a><br><code>job-applied</code></td><td>招聘页，2026-09-19 访问</td><td>核对角色说明与职责中的原型、评测和技术沟通；不是面试题来源。</td></tr><tr><td><a href="https://github.com/datawhalechina/hello-agents/blob/203e9fac88b23291b407f76549e250fd51c295e3/Extra-Chapter/Extra01-%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93.md" target="_blank" rel="noopener">Datawhale 社区 · LLM &amp; VLM &amp; Agent 面试问题总结</a><br><code>interview-dw</code></td><td>commit 203e9fac88b23291b407f76549e250fd51c295e3</td><td>作者称整理自 2025 秋招多次真实技术面试。核对声明与 Agent/RAG/评估主题；个人自述，未独立验证，不作为技术原理依据。</td></tr><tr><td><a href="https://notes.kamacoder.com/interview/llm/20260506bytedance.html" target="_blank" rel="noopener">卡码 · 字节 Agent 开发四面面经（转载与编辑整理）</a><br><code>interview-byte</code></td><td>网页 2026-09-19 访问；原始分享不在本站</td><td>核对公开转载的候选人经历及编辑提炼的问题主题；未访问付费原帖。不可作为企业标准题库或技术答案权威。</td></tr><tr><td><a href="https://github.com/SWE-agent/mini-SWE-agent/blob/04d809ceab9df28f9adaed044884180159172930/src/minisweagent/agents/default.py" target="_blank" rel="noopener">mini-SWE-agent · DefaultAgent 源码</a><br><code>mini-code</code></td><td>commit 04d809ceab9df28f9adaed044884180159172930</td><td>核对 run/step/query/execute_actions、预算检查与轨迹保存；未安装或跑榜。</td></tr><tr><td><a href="https://github.com/UKGovernmentBEIS/inspect_ai/blob/ec4dfc6953784dc45b79de3147530c89868c6e26/src/inspect_ai/_eval/task/task.py" target="_blank" rel="noopener">Inspect AI · Task 源码</a><br><code>inspect-code</code></td><td>commit ec4dfc6953784dc45b79de3147530c89868c6e26</td><td>核对 Task 构造参数及 dataset/solver/scorer、限制、错误处理说明；未实测适配。</td></tr><tr><td><a href="https://github.com/harbor-framework/harbor/blob/2993946dd5b64a46dac3aa766d03065f432a1468/src/harbor/trial/trial.py" target="_blank" rel="noopener">Harbor · Trial 源码</a><br><code>harbor-code</code></td><td>commit 2993946dd5b64a46dac3aa766d03065f432a1468</td><td>核对 Trial 文件前 180 行：任务/环境/verifier 依赖、路径和初始化关系；非完整生命周期审计。</td></tr><tr><td><a href="https://docs.harborframework.com/tutorials/create-a-task" target="_blank" rel="noopener">Harbor 官方 · Create a task</a><br><code>harbor-task</code></td><td>在线文档 2026-09-19</td><td>核对任务文件、init/oracle/view 命令与 reward 文件；未在本仓库运行 Harbor。</td></tr><tr><td><a href="https://docs.harborframework.com/core-concepts/tasks/separate-verifier" target="_blank" rel="noopener">Harbor 官方 · Separate verifier</a><br><code>harbor-verifier</code></td><td>在线文档 2026-09-19</td><td>核对默认共享环境、显式 separate 配置、镜像选择和 artifact 传递；运行时兼容性待学习者验证。</td></tr><tr><td><a href="https://github.com/gepa-ai/gepa/blob/15ee314f9c7d34ec153b809d401f42f55c4dcd76/src/gepa/core/adapter.py" target="_blank" rel="noopener">GEPA · GEPAAdapter / EvaluationBatch 源码</a><br><code>gepa-code</code></td><td>commit 15ee314f9c7d34ec153b809d401f42f55c4dcd76</td><td>核对接口与逐样本输出/反馈/错误语义，前 180 行；未实现本项目 GEPA 插件。</td></tr><tr><td><a href="https://github.com/gepa-ai/gepa" target="_blank" rel="noopener">GEPA 官方仓库 · 反思优化</a><br><code>gepa-overview</code></td><td>README 2026-09-19</td><td>核对文本候选、轨迹反馈和适配器定位；未引用宣传收益或声称复现。</td></tr><tr><td><a href="https://docs.ollama.com/api/chat" target="_blank" rel="noopener">Ollama 官方 · Generate a chat message</a><br><code>ollama-chat</code></td><td>在线 API 文档 2026-09-19</td><td>核对本机 /api/chat、messages、stream、format 和 usage 字段；本仓库只做 HTTP 契约 mock 测试，未运行真实权重。</td></tr></tbody></table></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>来源</th><th>版本</th><th>阅读范围</th></tr></thead><tbody><tr><td><a href="https://languagelog.ldc.upenn.edu/myl/Good1964.pdf" target="_blank" rel="noopener">Speculations Concerning the First Ultraintelligent Machine</a><br><code>good</code></td><td>I. J. Good · Advances in Computers 6 · 1965</td><td>§2，原刊页 33；机器设计正反馈的历史论述</td></tr><tr><td><a href="https://arxiv.org/abs/cs/0309048v5" target="_blank" rel="noopener">Gödel Machines: Fully Self-Referential Optimal Universal Self-Improvers</a><br><code>gm</code></td><td>arXiv v5 · 2006-12-17（首版 2003）</td><td>§2–5、Theorem 4.1 与 5.1；切换与继续搜索的比较、公理和效用条件、BIOPS</td></tr><tr><td><a href="https://arxiv.org/abs/2310.02304v3" target="_blank" rel="noopener">Self-Taught Optimizer (STOP)</a><br><code>stop</code></td><td>arXiv v3 · COLM 2024</td><td>§3–4、Algorithm 1、式 (2)、§5.2；自应用、元效用与固定模型</td></tr><tr><td><a href="https://arxiv.org/html/2505.22954v3" target="_blank" rel="noopener">Darwin Gödel Machine</a><br><code>dgm</code></td><td>arXiv v3 · 2026-03-12</td><td>§3、§4.3、附录 C.2–C.4、E.1；修改者对照、诊断分工、档案权重、费用口径</td></tr><tr><td><a href="https://arxiv.org/html/2510.21614v3" target="_blank" rel="noopener">Huxley-Gödel Machine</a><br><code>hgm</code></td><td>arXiv v3 · 2025-10-29</td><td>§2、Assumption 1、§3.2–3.3、附录 D；展开/评估分离与 CMP 三种口径</td></tr><tr><td><a href="https://arxiv.org/abs/2410.04444v4" target="_blank" rel="noopener">Gödel Agent</a><br><code>godel-agent</code></td><td>arXiv v4 · ACL 2025</td><td>摘要/元数据；自修改方法定位，未复现实验</td></tr><tr><td><a href="https://arxiv.org/abs/1506.02629" target="_blank" rel="noopener">Generalization in Adaptive Data Analysis and Holdout Reuse</a><br><code>adaptive</code></td><td>arXiv 1506.02629</td><td>摘要；自适应数据复用问题定位</td></tr><tr><td><a href="https://arxiv.org/html/2107.03374v2" target="_blank" rel="noopener">Evaluating Large Language Models Trained on Code</a><br><code>humaneval</code></td><td>arXiv v2</td><td>全文 §2.1、附录 A；pass@k 的组合估计与插件估计偏差</td></tr><tr><td><a href="https://arxiv.org/html/2406.12045v1" target="_blank" rel="noopener">τ-bench: A Benchmark for Tool-Agent-User Interaction</a><br><code>tau</code></td><td>arXiv v1</td><td>全文指标部分；pass^k 可靠性口径</td></tr><tr><td><a href="https://arxiv.org/abs/2306.05685" target="_blank" rel="noopener">Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena</a><br><code>judge</code></td><td>arXiv 2306.05685</td><td>摘要；位置、冗长和自我偏好等 judge 局限</td></tr><tr><td><a href="https://arxiv.org/abs/2210.10760" target="_blank" rel="noopener">Scaling Laws for Reward Model Overoptimization</a><br><code>overoptimization</code></td><td>arXiv 2210.10760</td><td>摘要；代理奖励与目标奖励的偏离</td></tr><tr><td><a href="https://arxiv.org/abs/2312.06942" target="_blank" rel="noopener">AI Control: Improving Safety Despite Intentional Subversion</a><br><code>control</code></td><td>arXiv 2312.06942</td><td>摘要；对手模型下的控制协议定位</td></tr><tr><td><a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/SAFETY.md" target="_blank" rel="noopener">DeepSeek Harness · SAFETY.md</a><br><code>dsh-safety</code></td><td>commit ddefc45fbc7f8e46dd73185e68295696d1297887</td><td>完整文件；实验状态、未审计与隔离限制。不是全仓安全验证</td></tr><tr><td><a href="https://arxiv.org/abs/2303.17651" target="_blank" rel="noopener">Self-Refine: Iterative Refinement with Self-Feedback</a><br><code>self-refine</code></td><td>arXiv 2303.17651</td><td>摘要；推理时反馈改写，无额外训练</td></tr><tr><td><a href="https://arxiv.org/abs/2303.11366" target="_blank" rel="noopener">Reflexion: Language Agents with Verbal Reinforcement Learning</a><br><code>reflexion</code></td><td>arXiv 2303.11366</td><td>摘要；语言反馈与记忆路线</td></tr><tr><td><a href="https://arxiv.org/abs/2305.16291" target="_blank" rel="noopener">Voyager: An Open-Ended Embodied Agent</a><br><code>voyager</code></td><td>arXiv 2305.16291</td><td>摘要；课程、技能与探索路线</td></tr><tr><td><a href="https://arxiv.org/abs/2203.14465" target="_blank" rel="noopener">STaR: Bootstrapping Reasoning With Reasoning</a><br><code>star</code></td><td>arXiv 2203.14465</td><td>摘要；生成、筛选推理与微调闭环</td></tr><tr><td><a href="https://arxiv.org/abs/1703.03400" target="_blank" rel="noopener">Model-Agnostic Meta-Learning</a><br><code>maml</code></td><td>arXiv 1703.03400</td><td>摘要；快速适应的元学习定位</td></tr><tr><td><a href="https://arxiv.org/abs/2003.03384" target="_blank" rel="noopener">AutoML-Zero: Evolving Machine Learning Algorithms From Scratch</a><br><code>automl-zero</code></td><td>arXiv 2003.03384</td><td>摘要；学习算法的程序搜索路线</td></tr><tr><td><a href="https://arxiv.org/abs/2408.08435" target="_blank" rel="noopener">Automated Design of Agentic Systems</a><br><code>adas</code></td><td>arXiv 2408.08435</td><td>摘要与 DGM 相关工作；固定 meta-agent 对照定位</td></tr><tr><td><a href="https://arxiv.org/abs/1901.01753" target="_blank" rel="noopener">Paired Open-Ended Trailblazer (POET)</a><br><code>poet</code></td><td>arXiv 1901.01753</td><td>摘要；环境与解法共同演化定位</td></tr><tr><td><a href="https://deepmind.google/blog/funsearch-making-new-discoveries-in-mathematical-sciences-using-large-language-models/" target="_blank" rel="noopener">Mathematical discoveries from program search with large language models</a><br><code>funsearch</code></td><td>作者机构发布 · 2023-12-14</td><td>作者机构说明；程序搜索与外部评估定位，论文入口未成功读取</td></tr><tr><td><a href="https://code.claude.com/docs/en/sandboxing" target="_blank" rel="noopener">Claude Code · Sandboxing</a><br><code>claude-sandbox</code></td><td>产品文档 · 检查于 2026-09-19</td><td>沙箱文档；纠正旧站“无内置 OS 沙箱”的断言</td></tr><tr><td><a href="https://arxiv.org/abs/2512.08093" target="_blank" rel="noopener">Training LLMs for Honesty via Confessions</a><br><code>confessions</code></td><td>arXiv 2512.08093 · 首次提交 2025-12</td><td>元数据；修正年份，不代表全文复现</td></tr><tr><td><a href="https://job-boards.greenhouse.io/anthropic/jobs/5198255008" target="_blank" rel="noopener">Anthropic · Research Engineer, Model Evaluations</a><br><code>job-evals</code></td><td>招聘页，2026-09-19 访问</td><td>核对职责、最低/优选资格与代表性项目；用于能力分析，不保证持续开放。</td></tr><tr><td><a href="https://job-boards.greenhouse.io/anthropic/jobs/5283063008" target="_blank" rel="noopener">Anthropic · Software Engineer, Research Infrastructure</a><br><code>job-infra</code></td><td>招聘页，2026-09-19 访问</td><td>核对职责和资格；海外资深岗位样本，不代表国内总体需求。</td></tr><tr><td><a href="https://job-boards.greenhouse.io/anthropic/jobs/5390811008" target="_blank" rel="noopener">Anthropic · Applied AI, Research Engineer</a><br><code>job-applied</code></td><td>招聘页，2026-09-19 访问</td><td>核对角色说明与职责中的原型、评测和技术沟通；不是面试题来源。</td></tr><tr><td><a href="https://github.com/datawhalechina/hello-agents/blob/203e9fac88b23291b407f76549e250fd51c295e3/Extra-Chapter/Extra01-%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93.md" target="_blank" rel="noopener">Datawhale 社区 · LLM &amp; VLM &amp; Agent 面试问题总结</a><br><code>interview-dw</code></td><td>commit 203e9fac88b23291b407f76549e250fd51c295e3</td><td>作者称整理自 2025 秋招多次真实技术面试。核对声明与 Agent/RAG/评估主题；个人自述，未独立验证，不作为技术原理依据。</td></tr><tr><td><a href="https://notes.kamacoder.com/interview/llm/20260506bytedance.html" target="_blank" rel="noopener">卡码 · 字节 Agent 开发四面面经（转载与编辑整理）</a><br><code>interview-byte</code></td><td>网页 2026-09-19 访问；原始分享不在本站</td><td>核对公开转载的候选人经历及编辑提炼的问题主题；未访问付费原帖。不可作为企业标准题库或技术答案权威。</td></tr><tr><td><a href="https://github.com/SWE-agent/mini-SWE-agent/blob/04d809ceab9df28f9adaed044884180159172930/src/minisweagent/agents/default.py" target="_blank" rel="noopener">mini-SWE-agent · DefaultAgent 源码</a><br><code>mini-code</code></td><td>commit 04d809ceab9df28f9adaed044884180159172930</td><td>核对 run/step/query/execute_actions、预算检查与轨迹保存；未安装或跑榜。</td></tr><tr><td><a href="https://github.com/UKGovernmentBEIS/inspect_ai/blob/ec4dfc6953784dc45b79de3147530c89868c6e26/src/inspect_ai/_eval/task/task.py" target="_blank" rel="noopener">Inspect AI · Task 源码</a><br><code>inspect-code</code></td><td>commit ec4dfc6953784dc45b79de3147530c89868c6e26</td><td>核对 Task 构造参数及 dataset/solver/scorer、限制、错误处理说明；未实测适配。</td></tr><tr><td><a href="https://github.com/harbor-framework/harbor/blob/2993946dd5b64a46dac3aa766d03065f432a1468/src/harbor/trial/trial.py" target="_blank" rel="noopener">Harbor · Trial 源码</a><br><code>harbor-code</code></td><td>commit 2993946dd5b64a46dac3aa766d03065f432a1468</td><td>核对 Trial 文件前 180 行：任务/环境/verifier 依赖、路径和初始化关系；非完整生命周期审计。</td></tr><tr><td><a href="https://docs.harborframework.com/tutorials/create-a-task" target="_blank" rel="noopener">Harbor 官方 · Create a task</a><br><code>harbor-task</code></td><td>在线文档 2026-09-19</td><td>核对任务文件、init/oracle/view 命令与 reward 文件；未在本仓库运行 Harbor。</td></tr><tr><td><a href="https://docs.harborframework.com/core-concepts/tasks/separate-verifier" target="_blank" rel="noopener">Harbor 官方 · Separate verifier</a><br><code>harbor-verifier</code></td><td>在线文档 2026-09-19</td><td>核对默认共享环境、显式 separate 配置、镜像选择和 artifact 传递；运行时兼容性待学习者验证。</td></tr><tr><td><a href="https://github.com/gepa-ai/gepa/blob/15ee314f9c7d34ec153b809d401f42f55c4dcd76/src/gepa/core/adapter.py" target="_blank" rel="noopener">GEPA · GEPAAdapter / EvaluationBatch 源码</a><br><code>gepa-code</code></td><td>commit 15ee314f9c7d34ec153b809d401f42f55c4dcd76</td><td>核对接口与逐样本输出/反馈/错误语义，前 180 行；未实现本项目 GEPA 插件。</td></tr><tr><td><a href="https://github.com/gepa-ai/gepa" target="_blank" rel="noopener">GEPA 官方仓库 · 反思优化</a><br><code>gepa-overview</code></td><td>README 2026-09-19</td><td>核对文本候选、轨迹反馈和适配器定位；未引用宣传收益或声称复现。</td></tr><tr><td><a href="https://docs.ollama.com/api/chat" target="_blank" rel="noopener">Ollama 官方 · Generate a chat message</a><br><code>ollama-chat</code></td><td>在线 API 文档 2026-09-19</td><td>核对本机 /api/chat、messages、stream、format 和 usage 字段；本仓库只做 HTTP 契约 mock 测试，未运行真实权重。</td></tr><tr><td><a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents" target="_blank" rel="noopener">Anthropic · Demystifying evals for AI agents</a><br><code>anthropic-agent-evals</code></td><td>Engineering · 2026-01-09</td><td>全文；评测结构、Claude Code 产品实践、对 Bolt/Descript 的客户实践转述、评分器校准与维护流程；未运行企业内部评测。</td></tr><tr><td><a href="https://github.com/SWE-bench/SWE-bench/blob/main/README.md" target="_blank" rel="noopener">SWE-bench 官方仓库 · README</a><br><code>swebench-repo</code></td><td>main 在线快照 · 2026-09-20</td><td>News 的 Verified 合作发布与 Docker harness 公告、Overview、Usage、Result Caching；未运行基准。</td></tr><tr><td><a href="https://huggingface.co/datasets/princeton-nlp/SWE-bench_Verified" target="_blank" rel="noopener">SWE-bench Verified · 官方数据卡</a><br><code>swebench-verified-data</code></td><td>main 数据卡 · 2026-09-20</td><td>Dataset Summary、Dataset Structure、test split；核对人工验证的 500 条子集及 issue、base_commit、补丁与测试字段。</td></tr><tr><td><a href="https://github.com/SWE-bench/SWE-bench/blob/main/swebench/harness/grading.py" target="_blank" rel="noopener">SWE-bench · grading.py</a><br><code>swebench-grading</code></td><td>main 在线源码 · 2026-09-20（非 2024 发布版本）</td><td>get_eval_tests_report、compute_fail_to_pass、compute_pass_to_pass、get_resolution_status、get_eval_report；核对两组验收与 resolved，不外推测试覆盖外的正确性。</td></tr><tr><td><a href="https://docs.langchain.com/langsmith/evaluation-concepts" target="_blank" rel="noopener">LangSmith · Evaluation concepts</a><br><code>langsmith-eval-concepts</code></td><td>在线官方文档 · 2026-09-20</td><td>Offline and online evaluations、Evaluation lifecycle、Core evaluation targets、Evaluators；核对 dataset / experiment / run 及参考答案边界，未接入服务。</td></tr><tr><td><a href="https://docs.langchain.com/langsmith/annotation-queues" target="_blank" rel="noopener">LangSmith · Use annotation queues</a><br><code>langsmith-annotation</code></td><td>在线官方文档 · 2026-09-20</td><td>Single-run annotation queues、rubric、分配与复核流程；核对纠正输入输出后 Add to Dataset，不声称为某客户生产实现。</td></tr></tbody></table></div>
   <p class="reading-note">补充或修正资料，请参阅 <a href="CONTRIBUTING.md">贡献说明</a>。历史勘误见 <a href="docs/content-audit.md">内容审计记录</a>。</p>
 </section>
 
@@ -2372,9 +2406,9 @@ meta_gain = E[U(search(I_updated, S0, D, B))]
 </div>
 
 <script src="assets/js/editor.js?v=20260920e"></script>
-<script src="assets/js/data.js?v=20260920g"></script>
-<script src="assets/js/research-data.js?v=20260920g"></script>
+<script src="assets/js/data.js?v=20260920eval"></script>
+<script src="assets/js/research-data.js?v=20260920eval"></script>
 <script src="assets/js/research.js?v=20260919r"></script>
-<script src="assets/js/app.js?v=20260920g"></script>
+<script src="assets/js/app.js?v=20260920eval"></script>
 </body>
 </html>

@@ -54,6 +54,7 @@ const {chromium} = require('playwright');
     await page.goto(url+'#/godel');
     assert.ok(await page.locator('#evoSim button').count()>0);
     await page.goto(url+'#/eval');
+    await page.locator('#ch-eval details').filter({has:page.locator('#evalGateSim')}).locator(':scope > summary').click();
     await page.locator('#egRun').click();
     assert.match(await page.locator('#egLog').innerText(),/v1/);
     await page.goto(url+'#/quiz');

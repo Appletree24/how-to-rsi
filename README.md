@@ -79,12 +79,13 @@ python -m unittest discover -s tests -v
 ## 目录与内容检查
 
 ```text
-content/chapters/          01–03、R1–R8、P0–P11 的 HTML 源文
+content/chapters/          01–04、R1–R8、P0–P11 的 HTML 源文
 content/sources.json       一手来源与核对范围
 content/research-chapters.json  研究导航清单
 index.html                原章节 + 生成嵌入的基础/研究/实战正文，可离线打开
 assets/js/data.js          原课程与 DSH 历史清单
 assets/js/research-data.js  生成的研究导航与来源数据
+assets/figures/            第 04 章的本地 SVG 教学图
 assets/js/research.js       浏览器端选择偏差实验
 labs/eval_lab.py           Python 标准库评测方法实验
 labs/improver_lab.py       有限改进器自应用与成本/退化实验

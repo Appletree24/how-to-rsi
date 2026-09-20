@@ -204,7 +204,7 @@
     "url": "https://arxiv.org/abs/cs/0309048v5",
     "version": "arXiv v5 · 2006-12-17（首版 2003）",
     "checked_at": "2026-09-20",
-    "scope": "§2–4、Theorem 4.1；切换与继续搜索的比较、公理和效用条件"
+    "scope": "§2–5、Theorem 4.1 与 5.1；切换与继续搜索的比较、公理和效用条件、BIOPS"
   },
   {
     "id": "stop",
@@ -485,6 +485,54 @@
     "version": "在线 API 文档 2026-09-19",
     "scope": "核对本机 /api/chat、messages、stream、format 和 usage 字段；本仓库只做 HTTP 契约 mock 测试，未运行真实权重。",
     "checked_at": "2026-09-19"
+  },
+  {
+    "id": "anthropic-agent-evals",
+    "title": "Anthropic · Demystifying evals for AI agents",
+    "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+    "version": "Engineering · 2026-01-09",
+    "checked_at": "2026-09-20",
+    "scope": "全文；评测结构、Claude Code 产品实践、对 Bolt/Descript 的客户实践转述、评分器校准与维护流程；未运行企业内部评测。"
+  },
+  {
+    "id": "swebench-repo",
+    "title": "SWE-bench 官方仓库 · README",
+    "url": "https://github.com/SWE-bench/SWE-bench/blob/main/README.md",
+    "version": "main 在线快照 · 2026-09-20",
+    "checked_at": "2026-09-20",
+    "scope": "News 的 Verified 合作发布与 Docker harness 公告、Overview、Usage、Result Caching；未运行基准。"
+  },
+  {
+    "id": "swebench-verified-data",
+    "title": "SWE-bench Verified · 官方数据卡",
+    "url": "https://huggingface.co/datasets/princeton-nlp/SWE-bench_Verified",
+    "version": "main 数据卡 · 2026-09-20",
+    "checked_at": "2026-09-20",
+    "scope": "Dataset Summary、Dataset Structure、test split；核对人工验证的 500 条子集及 issue、base_commit、补丁与测试字段。"
+  },
+  {
+    "id": "swebench-grading",
+    "title": "SWE-bench · grading.py",
+    "url": "https://github.com/SWE-bench/SWE-bench/blob/main/swebench/harness/grading.py",
+    "version": "main 在线源码 · 2026-09-20（非 2024 发布版本）",
+    "checked_at": "2026-09-20",
+    "scope": "get_eval_tests_report、compute_fail_to_pass、compute_pass_to_pass、get_resolution_status、get_eval_report；核对两组验收与 resolved，不外推测试覆盖外的正确性。"
+  },
+  {
+    "id": "langsmith-eval-concepts",
+    "title": "LangSmith · Evaluation concepts",
+    "url": "https://docs.langchain.com/langsmith/evaluation-concepts",
+    "version": "在线官方文档 · 2026-09-20",
+    "checked_at": "2026-09-20",
+    "scope": "Offline and online evaluations、Evaluation lifecycle、Core evaluation targets、Evaluators；核对 dataset / experiment / run 及参考答案边界，未接入服务。"
+  },
+  {
+    "id": "langsmith-annotation",
+    "title": "LangSmith · Use annotation queues",
+    "url": "https://docs.langchain.com/langsmith/annotation-queues",
+    "version": "在线官方文档 · 2026-09-20",
+    "checked_at": "2026-09-20",
+    "scope": "Single-run annotation queues、rubric、分配与复核流程；核对纠正输入输出后 Add to Dataset，不声称为某客户生产实现。"
   }
 ];
 })();

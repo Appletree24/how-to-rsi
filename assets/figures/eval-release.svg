@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="520" viewBox="0 0 840 520" role="img" aria-labelledby="title desc">
+  <title id="title">开发反馈与独立确认的边界</title>
+  <desc id="desc">生产失败整理为开发任务，用于选择候选。冻结候选后在独立确认集上评估，再决定发布或保留旧版。上线观测产生下一轮开发任务，确认结果不回流到同轮选择。这是教学流程，不是企业内部架构。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5"/></marker>
+  </defs>
+  <rect width="840" height="520" fill="#faf9f6"/>
+  <g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <text x="30" y="35" font-size="16" fill="#5e625f">开发数据用于改进；独立确认用于检验冻结后的候选</text>
+    <text x="30" y="80" font-size="16" fill="#40587f">01 / 开发与选择</text>
+    <rect x="30" y="100" width="220" height="116" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="46" y="131" font-size="19" font-weight="700">生产中的失败</text>
+    <text x="46" y="161" font-size="17">故障记录与用户反馈</text>
+    <text x="46" y="185" font-size="17">整理可复现的输入</text>
+    <rect x="296" y="100" width="230" height="116" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="312" y="131" font-size="19" font-weight="700">经过复核的开发任务</text>
+    <text x="312" y="161" font-size="17">明确验收，重置环境</text>
+    <text x="312" y="185" font-size="17">覆盖有代表性的场景</text>
+    <rect x="572" y="100" width="238" height="116" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="588" y="131" font-size="19" font-weight="700">候选选择</text>
+    <text x="588" y="161" font-size="17">比较、排错、调整</text>
+    <text x="588" y="185" font-size="17">选定一个候选配置</text>
+    <path d="M250 158H294" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M526 158H570" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M691 216V298" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M30 259H663M721 259H810" stroke="#a9b2c2" stroke-dasharray="5 5"/>
+    <text x="30" y="284" font-size="16" fill="#40587f">02 / 确认与发布</text>
+    <text x="711" y="247" font-size="16" fill="#40587f">冻结</text>
+    <rect x="572" y="300" width="238" height="116" rx="3" fill="#f1f4fb" stroke="#2b5bd7" stroke-width="1.5"/>
+    <text x="588" y="330" font-size="19" font-weight="700">独立确认</text>
+    <text x="588" y="360" font-size="17">固定候选、预算与规则</text>
+    <text x="588" y="384" font-size="17">使用未参与选择的数据</text>
+    <rect x="296" y="300" width="230" height="116" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="312" y="330" font-size="19" font-weight="700">发布判断</text>
+    <text x="312" y="360" font-size="17">质量、违规与成本</text>
+    <text x="312" y="384" font-size="17">发布或保留旧版</text>
+    <rect x="30" y="300" width="220" height="116" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="46" y="330" font-size="19" font-weight="700">上线观测</text>
+    <text x="46" y="360" font-size="17">观察真实使用情况</text>
+    <text x="46" y="384" font-size="17">发现新的失败类型</text>
+    <path d="M572 358H528" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M296 358H252" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="273" y="341" text-anchor="middle" font-size="13" fill="#40587f">发布</text>
+    <path d="M140 416V462H281" fill="none" stroke="#2b5bd7" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+    <text x="296" y="458" font-size="17">新的失败，进入下一轮开发。</text>
+    <text x="296" y="482" font-size="16" fill="#5e625f">同一轮中，不用确认结果继续挑选候选。</text>
+    <text x="30" y="502" font-size="13" fill="#5e625f">本站教学流程，非企业内部架构。</text>
+  </g>
+</svg>

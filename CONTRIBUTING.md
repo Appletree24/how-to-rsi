@@ -16,12 +16,12 @@
 
 1. 新章节编辑 `content/chapters/<id>.html`；研究导航登记在 `content/research-chapters.json`，实战导航登记在 `content/capstone-chapters.json`。
 2. 来源登记在 `content/sources.json`，写清类型与实际核对范围。使用 `<cite data-source="id"></cite>` 引用。面试自述仅支持考察主题，技术解释需官方文档/源码；本站练习不得标为企业原题。
-3. 基础章 `rsi`、`godel`、`capmap` 已迁入 `content/chapters/`，也由生成脚本嵌入；其余原有章节仍在 `index.html`，交互数据在 `assets/js/data.js`。不要手改生成的三个基础章，或 BEGIN/END GENERATED RESEARCH 之间的块。
+3. 基础章 `rsi`、`godel`、`capmap`、`eval` 已迁入 `content/chapters/`，也由生成脚本嵌入；其余原有章节仍在 `index.html`，交互数据在 `assets/js/data.js`。不要手改生成的四个基础章，或 BEGIN/END GENERATED RESEARCH 之间的块。
 4. 运行 `python scripts/build_research.py`，提交源文件与生成物。
 
 01 中的结果表通过 `<!-- IMPROVER_RESULTS -->` 从 `labs/improver_lab.py` 的实际确定性运行生成。修改实验后，重新核对正文中的调用次数、逐步得分和解释；表格同步不代表推导自动正确。
 
-就地编辑导出的 `index.html` 是网页副本。若要把其中 01–03、R1–R8、P0–P11 的修改提交回仓库，应同步到对应的章节源文件再生成；只改生成物会在下次构建时被覆盖。
+就地编辑导出的 `index.html` 是网页副本。若要把其中 01–04、R1–R8、P0–P11 的修改提交回仓库，应同步到对应的章节源文件再生成；只改生成物会在下次构建时被覆盖。
 
 ## 必需检查
 

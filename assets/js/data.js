@@ -30,7 +30,7 @@ DSH.chapters = [
   { id: 'rsi', num: '01', title: '改进程序与改进器', short: '什么是 RSI', blurb: '实际解析器、自应用、嵌套成本与分布变化。', icon: 'target', module: 'north' },
   { id: 'godel', num: '02', title: '修改的证据与接受条件', short: '证明与测量', blurb: '切换命题、搜索景观与修改者对照。', icon: 'book', module: 'north' },
   { id: 'capmap', num: '03', title: '追踪一次自修改实验', short: '实验记录', blurb: '修改边界、版本、观测、入档与发布、状态恢复。', icon: 'layers', module: 'cap' },
-  { id: 'eval', num: '04', title: 'Agent 评测方法', short: '评测', blurb: '任务、评分器、重复运行与评测门模拟器。', icon: 'target', module: 'cap' },
+  { id: 'eval', num: '04', title: 'Agent 评测方法', short: '评测', blurb: '任务判分、工业团队实践、离线比较与上线观测。', icon: 'target', module: 'cap' },
   { id: 'carriers', num: '05', title: '载体对比', short: '载体对比', blurb: 'Claude Code / Codex / pi / ACP / 自写 harness：谁允许你改运行时。', icon: 'boxes', module: 'cap' },
   { id: 'alignment', num: '06', title: 'AI 对齐的目标与方法', short: '对齐', blurb: '外层与内层对齐、失败模式和研究方法。', icon: 'target', module: 'align' },
   { id: 'cot', num: '07', title: '推理可监控性', short: 'CoT 监控', blurb: '推理链监控指标、实验结果与适用限制。', icon: 'loop', module: 'align' },
@@ -64,7 +64,7 @@ DSH.evalParadigms = [
 
 /* ---------- 常见评测基准速览(第 04 章,教学整理) ---------- */
 DSH.evalBenchmarks = [
-  { name: 'SWE-bench Verified', what: '500 题:OpenAI 联合 93 名开发者从 1699 条样本中人工筛出的真实 GitHub issue', lvl: '任务结果', note: '行业标尺;固定版本、模型、任务子集和预算后才可比较论文结果' },
+  { name: 'SWE-bench Verified', what: '500 条经人工质量验证的 GitHub issue 任务子集', lvl: '任务结果', note: '问题修复与回归测试分别验收；固定版本、模型、任务子集和预算后比较' },
   { name: 'Polyglot (Aider)', what: '编程基准；语言与任务规模请按使用版本核对', lvl: '任务结果', note: '考验跨语言泛化;DGM 第二基准' },
   { name: 'Terminal-Bench', what: '终端里的端到端系统任务(从源码编内核、训模型)', lvl: '任务结果', note: '比"改代码"更贴近 agent 实际工作面' },
   { name: 'CORE-Bench', what: '论文级计算可复现性任务(三档难度)', lvl: '任务结果', note: '检查参考产物、评分规则与执行框架，避免混合不同条件的成绩' },

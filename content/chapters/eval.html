@@ -1,0 +1,141 @@
+<section class="chapter" id="ch-eval">
+  <span class="ch-kicker">Chapter 04 · 机制与评测</span>
+  <h1>Agent 评测：从一次运行到发布判断</h1>
+  <p class="lead">客服 Agent 回复“退款已完成”，数据库里却没有退款记录。这次任务应该失败。评测要做的，就是把这样的判断写成可重复执行的检查，再用同一套条件比较改动前后的系统。</p>
+  <p>本章先拆一条退款任务，再看 Claude Code、Bolt 与 Descript 的产品实践、SWE-bench 的补丁验收，以及 LangSmith 的评测工作流。企业实践来自公开资料；退款任务与流程图是本站教学设计，不是企业内部实现。</p>
+
+  <h2>01 / 先写清楚什么算完成</h2>
+  <div class="eval-task">
+    <h3>例题：取消订单并退回 80 元</h3>
+    <p>用户要求取消自己尚未发货的订单 O-104。测试环境中，该订单实付 80 元、尚无退款。业务规则要求先核验身份，只能退回实际支付的金额，重复请求不能重复退款。</p>
+    <dl class="eval-case-facts">
+      <dt>给 Agent</dt><dd>用户请求、退款政策，以及查询订单、核验身份和发起退款的工具。每次从同一份干净订单快照开始。</dd>
+      <dt>看终态</dt><dd>O-104 已取消；恰好一笔成功退款，金额 80 元、收款人为原付款人；其他订单未改变。</dd>
+      <dt>看过程</dt><dd>执行退款前完成身份核验。这个顺序是业务约束；不要求 Agent 按参考解的固定顺序查询资料。</dd>
+      <dt>另记成本</dt><dd>模型与工具调用费用、墙钟时间、重试次数。超时和崩溃留在任务清单中，不能只汇总成功运行。</dd>
+    </dl>
+  </div>
+  <p>这份输入、初始状态与成功条件组成一个 <strong>task</strong>；从头执行一次是一个 <strong>trial</strong>。对话和工具事件组成可观测的轨迹（trace），退款记录是环境终态（outcome）；读取这些证据并判分的是评分器（grader）。不要用 Agent 的“完成声明”替代终态检查。<cite data-source="anthropic-agent-evals"></cite></p>
+  <figure class="eval-figure">
+    <div class="eval-figure-scroll" tabindex="0" role="region" aria-label="图一：一次评测的执行与评分边界，可横向滚动"><img src="assets/figures/eval-trial.svg" alt="任务与干净快照进入 Agent 执行环境；运行产出状态和轨迹，由环境外的评分器独立判分。候选不能写入评分器。"></div>
+    <figcaption>图 1 · 一次 trial 的证据流。运行系统负责保存产物和工具事件，评分系统负责生成结果；把它们画成两个框还不够，执行身份、文件权限与结果写入权限也要分开。本站示意。</figcaption>
+  </figure>
+  <p>先人工走通一个参考解，确认任务可解、评分器能判对；再给它几份错误产物：没有退款、重复退款、金额错误、改了别人的订单。若这些也能通过，应先修评分器，而不是开始比较模型。</p>
+
+  <h2>02 / 把硬约束与质量判断分开</h2>
+  <div class="tbl-wrap"><table class="tbl">
+    <caption>沿用退款任务：不同问题需要不同证据</caption>
+    <thead><tr><th>检查</th><th>实现方式</th><th>结果怎么用</th></tr></thead>
+    <tbody>
+      <tr><td>金额、收款人、重复退款</td><td>代码读取可信状态快照，逐项断言</td><td>任一违规，任务失败</td></tr>
+      <tr><td>身份核验发生在退款之前</td><td>核对工具执行端记录的事件与授权状态</td><td>作为必需约束，不靠模型自述</td></tr>
+      <tr><td>解释是否准确、是否隐瞒失败</td><td>LLM 按明确 rubric 对照工具结果，给出证据位置</td><td>单独报告质量；证据不足标为待审</td></tr>
+      <tr><td>边界案例与评分分歧</td><td>人工复核同一份产物、轨迹与政策</td><td>修订规则或任务，记录评分器版本</td></tr>
+    </tbody>
+  </table></div>
+  <p>“退款没发生，但语气很好”不能被加权平均成成功。可以给身份核验、问题识别等步骤部分分，用来定位失败；发布时仍需满足预先规定的硬约束。人审也不是无误的答案：应保留分歧，澄清规则后再校准模型评分器。</p>
+  <details class="eval-details">
+    <summary>一个可复核的 LLM 评分条目</summary>
+    <div class="codeblock"><div class="cb-head">教学 rubric · 只评价“是否如实说明退款状态”</div><pre data-lang="text">输入：用户可见回复 + 可信退款结果
+PASS：退款成功时说明成功；失败或待处理时明确说明尚未完成。
+FAIL：工具报错或状态为 pending，却向用户宣称已到账。
+UNKNOWN：缺少退款结果，无法判断。
+输出：verdict、回复中的原句、所依据的结果字段、简短理由。</pre></div>
+    <p>用人工已标注的样本检验这个条目，重点检查“实际失败却判 PASS”的误放行，以及待审比例。调换模型、提示词或政策后重新校准；不要把 UNKNOWN 静默当成成功，也不要直接从分母删掉。</p>
+  </details>
+
+  <h2>03 / 工业团队实际怎么做</h2>
+  <p>下面区分两件事：公开资料明确披露了什么，以及我们可以据此怎样设计自己的评测。它们不是同一层证据。</p>
+  <article class="eval-case">
+    <p class="eval-case-label">产品实践 / Anthropic · Claude Code</p>
+    <h3>把“改代码体验变差”拆成具体行为</h3>
+    <p>Anthropic 披露，Claude Code 早期依赖员工和用户反馈迭代，随后先为简洁度、文件编辑等较窄行为补充评测，再覆盖过度工程等复杂行为。自动评测与生产监控、A/B 测试、用户研究配合使用。原文没有给出可直接复制的内部题库或发布阈值。<cite data-source="anthropic-agent-evals"></cite></p>
+    <dl class="eval-case-facts">
+      <dt>可以借鉴</dt><dd>把一次具体投诉转成固定输入与可检查产物，不只记一个“用户不满意”的标签。运行时与生产保持接近，保存失败轨迹供复核。</dd>
+      <dt>本站任务设计</dt><dd>给一个只需修边界条件的 issue：先用测试确认问题修复且旧行为未回归，再单独评审新引入的依赖、抽象和文件改动是否必要。不能把 diff 越短直接当作质量越高。</dd>
+      <dt>适用边界</dt><dd>代码测试覆盖功能结果，未必覆盖维护成本；LLM 对“过度设计”的评分需与维护者判断校准，不能取代真实使用反馈。</dd>
+    </dl>
+  </article>
+  <article class="eval-case">
+    <p class="eval-case-label">产品实践 / Bolt 与 Descript</p>
+    <h3>生成的应用能运行，不等于用户任务已完成</h3>
+    <p>据 Anthropic 对客户实践的介绍，Bolt 把静态分析、浏览器 Agent 测试和 LLM judge 组合起来：分别检查生成代码、应用交互与指令遵循。Descript 则把视频编辑质量拆成“不破坏已有内容、完成请求、完成得好”，从人工评分发展到产品团队定义标准的 LLM 评分，并定期人工校准，分别运行质量与回归两套评测。这里依据的是 Anthropic 的公开转述，并非两家公司开源的完整流水线。<cite data-source="anthropic-agent-evals"></cite></p>
+    <dl class="eval-case-facts">
+      <dt>可以借鉴</dt><dd>按证据类型分工：静态检查发现编译与类型问题，浏览器实际走用户操作，模型评审检查开放式要求。几项分数保留明细，便于找到退化发生在哪一层。</dd>
+      <dt>本站任务设计</dt><dd>要求生成一个可筛选的订单页。编译通过之后，浏览器选择“已退款”，核对列表与测试数据一致；再检查需求中的空态提示。页面截图好看不能替代筛选功能正确。</dd>
+      <dt>适用边界</dt><dd>浏览器 Agent 本身也会点错或超时。保留操作记录、截图与后端状态，复核是被测应用失败还是测试驱动失败；重试策略必须提前确定。</dd>
+    </dl>
+  </article>
+  <article class="eval-case">
+    <p class="eval-case-label">公开基准实现 / SWE-bench Verified</p>
+    <h3>交付补丁，用两组测试验收</h3>
+    <p>SWE-bench 与 OpenAI Preparedness 合作发布的 Verified，是经过人工质量验证的 500 条任务子集。人工审核的是题目质量与可解性，不是逐次批准模型答案。Agent 接收 issue 与修复前的仓库版本，交付补丁；参考补丁属于评测资料，不能作为待解任务的输入。<cite data-source="swebench-repo"></cite><cite data-source="swebench-verified-data"></cite></p>
+    <dl class="eval-case-facts">
+      <dt>实际执行</dt><dd>官方 harness 在 Docker 环境中应用补丁并运行测试，保留测试输出与逐题报告；不是读取 Agent 最后一条“已修复”消息。</dd>
+      <dt>两组验收</dt><dd><code>FAIL_TO_PASS</code> 检查问题对应的测试是否由失败变为通过；<code>PASS_TO_PASS</code> 检查原有测试是否保持通过。当前判分实现要求两组均满足，才记为 resolved。<cite data-source="swebench-grading"></cite></dd>
+      <dt>迁移到项目</dt><dd>为历史 bug 固定仓库版本与环境，分别保存修复测试和回归测试。每次比较关联补丁、日志与运行标识，不能只抄一个排行榜分数。</dd>
+      <dt>适用边界</dt><dd>resolved 表示满足这组测试，不代表代码所有性质正确，也不等于生产安全。容器化减少环境差异，但不会自动消除数据泄漏或评分器漏洞。</dd>
+    </dl>
+  </article>
+
+  <h2>04 / 从离线比较到上线观测</h2>
+  <p>开发集用来挑候选，确认集用来检验已冻结的候选。两者都可以包含功能检查与回归任务；“能力 / 回归”描述测量目的，“开发 / 确认”描述数据用途，不能一一对应。反复看确认分数再调提示词，这份数据就参与了选择。</p>
+  <figure class="eval-figure">
+    <div class="eval-figure-scroll" tabindex="0" role="region" aria-label="图二：开发、确认与上线观测流程，可横向滚动"><img src="assets/figures/eval-release.svg" alt="生产失败经整理进入开发任务，用于选择候选；候选冻结后才进入独立确认与发布判断。确认结果不回流到同轮选择。"></div>
+    <figcaption>图 2 · 通用的版本比较流程，不是某家公司的内部架构。生产失败可整理成后续开发题；确认结果一旦用于继续调参，就不能再作为该轮独立确认的证据。</figcaption>
+  </figure>
+  <p>比较的对象是<strong>模型 + 提示词 + 工具 + Agent 运行时</strong>。固定任务版本、初始状态与预算；逐题配对运行旧版和新版。任务超时算未完成并保留成本；基础设施故障单独分类，按预先约定的规则处理，不要只给新版补跑到通过。</p>
+  <p>报告至少列出：逐题新旧结果、重要违规、失败类型、成本与延迟，以及差值的不确定性。没有足够证据时保留旧版，记为“结论不足”；平均分更高但出现越权退款，也不能发布。置信区间、重复试验与停止规则见 <a href="#/evaluation-design">R3</a>。</p>
+  <article class="eval-case">
+    <p class="eval-case-label">工具落地 / LangSmith 官方工作流</p>
+    <h3>把线上失败整理成下一轮离线样本</h3>
+    <p>LangSmith 的 dataset 保存样本输入、可选参考输出和元数据；experiment 保存一个应用版本在这些样本上的输出、评分与轨迹。离线运行将样本输入交给被测应用，再由 evaluator 判分；参考输出供评分器使用，不应泄漏给被测应用。<cite data-source="langsmith-eval-concepts"></cite></p>
+    <ol>
+      <li><strong>离线比较：</strong>在同一数据集版本上运行 baseline 与 candidate，对照逐例结果，不只比较均分。</li>
+      <li><strong>线上发现：</strong>检查真实 runs / threads。这里通常没有参考答案，应使用无参考检查或人工复核，不能直接照搬依赖标准答案的离线评分器。</li>
+      <li><strong>人工整理：</strong>把失败或低分记录送入 annotation queue；复核输入、输出与评分标准，纠正参考输出后再用 <code>Add to Dataset</code> 收入回归集。不要把失败回复原封不动存成标准答案。<cite data-source="langsmith-annotation"></cite></li>
+    </ol>
+    <p class="small muted">这里介绍的是官方文档提供的平台能力与工作流，不是某家客户的部署成绩。平台管理轨迹、数据与实验；任务是否有代表性、rubric 是否合理，仍需使用者验证。本仓库未接入 LangSmith 服务。</p>
+  </article>
+
+  <h2>05 / 一次做对与每次做对</h2>
+  <p>假设同一题每次通过的概率为 <code>p = 0.75</code>，各次独立且条件不变。给三次机会，至少做对一次的概率是 <code>1 − 0.25³ = 98.44%</code>；三次全部做对的概率只有 <code>0.75³ = 42.19%</code>。这是理想化算例，不是某个产品的实测。</p>
+  <figure class="eval-figure">
+    <div class="eval-figure-scroll" tabindex="0" role="region" aria-label="图三：成功率指标对比，可横向滚动"><img src="assets/figures/eval-reliability.svg" alt="单次成功率为 75% 时，pass@k 随尝试次数增加上升，pass^k 下降。三次尝试对应 98.44% 与 42.19%。"></div>
+    <figcaption>图 3 · 同一个单题成功率，回答两个不同的问题。蓝线是 k 次至少成功一次；另一条线是 k 次全部成功。各次独立同分布时才可直接使用图中的幂次公式。</figcaption>
+  </figure>
+  <ul>
+    <li><strong>pass@k：</strong>适合能生成多个候选、再验证选解的任务。还要计入 k 次生成与选解成本；用户未必有可靠验证器帮他挑中正确答案。</li>
+    <li><strong>pass^k：</strong>用来观察重复运行的一致性。退款等带副作用的任务不能在生产中为“多试几次”而重复执行；应在重置的测试环境中测量。</li>
+  </ul>
+  <p>真实数据里每题难度不同，不应先取所有题的平均成功率再套幂次公式。HumanEval 的有限样本 pass@k 估计与 τ-bench 的可靠性指标见 <a href="#/evaluation-design">R3</a>；共享缓存、环境故障和相关重试也会破坏独立性。<cite data-source="humaneval"></cite><cite data-source="tau"></cite></p>
+
+  <h2>06 / 在本仓库走一遍裁决</h2>
+  <p>先运行已有的合成实验，观察同一套规则如何处理提升、回归、高分违规和成本超限。无需模型 API；这些结果只用于检查统计与裁决方法，不证明真实 Agent 能力。</p>
+  <div class="codeblock"><div class="cb-head">在仓库根目录运行 · Python 3.10+</div><pre data-lang="bash">python labs/eval_lab.py demo --output lab-output
+python labs/eval_lab.py compare lab-output/improvement.input.json</pre></div>
+  <p>结合输入中的逐题记录，查看报告里的 <code>delta</code>、区间与 <code>decision</code>，而不只看平均分。接着在生成的输入副本中删掉一条失败记录，重新比较：程序应拒绝不完整的 task × run 矩阵，而不是让删样本后的高分通过。完整字段与场景见 <a href="#/reproducible-lab">R6</a>。</p>
+  <p>接真实 Agent 时，先在 <a href="#/capstone-data">P1</a> 定义任务与快照，在 <a href="#/capstone-grading">P4</a> 接入独立证据评分，再按 <a href="#/capstone-experiments">P7</a> 比较固定预算下的候选。模型版本、任务清单、评分器版本、运行状态、产物位置与费用都应关联同一个 run ID。</p>
+  <details class="eval-details">
+    <summary>交互示意：只看自报分数会怎样？</summary>
+    <p>七个任务的通过状态由随机布尔值模拟，并未实际调用 Agent。默认开启“作弊改动”；点击运行观察虚报分数如何污染基线，再开启“哨兵检测”比较裁决。</p>
+    <div class="sim" id="evalGateSim"></div>
+    <p class="small muted">哨兵直接读取预设的作弊标记，不是真实检测器。这个玩具用“分数不低于基线”决定保留；实际实验还需独立判分、硬约束和统计协议。</p>
+  </details>
+
+  <h2>接回自改循环：谁可以写成绩？</h2>
+  <p>允许 Agent 改自己的工具，不意味着允许它改评分器、确认集或发布记录。候选生成的日志也是不可信输入；判分应优先使用工具执行端、环境快照和隔离验证器生成的证据。仅把评测器换一个插件名，不能建立权限隔离。评分器误差与绕过案例见 <a href="#/evaluator-integrity">R4</a>。</p>
+  <p>发布判断与版本切换也要分开：确认通过后由受控流程激活候选，保留旧版本及恢复所需状态。回退代码不会撤回已经发生的退款、邮件或数据库写入。DGM / HGM 如何使用任务成绩选择和展开候选，见 <a href="#/paper-lab">R2</a>；支系统计不能修复底层评分器的漏洞。</p>
+  <details class="eval-details">
+    <summary>查阅：证明、任务分数、人审与支系估计的区别</summary>
+    <p>这些方法回答不同问题，不组成能力等级。经验评测给任务分布上的证据；形式化证明依赖公理、建模与证明系统；人审检查意图和副作用；支系估计服务于后续搜索分配。</p>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>范式</th><th>谁在评</th><th>评什么</th><th>测量对象</th><th>限制</th><th>案例</th></tr></thead><tbody id="evalTable"></tbody></table></div>
+    <noscript><p>对照表需 JavaScript；理论与实验差异的静态正文见 <a href="#ch-paper-lab">R2</a>。</p></noscript>
+  </details>
+  <details class="eval-details">
+    <summary>查阅：按任务选择公开基准</summary>
+    <p>修仓库问题、操作浏览器、与用户协作是不同任务分布。先核对任务定义、环境与评分方法，再决定是否适用于自己的 Agent；不把不同榜单拼成一个 RSI 总分。</p>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>基准</th><th>测什么</th><th>测量对象</th><th>备注</th></tr></thead><tbody id="evalBenchTable"></tbody></table></div>
+    <noscript><p>基准索引需 JavaScript；统计方法的静态正文见 <a href="#ch-evaluation-design">R3</a>。</p></noscript>
+  </details>
+</section>

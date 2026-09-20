@@ -185,6 +185,7 @@ code {
 
 .main {
   flex: 1;
+  min-width: 0;
   margin-left: var(--sidebar-w);
   padding: 40px clamp(20px, 5vw, 72px) 90px;
 }
@@ -953,6 +954,62 @@ cite[data-source] { font: 0.78em var(--sans); font-style: normal; white-space: n
 }
 .research-lab-controls input:focus-visible, .research-lab-controls select:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
 
+/* Evaluation chapter: one reading column, diagrams and evidence rather than cards. */
+#ch-eval { max-width: 52rem; min-width: 0; overflow-wrap: break-word; }
+#ch-eval .eval-figure { margin: 30px 0; min-width: 0; max-width: 100%; }
+#ch-eval .eval-figure-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  contain: inline-size;
+  border: 1px solid var(--line);
+  background: #faf9f6;
+}
+#ch-eval .eval-figure img { display: block; width: 100%; min-width: 580px; height: auto; }
+#ch-eval .eval-figure figcaption {
+  margin-top: 10px;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+#ch-eval .eval-task {
+  margin: 24px 0;
+  padding: 4px 0 4px 20px;
+  border-left: 2px solid var(--acc);
+}
+#ch-eval .eval-task > :first-child { margin-top: 0; }
+#ch-eval .eval-task > :last-child { margin-bottom: 0; }
+#ch-eval article.eval-case { margin: 32px 0; padding: 24px 0 0; border-top: 1px solid var(--line); }
+#ch-eval .eval-case-label { color: var(--acc); font-family: var(--sans); font-size: 0.78rem; font-weight: 600; }
+#ch-eval article.eval-case h3 { margin-top: 8px; font-size: 1.15rem; }
+#ch-eval dl.eval-case-facts {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: 12px 20px;
+  margin: 18px 0;
+  font-size: 0.92rem;
+}
+#ch-eval dl.eval-case-facts dt { color: var(--muted); font-family: var(--sans); font-size: 0.85rem; }
+#ch-eval dl.eval-case-facts dd { margin: 0; min-width: 0; }
+#ch-eval dl.eval-case-facts dd > :first-child { margin-top: 0; }
+#ch-eval dl.eval-case-facts dd > :last-child { margin-bottom: 0; }
+#ch-eval details.eval-details { margin: 24px 0; padding: 14px 0; border-block: 1px solid var(--line-soft); }
+#ch-eval details.eval-details > summary { cursor: pointer; font-family: var(--sans); font-size: 0.9rem; font-weight: 600; }
+#ch-eval details.eval-details > summary::marker { color: var(--acc); }
+#ch-eval details.eval-details[open] > summary { margin-bottom: 16px; }
+#ch-eval details.eval-details > :last-child { margin-bottom: 0; }
+@media (max-width: 640px) {
+  #ch-eval dl.eval-case-facts { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  #ch-eval dl.eval-case-facts dt:not(:first-child) { margin-top: 12px; }
+  #ch-eval .eval-task { padding-left: 14px; }
+  #ch-eval .eval-figure figcaption::before {
+    content: "图片可左右滑动查看。";
+    display: block;
+    margin-bottom: 4px;
+    color: var(--acc);
+  }
+}
+
 /* ---------- 就地编辑 ---------- */
 .edit-toggle {
   position: fixed; right: 18px; bottom: 18px; z-index: 90;
@@ -967,6 +1024,7 @@ cite[data-source] { font: 0.78em var(--sans); font-style: normal; white-space: n
   border: 1px solid var(--acc); border-radius: 12px; background: var(--panel);
   box-shadow: 0 10px 34px rgba(0,0,0,.4); font: 13px var(--sans); color: var(--text);
 }
+.edit-bar[hidden] { display: none; }
 .eb-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--acc); }
 .eb-status { color: var(--muted); max-width: 46ch; }
 body.edit-on main :is(h1,h2,h3,h4,p,li,td,th,summary)[contenteditable] {
