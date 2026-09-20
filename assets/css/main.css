@@ -180,7 +180,7 @@ code {
 }
 
 /* ---------- 章节 ---------- */
-.chapter { display: none; }
+.chapter { display: none; max-width: 66rem; margin-inline: auto; }
 .chapter.active { display: block; }
 
 .ch-kicker {
@@ -853,6 +853,19 @@ html:not(.js) .noscript-toc {
   background: var(--panel); columns: 2; font-size: 0.92rem; font-family: var(--sans);
 }
 html:not(.js) .noscript-toc a { display: inline-block; padding: 2px 0; }
+
+/* ---------- 居中两级版面 ----------
+   正文栏(标题/段落/列表/旁注)固定易读宽度并居中 → 左右留白对称，不再靠右空块
+   宽幅块(表格/卡片网格/模拟器/首页目录)占满章节宽度，同样居中 → 像教科书图表比正文宽 */
+.ch-kicker, h1, h2, h3, .hero, .lead, p, ul, ol,
+.callout, .codeblock, .layerstack, .tree,
+.gloss-item, .exp-card, .exp-progress, .proj-card,
+.quiz-box, .searchbar, .snap-note, details.acc,
+.rule-card, .chapter-footer {
+  margin-left: auto;
+  margin-right: auto;
+}
+.ch-kicker, h1, h2, h3, .chapter-footer { max-width: var(--measure); }
 
 /* ---------- 响应式 ---------- */
 @media (max-width: 1080px) {
