@@ -4,7 +4,8 @@ const path = require('node:path');
 const {pathToFileURL} = require('node:url');
 const {chromium} = require('playwright');
 (async () => {
-  const browser = await chromium.launch({headless:true});
+  const browser = await chromium.launch({headless:true,
+    executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || undefined});
   try {
     const context = await browser.newContext({viewport:{width:1440,height:1000}});
     const page = await context.newPage();
@@ -31,7 +32,7 @@ const {chromium} = require('playwright');
     await page.keyboard.press('Escape');
     await page.locator('#searchBtn').click();
     await page.locator('#paletteInput').fill('fencing');
-    assert.match(await page.locator('#paletteResults').innerText(),/可靠调度/);
+    assert.match(await page.locator('#paletteResults').innerText(),/队列、租约与故障恢复/);
     await page.keyboard.press('Escape');
     await page.locator('#themeBtn').click();
     assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');

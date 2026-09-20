@@ -1,7 +1,7 @@
 <section class="chapter" id="ch-evaluation-design">
-  <span class="ch-kicker">研究主线 R3 · 统计与实验设计</span>
-  <h1>分数上涨之后，还要排除什么</h1>
-  <p class="lead">一个任务跑十次，与十个独立任务各跑一次，回答的是不同问题。先确定独立样本和选择过程，再决定置信区间与裁决门。</p>
+  <span class="ch-kicker">研究笔记 / R3 · 统计与实验设计</span>
+  <h1>评测的统计与实验设计</h1>
+  <p class="lead">一个任务跑十次，可以观察同一任务上的运行波动；十个独立任务各跑一次，可以观察任务间的差异。两者对应不同的统计单位，也需要不同的重采样方式。</p>
   <h2>三套数据，三种权限</h2>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>数据</th><th>用途</th><th>允许反馈</th></tr></thead><tbody>
     <tr><td>开发集 D_dev</td><td>诊断失败、改代码、调提示词</td><td>可公开题目和详细轨迹；其分数不能当独立泛化证据</td></tr>
@@ -34,5 +34,4 @@ keep requires lower &gt; δ_min
     <li>同时提供逐题结果、全体候选账本、失败类型和原始轨迹位置。没有观测到严重违规不等于风险为零。</li>
   </ul>
   <details class="research-exercise"><summary>练习：把每题重复从 3 次增到 30 次，置信区间能缩小 √10 吗？</summary><p>对固定题目上的运行噪声可能有帮助；对跨题泛化不能直接这样算。任务数没有增加。若把所有运行当独立任务抽样，会产生伪重复。实验程序刻意保留任务聚类，重复相同观测不会凭空扩大独立样本量。</p></details>
-  <p class="research-next">下一步：<a href="#/evaluator-integrity">让这些数值来自可信测量</a>。</p>
 </section>

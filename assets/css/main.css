@@ -186,19 +186,18 @@ code {
 .ch-kicker {
   display: block;
   font-family: var(--sans);
-  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.14em;
-  color: var(--faint); text-transform: uppercase;
+  font-size: 0.75rem; font-weight: 400; letter-spacing: 0.02em;
+  color: var(--muted);
   margin-bottom: 10px;
 }
 h1 {
   font-family: var(--serif);
   font-size: clamp(1.9rem, 3.2vw, 2.4rem);
-  line-height: 1.25; margin: 0 0 12px; font-weight: 700; letter-spacing: 0;
+  line-height: 1.4; margin: 0 0 16px; font-weight: 700; letter-spacing: 0;
 }
 h2 {
   font-family: var(--serif);
-  font-size: 1.35rem; margin: 48px 0 12px; font-weight: 700;
-  padding-top: 18px; border-top: 1px solid var(--line-soft);
+  font-size: 1.3rem; margin: 38px 0 12px; font-weight: 700;
 }
 h2:first-of-type { border-top: none; padding-top: 0; }
 h3 { font-family: var(--serif); font-size: 1.05rem; margin: 28px 0 8px; font-weight: 700; }
@@ -345,35 +344,36 @@ table.tbl tbody tr:hover { background: var(--panel-2); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* ---------- 首页 hero ---------- */
-.hero { margin: 8px 0 26px; max-width: var(--measure); }
+.hero { margin: 8px 0 30px; max-width: var(--measure); }
 .hero-title {
   font-family: var(--serif);
-  font-size: clamp(2.1rem, 4vw, 2.9rem); line-height: 1.2; font-weight: 700; margin: 8px 0 14px;
+  font-size: clamp(2rem, 4vw, 2.6rem); line-height: 1.4; font-weight: 700; margin: 8px 0 14px;
 }
 .hero-sub { color: var(--muted); font-size: 1.05rem; }
-.hero-cta { display: flex; gap: 22px; margin-top: 22px; flex-wrap: wrap; font-family: var(--sans); }
-.hero-cta .btn { border: 0; padding: 0; border-radius: 0; color: var(--acc); font-weight: 600; font-size: 0.92rem; background: none; }
-.hero-cta .btn:hover { text-decoration: underline; border: 0; color: var(--acc); }
+.reading-starts { max-width: var(--measure); }
+.reading-starts p { margin: 18px 0; }
+.reading-starts a { font-weight: 600; }
+.reading-note { font-family: var(--sans); color: var(--muted); font-size: 0.8rem; margin-top: 24px; }
 
 /* ---------- 首页目录索引 ---------- */
-.idx-mod {
-  font-family: var(--sans); font-size: 0.7rem; font-weight: 700;
-  letter-spacing: 0.13em; text-transform: uppercase; color: var(--faint);
-  margin: 26px 0 4px; padding-bottom: 6px; border-bottom: 1px solid var(--line-soft);
-}
-.idx-mod:first-of-type { margin-top: 8px; }
+.idx-group { border-bottom: 1px solid var(--line); max-width: var(--measure); }
+.idx-group:first-child { border-top: 1px solid var(--line); }
+.idx-mod { font-family: var(--sans); font-size: 0.92rem; padding: 14px 0; cursor: pointer; }
+.idx-mod::marker { color: var(--muted); font-size: 0.75rem; }
+.idx-count { float: right; color: var(--muted); font-size: 0.8rem; padding-left: 12px; }
+.idx-group[open] { padding-bottom: 12px; }
 .idx-item {
   display: flex; align-items: baseline; gap: 10px;
-  padding: 7px 4px; border-radius: 6px;
+  padding: 9px 4px; border-radius: 3px;
   color: var(--text); font-family: var(--serif); font-size: 0.95rem;
 }
 .idx-item:hover { text-decoration: none; background: var(--panel-2); }
 .idx-item:hover .idx-title { text-decoration: underline; }
-.idx-num { flex: none; min-width: 22px; font-family: var(--mono); font-size: 0.7rem; color: var(--faint); }
-.idx-title { font-weight: 600; }
+.idx-num { flex: none; min-width: 30px; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
+.idx-copy { flex: 1; min-width: 0; }
+.idx-title { display: block; font-weight: 600; }
 .idx-blurb {
-  margin-left: auto; color: var(--faint); font-size: 0.74rem; font-family: var(--sans);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 46%;
+  display: block; color: var(--muted); font-size: 0.8rem; font-family: var(--sans); margin-top: 3px;
 }
 .idx-item .nav-check { flex: none; width: 13px; height: 13px; color: var(--acc); opacity: 0; align-self: center; }
 .idx-item.done .nav-check { opacity: 0.85; }
@@ -931,7 +931,8 @@ html:not(.js) .noscript-toc a { display: inline-block; padding: 2px 0; }
 
 /* Research chapters share the existing paper typography and both themes. */
 cite[data-source] { font: 0.78em var(--sans); font-style: normal; white-space: nowrap; }
-.research-exercise { border-block: 1px solid var(--line); padding: 14px 0; margin: 28px 0; }
+.research-exercise { border-top: 1px solid var(--line); padding: 18px 0 0; margin: 32px 0 24px; }
+.research-exercise > h3 { margin-top: 0; }
 .research-exercise summary { cursor: pointer; font-family: var(--sans); font-weight: 600; }
 .research-exercise summary:focus-visible { outline: 2px solid var(--acc); outline-offset: 4px; }
 .research-next { margin-top: 30px; font-family: var(--sans); }

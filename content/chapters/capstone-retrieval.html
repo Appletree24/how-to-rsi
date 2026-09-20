@@ -1,15 +1,15 @@
 <section class="chapter" id="ch-capstone-retrieval">
-  <span class="ch-kicker">实战主线 P3 · 第 3 周 · 前置：P2、排序与向量基础</span>
-  <h1>检索与记忆：把回答错误拆成可以修的部分</h1>
-  <p class="lead">这一阶段扩展 RepoOps 的文档数量和版本冲突，使简单词匹配开始失败。目标不是尽快接上向量数据库，而是能证明是哪一段检索/上下文改动改善了最终任务。</p>
-  <h2>当前基线与需要突破的地方</h2>
-  <p><code>Corpus.search</code> 用小写英文词的集合重合数排序，最多返回 5 个标题；它不是 BM25，也没有中文分词或语义理解。英文教学夹具让机制清晰；改成中文工单、缩写和自然语言后，必须先测词法分词与同义词的影响。不要把这段代码描述为完整 RAG 引擎。</p>
-  <h2>实现顺序：每次只改变一件事</h2>
+  <span class="ch-kicker">RepoOps Lab / P3 · 第 3 周 · 前置：P2、排序与向量基础</span>
+  <h1>检索、上下文与记忆</h1>
+  <p class="lead">故障记录建议回滚，新版手册却要求扩容连接池。增加文档版本与干扰内容后，单纯的词匹配会开始失效。本章逐项比较检索排序、上下文组装和记忆的影响。</p>
+  <h2>词匹配基线的限制</h2>
+  <p><code>Corpus.search</code> 用小写英文词的集合重合数排序，最多返回 5 个标题；它不是 BM25，也没有中文分词或语义理解。英文教学夹具让机制清晰；改成中文工单、缩写和自然语言后，必须先测词法分词与同义词的影响。</p>
+  <h2>从词匹配到混合检索</h2>
   <ol>
     <li><strong>检索契约。</strong>输出 <code>doc_id, revision, chunk_id, score, source</code>，引用映射到不可变文档版本；同一内容重新分块不能让原有引用失效。</li>
     <li><strong>词法升级。</strong>实现或接入 BM25，并保留现有基线；先测试错误码、路径和函数名，因为它们常有精确匹配价值。</li>
     <li><strong>语义支路。</strong>固定 embedding 模型、归一化方法与语料 hash。用同一任务和候选池比较词法/向量/融合，而不是更换全部数据后再比较。</li>
-    <li><strong>融合与 rerank。</strong>可用课程设计的 RRF：每个排序贡献 <code>1/(k+rank)</code>，k 在开发集固定。重排只处理前 m 条，记录增加的延迟与调用量。超参数不是越复杂越好。</li>
+    <li><strong>融合与 rerank。</strong>可用 RRF 合并排序：每个排序贡献 <code>1/(k+rank)</code>，k 在开发集固定。重排只处理前 m 条，记录增加的延迟与调用量。在选择集检查这些参数是否改善了检索结果。</li>
     <li><strong>上下文预算。</strong>按证据相关性、文档有效期和 token 预算选择内容；保留任务目标、已读证据 ID 与待验证假设。不要让“摘要更短”覆盖错误码或否定词。</li>
   </ol>
   <h2>检索评估和任务评估同时做</h2>
@@ -20,9 +20,8 @@
     <tr><td>模型忽略证据？</td><td>答案正确与引用支持分别评分</td><td>oracle 证据仍错误则继续查生成/规则理解</td></tr>
   </tbody></table></div>
   <p>无答案样本的 Recall 分母为零，应单独报告拒答质量；不能把它当作完美检索。一个文档包含正确规则不代表每个引用都支持结论，P4 继续处理。</p>
-  <h2>记忆是另一份会污染实验的数据</h2>
+  <h2>记忆的版本与可见范围</h2>
   <p>短期状态保存当前任务、已经验证的事实和待办；长期记忆保存经验证的通用经验，不写入确认题答案。给 memory 记录来源、适用范围、创建时的代码/模型版本和有效期。运行测试任务时冻结记忆快照；禁止把 test_public 的评分结果回灌，再声称下一次是独立测试。</p>
   <p>第一版用 <code>memory.json</code> 即可：<code>{id, claim, evidence_ids, scope, revision}</code>。读取记忆前校验 scope；用“billing 的修复经验误用于 checkout”作失败练习。若增加 Planner/Executor，多出来的调用与上下文也进预算，先证明单 Agent 的具体瓶颈。</p>
-  <div class="research-exercise"><h3>验收</h3><p>交付检索对照表，至少有原词法、升级检索、oracle 三组，包含任务成功率、证据覆盖、延迟与成本；解释 3 个失败例。面试练习：若 Recall@5 提高、最终成功率下降，依次检查什么？参考思路是证据噪声、版本冲突、截断和生成偏差，不先笼统归咎模型。公开面经的 RAG 分阶段评估和上下文管理主题在此落成实物。<cite data-source="interview-dw"></cite><cite data-source="interview-byte"></cite></p></div>
-  <p class="research-next">下一步：<a href="#/capstone-grading">P4 评分器质量</a>。</p>
+  <div class="research-exercise"><h3>练习：解释召回提高后的掉分</h3><p>比较原词法检索、升级检索和 oracle 证据三组，记录任务成功率、证据覆盖、延迟与成本。如果 Recall@5 上升而最终成功率下降，从版本冲突、干扰内容、截断和生成错误中找出具体原因，附上 3 个失败例。</p></div>
 </section>

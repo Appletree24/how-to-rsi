@@ -1,7 +1,7 @@
 <section class="chapter" id="ch-reproducible-lab">
-  <span class="ch-kicker">研究主线 R6 · 可运行方法实验</span>
-  <h1>零 API 成本，先把评测做对</h1>
-  <p class="lead">仓库提供 Python 3.10+ 标准库实验。它演示统计与数据协议，使用合成观测，不调用模型、不执行候选代码，也不是 DGM/HGM 的能力复现。</p>
+  <span class="ch-kicker">研究笔记 / R6 · 可运行方法实验</span>
+  <h1>用合成数据练习评测</h1>
+  <p class="lead">这个 Python 实验用合成观测演示配对比较、数据检查和三态裁决。只需 Python 3.10+ 标准库，无需模型 API；结果用于理解统计方法。</p>
   <h2>十分钟运行</h2>
   <div class="codeblock"><div class="cb-head">在仓库根目录运行</div><pre data-lang="bash">python labs/eval_lab.py demo --output lab-output
 python labs/eval_lab.py compare lab-output/improvement.input.json
@@ -15,10 +15,10 @@ python -m unittest discover -s tests -v</pre></div>
     <tr><td>高分但有严重违规</td><td>reject</td><td>约束不能被平均分抵消</td></tr>
     <tr><td>高分但成本翻倍</td><td>reject</td><td>超过提前规定的 1.25 倍成本上限</td></tr>
   </tbody></table></div>
-  <h2>不要相信摘要，检查输入协议</h2>
+  <h2>检查输入与缺失样本</h2>
   <p>程序要求基线和候选拥有相同的完整 task×run 矩阵；重复 ID、缺失失败、非有限成本、非布尔结果、伪装成功的 timeout/crash 都会报错。<code>reported_score</code> 不参与计算。重复运行保留在任务簇内，不被当成更多独立任务。</p>
   <p><code>candidate_frozen: true</code> 是调用者声明，不是程序证明；<code>confirmation</code> 标签不能证明数据从未被看过。模型、环境与评分器的全局标识是同条件比较的契约，真实运行需要外部 verifier 核实这些标识。输入文件的可修改性也意味着这个工具不能防御同账号下的恶意候选。</p>
-  <h2>从玩具实验升级到真实评测</h2>
+  <h2>接入真实 Agent 观测</h2>
   <ol>
     <li>把合成输入替换为独立 runner 的观察。逐题从干净环境运行基线和候选，保存产物与外部断言结果。</li>
     <li>把 <code>cost_units</code> 映射到预先规定的统一成本，例如 token 预算；同时额外保留搜索成本和墙钟时间。</li>
@@ -26,7 +26,7 @@ python -m unittest discover -s tests -v</pre></div>
     <li>将代码快照、模型精确版本、数据/容器 digest、完整轨迹和失败分类写进实验卡。</li>
     <li>需要处理相关任务、连续上线或自适应采样时，升级统计协议；不要直接把本 lab 的独立任务假设带过去。</li>
   </ol>
-  <p>本轮没有运行真实模型实验，所以没有声称提高任何 agent 的性能。真正的下一份成果应是一份可复核的真实任务比较，而不是把合成数字放进 leaderboard。</p>
+  <p>接入真实模型后的步骤见 <a href="#/capstone-experiments">P7</a>。合成实验只验证方法与程序，不提供真实模型的性能结论。</p>
   <h2>三个扩展作业</h2>
   <ol>
     <li>把候选数改为 1、10、100，记录开发分数与新数据分数之差。解释为什么 winner's curse 随选择加强。</li>
