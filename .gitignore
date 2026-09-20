@@ -8,3 +8,12 @@
 /lab-output/
 __pycache__/
 *.pyc
+
+# Frontend dependencies and deployment output
+/node_modules/
+/dist/
+/.vercel/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example

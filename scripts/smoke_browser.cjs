@@ -1,19 +1,27 @@
-/* Optional local QA: NODE_PATH may point to an existing Playwright install. */
+/* Exercises the production build; QA_BASE_URL can target a running dev/preview server. */
 const assert = require('node:assert/strict');
 const path = require('node:path');
-const {pathToFileURL} = require('node:url');
 const {chromium} = require('playwright');
 (async () => {
-  const browser = await chromium.launch({headless:true,
-    executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || undefined});
+  let preview;
+  let url = process.env.QA_BASE_URL;
+  if (!url) {
+    preview = await (await import('vite')).preview({preview:{host:'127.0.0.1',port:0}});
+    url = preview.resolvedUrls.local[0];
+  }
+  url = url.replace(/\/?$/, '/');
+  let browser;
   try {
+    browser = await chromium.launch({headless:true,
+      executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || undefined});
     const context = await browser.newContext({viewport:{width:1440,height:1000}});
     const page = await context.newPage();
     const errors=[];
     page.on('pageerror',e=>errors.push(e.message));
-    const url=pathToFileURL(path.resolve(__dirname,'../index.html')).href;
+    // Observe navigation rather than relying on a global data object.
     await page.goto(url);
-    const routes=await page.evaluate(()=>DSH.chapters.map(c=>c.id));
+    await page.waitForSelector('#navList a[data-ch]');
+    const routes=await page.locator('#navList a[data-ch]').evaluateAll(links=>links.map(a=>a.dataset.ch));
     for(const id of routes){
       await page.evaluate(id=>location.hash='#/'+id,id);
       await page.waitForFunction(id=>document.querySelector('#ch-'+id).classList.contains('active'),id);
@@ -47,10 +55,15 @@ const {chromium} = require('playwright');
     await page.goto(url+'#/capstone');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'capstone mobile overflow');
     assert.match(await page.locator('#ch-capstone').innerText(),/16 周/);
+    await page.goto(url+'#/eval');
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'evaluation chapter mobile overflow');
+    assert.ok(await page.locator('#ch-eval .eval-figure-scroll').evaluateAll(figures=>
+      figures.length===3&&figures.every(figure=>figure.scrollWidth>figure.clientWidth)
+    ),'evaluation diagrams should scroll inside their own containers');
     if(process.env.QA_SCREENSHOT_DIR){
       await page.screenshot({path:path.join(process.env.QA_SCREENSHOT_DIR,'research-mobile.png')});
     }
-    // Legacy interactions still mount after the additional research data is loaded.
+    // Existing interactions still initialize through the TypeScript module entry.
     await page.goto(url+'#/godel');
     assert.ok(await page.locator('#evoSim button').count()>0);
     await page.goto(url+'#/eval');
@@ -70,5 +83,8 @@ const {chromium} = require('playwright');
     assert.match(await plain.locator('#ch-evaluation-design').innerText(),/Hoeffding/);
     assert.equal(await plain.locator('[data-count="quiz"]').innerText(),'16');
     console.log(`Browser smoke passed: ${routes.length} routes, experiment, body search, themes, mobile, legacy controls, no-JS.`);
-  } finally { await browser.close(); }
+  } finally {
+    if (browser) await browser.close();
+    if (preview) await new Promise((resolve,reject)=>preview.httpServer.close(error=>error?reject(error):resolve()));
+  }
 })().catch(e=>{console.error(e);process.exitCode=1;});

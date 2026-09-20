@@ -39,11 +39,18 @@ class Page(HTMLParser):
 
 def main():
     subprocess.run([sys.executable, str(ROOT / 'scripts/build_research.py'), '--check'], check=True)
-    js = """const fs=require('fs'),vm=require('vm');const ctx={window:{}};vm.createContext(ctx);
-for(const f of ['data','research-data']) vm.runInContext(fs.readFileSync('assets/js/'+f+'.js','utf8'),ctx);
-const d=ctx.DSH;console.log(JSON.stringify({chapters:d.chapters,groups:d.packageGroups.length,
-packages:d.packageGroups.reduce((n,g)=>n+g.pkgs.length,0),quiz:d.quiz.length}));"""
-    data = json.loads(subprocess.check_output(['node', '-e', js], cwd=ROOT, text=True))
+    site = json.loads((ROOT / 'content/site-data.json').read_text())
+    chapters = list(site['chapters'])
+    after = next(i for i, chapter in enumerate(chapters) if chapter['id'] == 'carriers') + 1
+    additions = json.loads((ROOT / 'content/research-chapters.json').read_text())
+    additions += json.loads((ROOT / 'content/capstone-chapters.json').read_text())
+    chapters[after:after] = additions
+    data = {
+        'chapters': chapters,
+        'groups': len(site['packageGroups']),
+        'packages': sum(len(group['pkgs']) for group in site['packageGroups']),
+        'quiz': len(site['quiz']),
+    }
     text = (ROOT / 'index.html').read_text()
     page = Page(); page.feed(text)
     ids = set(page.ids)
@@ -73,9 +80,14 @@ packages:d.packageGroups.reduce((n,g)=>n+g.pkgs.length,0),quiz:d.quiz.length}));
                 errors.append(str(path.relative_to(ROOT)) + ': missing local link ' + link)
     for link in page.links:
         check_link(link, ROOT / 'index.html')
-    for md in ROOT.rglob('*.md'):
-        if '.git' in md.parts:
-            continue
+    # Respect .gitignore: dependency docs, build output and research scratchpads
+    # are not maintained site content. Include new, not-yet-staged Markdown too.
+    markdown = subprocess.check_output(
+        ['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z', '--', '*.md'],
+        cwd=ROOT, text=True,
+    )
+    for name in filter(None, markdown.split('\0')):
+        md = ROOT / name
         for link in re.findall(r'\]\(([^\s)]+)\)', md.read_text()):
             check_link(link, md)
     sources = json.loads((ROOT / 'content/sources.json').read_text())
@@ -90,7 +102,7 @@ packages:d.packageGroups.reduce((n,g)=>n+g.pkgs.length,0),quiz:d.quiz.length}));
         if page.counts.get(key) != str(data[key]):
             errors.append('Stale static count fallback: ' + key)
     # Guard specific corrected assertions; not a generic semantic fact checker.
-    combined = text + (ROOT / 'assets/js/data.js').read_text() + (ROOT / 'README.md').read_text()
+    combined = text + (ROOT / 'content/site-data.json').read_text() + (ROOT / 'README.md').read_text()
     for claim in ('唯一把运行时自改', '分数 × 已有子代数', '最难作弊(要长期养出好后代)', '同时破掉相邻两层才算'):
         if claim in combined:
             errors.append('Corrected assertion reintroduced: ' + claim)

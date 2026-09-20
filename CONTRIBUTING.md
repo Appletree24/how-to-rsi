@@ -16,26 +16,35 @@
 
 1. 新章节编辑 `content/chapters/<id>.html`；研究导航登记在 `content/research-chapters.json`，实战导航登记在 `content/capstone-chapters.json`。
 2. 来源登记在 `content/sources.json`，写清类型与实际核对范围。使用 `<cite data-source="id"></cite>` 引用。面试自述仅支持考察主题，技术解释需官方文档/源码；本站练习不得标为企业原题。
-3. 基础章 `rsi`、`godel`、`capmap`、`eval` 已迁入 `content/chapters/`，也由生成脚本嵌入；其余原有章节仍在 `index.html`，交互数据在 `assets/js/data.js`。不要手改生成的四个基础章，或 BEGIN/END GENERATED RESEARCH 之间的块。
-4. 运行 `python scripts/build_research.py`，提交源文件与生成物。
+3. 基础章 `rsi`、`godel`、`capmap`、`eval` 已迁入 `content/chapters/`，由生成脚本嵌入；其余原有章节仍在 `index.html`，交互数据在 `content/site-data.json`。不要手改生成的四个基础章，或 BEGIN/END GENERATED RESEARCH 之间的块。
+4. 运行 `npm run content:build`，提交源文件与生成的 `index.html`。`src/data.ts` 直接导入导航与来源 JSON；不再维护全局脚本或生成 JS 数据副本。
 
 01 中的结果表通过 `<!-- IMPROVER_RESULTS -->` 从 `labs/improver_lab.py` 的实际确定性运行生成。修改实验后，重新核对正文中的调用次数、逐步得分和解释；表格同步不代表推导自动正确。
 
-就地编辑导出的 `index.html` 是网页副本。若要把其中 01–04、R1–R8、P0–P11 的修改提交回仓库，应同步到对应的章节源文件再生成；只改生成物会在下次构建时被覆盖。
+就地编辑导出的 `index.html` 是网页副本。若要把其中 01–04、R1–R8、P0–P11 的修改提交回仓库，应同步到对应的章节源文件再生成；只改生成物会在下次内容生成时被覆盖。
 
 ## 必需检查
 
 ```sh
-python scripts/check_content.py
+npm ci
+npm run content:check
 python -m unittest discover -s tests -v
-node --check assets/js/app.js
-node --check assets/js/research.js
+npm run build
+npm run test:browser
 ```
 
-维护检查需要 Python 3.10+ 和 Node.js 18+，不需要第三方 Python 包。网页仍然零运行依赖、支持 file://。
+内容生成与实验使用 Python 3.10+ 标准库；前端使用 Node.js 22（至少 22.12）与严格 TypeScript。`npm run dev` 启动开发服务，`npm run build` 先检查类型再生成静态 `dist/`，`npm run preview` 预览生产产物。不要用类型抑制或 `any` 代替 DOM / 状态边界建模。
 
-本地如有 Playwright 与 Chromium，可运行 `node scripts/smoke_browser.cjs` 做路由、搜索、实验与无 JS 检查。可用 `NODE_PATH` 指向已有依赖；不把浏览器测试库作为网页依赖。
+首次浏览器验证先运行 `npx playwright install chromium`（Linux CI 可加 `--with-deps`），然后运行 `npm run test:browser`。默认自动启动已构建的 `dist/` 预览；`QA_BASE_URL` 可指定已有服务。不再以 `file://` 运行模块脚本。
 
 若使用已有 Chrome 安装，可用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` 指定可执行文件；`QA_SCREENSHOT_DIR` 可指定截图目录。
 
 不要随意更换旧章节 ID 或 localStorage key，以免破坏书签与学习记录。新增内容要支持亮暗主题、键盘访问、移动端与静态正文降级。
+
+## 发布边界
+
+Vercel 的构建只依赖 Node，不在部署过程中执行 Python 实验。CI 的生成一致性检查要求章节源文与提交的 `index.html` 同步。
+
+`vite.config.ts` 随网页发布明确链接的教学文件及 Markdown 的本地链接目标，避免实验源码与模板上线后 404；没有链接的仓库文件不会被整目录公开。新增下载链接意味着发布该文件及它引用的资料，合入前检查是否包含敏感内容。
+
+浏览器就地编辑只导出页面副本，不能更新服务器。将编辑导出的正文同步回章节源文件后，再生成、构建并推送；不要用部署产物中的 hash 资源路径替换源码入口。
