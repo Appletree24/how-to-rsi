@@ -2,18 +2,18 @@
   {
     "id": "research-contract",
     "num": "R1",
-    "title": "自修改、任务收益与递归收益",
+    "title": "检验递归收益",
     "short": "问题定义",
-    "blurb": "自修改、自改收益、递归收益；固定预算与反事实。",
+    "blurb": "共同起点、元效用、总预算、训练摊销与完整搜索重复。",
     "icon": "book",
     "module": "research"
   },
   {
     "id": "paper-lab",
     "num": "R2",
-    "title": "STOP、DGM 与 HGM",
+    "title": "STOP、DGM 与 HGM 的控制流程",
     "short": "机制精读",
-    "blurb": "档案、CMP、oracle 假设与元改进消融。",
+    "blurb": "自应用轨迹、修改者消融、父代权重与 CMP 手算。",
     "icon": "book",
     "module": "research"
   },

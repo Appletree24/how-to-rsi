@@ -19,7 +19,7 @@ DSH.meta = {
 /* ---------- 模块(学习路径分区) ---------- */
 DSH.modules = [
   { id: 'north', name: '基础概念', desc: '什么是 RSI，它在真实系统里走过了什么', icon: 'target' },
-  { id: 'cap', name: '机制与评测', desc: '把 RSI 拆成机制清单，评测是门槛，载体选型是落点', icon: 'layers' },
+  { id: 'cap', name: '机制与评测', desc: '版本、实验记录、评分规则与运行环境', icon: 'layers' },
   { id: 'align', name: '对齐与安全', desc: '让 AI 做我们真想让它做的事：失败模式、监控、元游戏、多 agent 风险、忏悔与工程护栏', icon: 'target' },
   { id: 'dsh', name: 'DSH 源码与练习', desc: '以 DSH 为案例学习运行时组合；具体 API 按版本复核', icon: 'wrench' },
 ];
@@ -27,9 +27,9 @@ DSH.modules = [
 /* ---------- 章节 ---------- */
 DSH.chapters = [
   { id: 'home', num: '⌂', title: '首页', short: '首页', blurb: '阅读入口与全部章节。', icon: 'home', module: 'north' },
-  { id: 'rsi', num: '01', title: '什么是 RSI', short: '什么是 RSI', blurb: '工作定义、概念源流与修改对象。', icon: 'target', module: 'north' },
-  { id: 'godel', num: '02', title: '哥德尔机谱系', short: '哥德尔机', blurb: '形式证明、经验自改、开放档案与谱系估计的证据边界。', icon: 'book', module: 'north' },
-  { id: 'capmap', num: '03', title: 'RSI 能力拆解', short: '能力拆解', blurb: 'RSI 六大机制(自改/状态/评估/沙箱/目标/护栏)与 DSH 包级映射。', icon: 'layers', module: 'cap' },
+  { id: 'rsi', num: '01', title: '改进程序与改进器', short: '什么是 RSI', blurb: '实际解析器、自应用、嵌套成本与分布变化。', icon: 'target', module: 'north' },
+  { id: 'godel', num: '02', title: '修改的证据与接受条件', short: '证明与测量', blurb: '切换命题、搜索景观与修改者对照。', icon: 'book', module: 'north' },
+  { id: 'capmap', num: '03', title: '追踪一次自修改实验', short: '实验记录', blurb: '修改边界、版本、观测、入档与发布、状态恢复。', icon: 'layers', module: 'cap' },
   { id: 'eval', num: '04', title: 'Agent 评测方法', short: '评测', blurb: '任务、评分器、重复运行与评测门模拟器。', icon: 'target', module: 'cap' },
   { id: 'carriers', num: '05', title: '载体对比', short: '载体对比', blurb: 'Claude Code / Codex / pi / ACP / 自写 harness：谁允许你改运行时。', icon: 'boxes', module: 'cap' },
   { id: 'alignment', num: '06', title: 'AI 对齐的目标与方法', short: '对齐', blurb: '外层与内层对齐、失败模式和研究方法。', icon: 'target', module: 'align' },
@@ -64,18 +64,18 @@ DSH.evalParadigms = [
 
 /* ---------- 常见评测基准速览(第 04 章,教学整理) ---------- */
 DSH.evalBenchmarks = [
-  { name: 'SWE-bench Verified', what: '500 题:OpenAI 联合 93 名开发者从 1699 条样本中人工筛出的真实 GitHub issue', lvl: 'L1', note: '行业标尺;固定版本、模型、任务子集和预算后才可比较论文结果' },
-  { name: 'Polyglot (Aider)', what: '编程基准；语言与任务规模请按使用版本核对', lvl: 'L1', note: '考验跨语言泛化;DGM 第二基准' },
-  { name: 'Terminal-Bench', what: '终端里的端到端系统任务(从源码编内核、训模型)', lvl: 'L1', note: '比"改代码"更贴近 agent 实际工作面' },
-  { name: 'CORE-Bench', what: '论文级计算可复现性任务(三档难度)', lvl: 'L1', note: '判分器事故现场:Opus 4.5 被刚性判分压到 42%,修评分器后 95%' },
-  { name: 'BrowseComp', what: '开放网络里"草堆找针"式检索题', lvl: 'L1', note: '设计原则:答案易验证、难解——防靠猜' },
-  { name: 'LiveCodeBench', what: '滚动更新的编程题', lvl: 'L1', note: '滚动更新降低部分污染风险，不能保证没有污染' },
-  { name: 'GAIA', what: '通用助理任务:联网 + 工具 + 多步推理', lvl: 'L1+L2', note: '测"会办事"而不只是"会写码"' },
-  { name: 'OSWorld / WebArena', what: '真实操作系统/浏览器任务(369/812 题)', lvl: 'L1+L2', note: '判后端状态与工件(订单真下了/文件真改了),不只判界面' },
-  { name: 'τ-bench / τ2-bench', what: '零售/航空/电信域:模拟用户多轮交互 + 政策一致性', lvl: 'L2', note: '提出 pass^k;τ2 为"双控"Dec-POMDP——用户也持工具改共享状态' },
+  { name: 'SWE-bench Verified', what: '500 题:OpenAI 联合 93 名开发者从 1699 条样本中人工筛出的真实 GitHub issue', lvl: '任务结果', note: '行业标尺;固定版本、模型、任务子集和预算后才可比较论文结果' },
+  { name: 'Polyglot (Aider)', what: '编程基准；语言与任务规模请按使用版本核对', lvl: '任务结果', note: '考验跨语言泛化;DGM 第二基准' },
+  { name: 'Terminal-Bench', what: '终端里的端到端系统任务(从源码编内核、训模型)', lvl: '任务结果', note: '比"改代码"更贴近 agent 实际工作面' },
+  { name: 'CORE-Bench', what: '论文级计算可复现性任务(三档难度)', lvl: '任务结果', note: '检查参考产物、评分规则与执行框架，避免混合不同条件的成绩' },
+  { name: 'BrowseComp', what: '开放网络里"草堆找针"式检索题', lvl: '任务结果', note: '设计原则:答案易验证、难解——防靠猜' },
+  { name: 'LiveCodeBench', what: '滚动更新的编程题', lvl: '任务结果', note: '滚动更新降低部分污染风险，不能保证没有污染' },
+  { name: 'GAIA', what: '通用助理任务:联网 + 工具 + 多步推理', lvl: '结果/交互', note: '测"会办事"而不只是"会写码"' },
+  { name: 'OSWorld / WebArena', what: '真实操作系统/浏览器任务(369/812 题)', lvl: '结果/交互', note: '判后端状态与工件(订单真下了/文件真改了),不只判界面' },
+  { name: 'τ-bench / τ2-bench', what: '零售/航空/电信域:模拟用户多轮交互 + 政策一致性', lvl: '交互/约束', note: '提出 pass^k;τ2 为"双控"Dec-POMDP——用户也持工具改共享状态' },
   { name: 'METR 长任务评测 / RE-Bench', what: '长任务与 AI 研发任务是不同设置；时长指标与固定预算研发分数分别阅读', lvl: '任务/研发', note: '任务时长指标不直接测递归收益；趋势外推需说明任务、版本与统计不确定性' },
-  { name: 'Apollo scheming / SHADE-Arena', what: '模型隐藏意图、暗中破坏能否被监控发现', lvl: 'L2+安全', note: '"把模型当对手"的评测侧实现' },
-  { name: 'impossible task 评估', what: '给不可完成任务,看模型是否假装完成', lvl: 'L2+安全', note: '直接测 reward hacking 倾向' },
+  { name: 'Apollo scheming / SHADE-Arena', what: '模型隐藏意图、暗中破坏能否被监控发现', lvl: '行为/安全', note: '"把模型当对手"的评测侧实现' },
+  { name: 'impossible task 评估', what: '给不可完成任务,看模型是否假装完成', lvl: '行为/安全', note: '直接测 reward hacking 倾向' },
 ];
 
 /* ---------- 评测门模拟器任务集(第 04 章,教学示意) ---------- */
@@ -124,97 +124,6 @@ DSH.evalProject = [
     ],
     "check": "坏候选不污染真实会话；证据不足时保留基线并如实报告。"
   }
-];
-
-/* ---------- 哥德尔机四代对照(第 02 章) ---------- */
-DSH.godelMachines = [
-  {
-    "name": "Gödel Machine",
-    "year": "2003 起",
-    "by": "Schmidhuber",
-    "gate": "依据形式公理证明有益重写",
-    "eval": "效用模型与证明搜索",
-    "status": "理论框架",
-    "key": "条件保证，不等于现实中必能及时证明"
-  },
-  {
-    "name": "Gödel Agent",
-    "year": "2024 / ACL 2025",
-    "by": "Yin 等",
-    "gate": "目标指导下修改 agent 逻辑",
-    "eval": "论文限定任务上的经验评估",
-    "status": "研究实现",
-    "key": "区分自修改能力与收益证据"
-  },
-  {
-    "name": "DGM",
-    "year": "2025 / v3 2026",
-    "by": "Zhang 等",
-    "gate": "有效候选入档；分数引导搜索",
-    "eval": "编码任务与机制消融",
-    "status": "研究实现",
-    "key": "允许暂时较弱的探索分支"
-  },
-  {
-    "name": "HGM",
-    "year": "2025 / v3",
-    "by": "Wang 等",
-    "gate": "支系潜力估计与采样",
-    "eval": "解耦展开和评估，固定预算比较",
-    "status": "研究实现",
-    "key": "oracle、在线估计与回顾统计不同"
-  }
-];
-
-/* ---------- RSI:自我改进分级阶梯(第 01 章) ---------- */
-DSH.rsiLevels = [
-  { n: 'L0', t: '外部更新', d: '一切改进都来自外部：换模型版本、换提示词、加工具。系统本身没有自我改进回路。' },
-  { n: 'L1', t: '改进提示词与知识', d: 'agent 修改自己的 system prompt、记忆、skill 文件。下一次会话受益,但不会写出新的代码能力。', cur: true },
-  { n: 'L2', t: '改进工具与技能', d: 'agent 给自己编写新工具/skill/MCP 服务器并挂载使用。能力面扩展了,但运行时的核心结构没变。' },
-  { n: 'L3', t: '改进运行时结构', d: 'agent 定义并挂载真正的插件——新增 Service、监听事件、替换 Provider。改变的是组合本身。DSH 的 cordis_define/cordis_run 正位于这一级。', cur: true },
-  { n: 'L4', t: '改进改进过程', d: 'agent 改写自己的循环、评估器、迭代策略——“如何改进”本身也在被改进。递归真正开始收拢。' },
-  { n: 'L5', t: '无约束起飞(假想)', d: '关于持续自我加速的假想，不是把前四项完成就能保证达到的级别。这是讨论最多的版本,也是工程上最需要护栏的版本。' },
-];
-
-/* ---------- RSI 能力地图(第 03 章) ---------- */
-/* st: ready=DSH 已有对应能力 / extend=有 seam 需自实现 / research=仍需探索 */
-DSH.capMap = [
-  {
-    t: '运行时自我修改', st: 'ready',
-    d: '能在进程内定义代码、挂载为真插件、给它注册服务/事件/工具,而不只是改配置文件。这是 RSI 的“手”。',
-    refs: ['tool-cordis(cordis_define/run/inspect)', 'extensions 包组', 'cordis-host-runner / cordis-client-runner'],
-    q: '可修改粒度扩大搜索空间，但不保证单位预算收益增加。',
-  },
-  {
-    t: '持久状态与记忆', st: 'ready',
-    d: '跨会话保留“我改过什么、效果如何”的事实,供下一轮改进参考。没有记忆的改进只是随机漂移。',
-    refs: ['会话日志 + 投影(ctx.sessionProjections)', 'storage / storage-sqlite', 'attachment 内容寻址存储'],
-    q: '模型可见 ⟺ 已记录——自改历史也要先落成 session event 才能被未来的自己读到。',
-  },
-  {
-    t: '自我评估与验证', st: 'extend',
-    d: '判断一次自改是进步还是退步:行为断言、回归对比、录制回放。没有评估的 RSI 等于闭眼开车。',
-    refs: ['快照测试体系(snapshots/)', '重复调用守卫 / 超时策略(guard 包组)', '需要你实现:行为 eval 插件'],
-    q: '评估器本身也是插件——它可以被改进,但改进它的改进,需要更硬的评估器。',
-  },
-  {
-    t: '沙箱化执行', st: 'ready',
-    d: '自写的代码必然有 bug,可能危险:文件系统/子进程/沙箱 Provider 把“试错”关进受控世界。',
-    refs: ['ctx.sandbox(bwrap/Landlock/Seatbelt)', 'ctx.fs / ctx.subprocess seam', 'ssh 远程执行世界'],
-    q: '一次切换 Provider,整个执行世界一起搬——这是 seam 架构对安全实验的最大红利。',
-  },
-  {
-    t: '目标管理与迭代策略', st: 'extend',
-    d: 'RSI 不是一次改动,而是围绕不变目标的持续迭代:目标状态机、轮次上限、断点续跑。',
-    refs: ['goal 包组(create/update/blocked/complete)', 'tool-ralph 新鲜子会话循环', 'workflow + PTC 引擎', '需要你实现:改进策略本身'],
-    q: '回合关闭后谁决定再跑一轮?这个“谁”就是改进策略,它本身应该是可替换的插件。',
-  },
-  {
-    t: '护栏与审批', st: 'ready',
-    d: '自我修改必须穿过人类边界:需要检验候选能否影响控制域。审批、写策略、命令确认是地基,不是装饰。',
-    refs: ['用户审批(user-approval)', 'permission-presets', 'fs-observation-policy', '插件版本回滚(current/next packageId)'],
-    q: '将候选视为不可信方，验证控制域权限、日志覆盖与外部副作用。',
-  },
 ];
 
 /* ---------- 载体对比(第 05 章) ---------- */
@@ -287,21 +196,21 @@ DSH.rsiSafety = [
 
 /* ---------- 实战关卡(第 24 章) ---------- */
 DSH.experiments = [
-  { id: 'e1', lv: 'L1', t: '读图', title: '看懂自己运行在什么样的树上',
-    desc: '跑通 dsh --profile web --dump-config,找到 cordis_* 工具所在行;在网页里用 cordis_inspect_list 看 Host/Client 两侧能力目录。补的是回路的诊断相——产物是一张组合清单,交给 L2 判断注册目标落在哪层。',
+  { id: 'e1', lv: '练习01', t: '读图', title: '看懂自己运行在什么样的树上',
+    desc: '对照 --dump-config 的配置与 cordis_inspect_list 的运行时结果，记录 Host/Client 两侧实际挂载的能力，供练习02 定位注册位置。具体工具可用性按目标版本核对。',
     verify: '能说出:自己此刻的能力由哪些 bundle/patch 层叠加而来。' },
-  { id: 'e2', lv: 'L2', t: '第一次自改', title: '让 agent 给自己定义一个函数插件',
-    desc: '在会话里用 cordis_define 写一个小插件(注册一个工具或监听一个事件),cordis_run 挂载,再 cordis_stop 卸载——亲手完成一次"写代码→活在自己身体里"。补的是回路的手:define→审批→挂载→可逆卸载。',
+  { id: 'e2', lv: '练习02', t: '第一次自改', title: '让 agent 给自己定义一个函数插件',
+    desc: '定义一个注册工具或监听事件的小插件，记录 packageId，经批准后加载，再卸载并检查注册是否清理。将配置预期与实际行为逐项对照。',
     verify: '插件可挂载并卸载；注册效果被清理，外部副作用需独立核验和补偿。' },
-  { id: 'e3', lv: 'L3', t: '装上记忆', title: '给 agent 一个跨会话的自改日志',
-    desc: '用一个新插件把"每次自改的意图与结果"写成 storage 记录或 session event;新开会话让 agent 能回答"我上次改过什么、为什么"。补的是持久状态——DGM archive 的最小版,产物是 L3+ 与第 25 章复用的日志 schema。',
+  { id: 'e3', lv: '练习03', t: '装上记忆', title: '给 agent 一个跨会话的自改日志',
+    desc: '保存改动原因、父版本、新版本和结果，并在新会话中经明确的读取路径取回。练习04 将在同一份记录中关联评分运行。',
     verify: 'fork/resume 后,agent 能复述上一次自改的事实,而不是猜测。' },
-  { id: 'e4', lv: 'L3+', t: '装上评估', title: '让改进必须先通过一道自己的考试',
-    desc: '实现一个 eval 插件:自改运行后自动执行一组行为断言(如固定 prompt 的期望输出),未通过则自动回滚到 currentPackageId。补的是选择压力——评测器须处于候选权限外；不同插件名不等于隔离。',
+  { id: 'e4', lv: '练习04', t: '装上评估', title: '让改进必须先通过一道自己的考试',
+    desc: '在固定任务上比较旧、新插件，用故意注入的错误验证发布门。评分记录由候选无权覆盖的路径产生；恢复代码版本后，另查外部状态。',
     verify: '故意注入一次坏改动,看到它被评估拦下并回滚;好改动正常保留。' },
-  { id: 'e5', lv: 'L4', t: '收拢递归', title: '让改进策略本身成为可替换插件',
-    desc: '把"改什么、何时改、改完怎么验"的策略抽成一个 Service 插件:它能驱动 cordis_define → eval → rollback/keep 的完整回路,而你随时可以 patch 换策略。补的是"改进改进过程"——这是额外的元改进研究设计，不能等同于 HGM 自动重写选种规则。',
-    verify: '换掉策略插件后,同一目标下的改进行为明显不同;人类审批始终在每个回路内。' },
+  { id: 'e5', lv: '练习05', t: '替换改进策略', title: '让改进策略本身成为可替换插件',
+    desc: '将候选生成与选择策略抽成可替换的服务，保存策略版本与实际调用记录，再按 R1 设计冻结策略对照。手工替换策略只验证了扩展通道。',
+    verify: '记录新策略确实参与下一轮；在相同起点与预算下和冻结策略比较。仅替换插件还没有验证收益。' },
 ];
 
 /* ---------- 导航图标(简洁线性 SVG path, 24x24) ---------- */
@@ -690,9 +599,9 @@ DSH.quiz = [
   { q: '插件想使用一个“可选”服务(没有声明在 inject 里)，应该用？', o: ['ctx.<name> 属性直接读', 'ctx.get(name)', 'import 具体实现', 'new 一个实例'], a: 1, e: '可选服务用 ctx.get(name) 读全局服务存储；ctx.<name> 属性代理留给已声明的注入，它对拓扑敏感(源自 postmortem 0001)。' },
   { q: '单元测试中应该 mock 什么？', o: ['尽量全部 mock 保证隔离', '只 mock 昂贵或非确定性边界(LLM 适配器/网络/时钟)，下游保持真实', '只 mock 文件系统', '从不 mock'], a: 1, e: '手工替身只能证明“桥能搬字节”。保持真实的工具注册表与流水线，只把 LLM 适配器、网络、时钟这类边界换成 mock(如 MockAdapter)。' },
   { q: '以下哪条推理属于元游戏(metagaming)？', o: ['“这题考察递归，我应该用分治”', '“分析通道里的代码执行可能被监控看到，我还是手写计算吧”', '“用户想要快一点，我跳过测试”', '“上一轮我答错了，这次换个思路”'], a: 1, e: '元游戏是对“游戏外”打分/监督机制的推理：监控能否看到工具调用、隐藏测试会不会抓到绕过、评分管线如何实现——与题目本身无关。注意它不要求模型分清自己在训练还是评测，也不要求猜对机制。' },
-  { q: '外层对齐与内层对齐的区别是？', o: ['外层=模型写对代码，内层=模型跑得快', '外层=奖励/评测表达了真实意图，内层=模型学到的目标与之一致', '外层=部署安全，内层=训练安全', '两者是同义词'], a: 1, e: '外层问“我们给的目标对不对”，内层问“模型内部学的目标是不是同一个”。RLHF 只近似外层；内层失败就是 alignment faking——模型学会“表现得对齐”而非“对齐”。' },
+  { q: '外层对齐与内层对齐的区别是？', o: ['外层=模型写对代码，内层=模型跑得快', '外层=奖励/评测表达了真实意图，内层=模型学到的目标与之一致', '外层=部署安全，内层=训练安全', '两者是同义词'], a: 1, e: '外层问“我们给的目标对不对”，内层问“模型内部学的目标是不是同一个”。RLHF 只近似外层；内层问题关注学到的目标；仅凭行为自述不能确定内部目标，alignment faking 也不是所有内层失败的同义词。' },
   { q: '一个 step 和一个 turn 的关系是？', o: ['同一个概念', 'turn 包含 0..n 个 step；step = 一次模型请求 + 其工具调用', 'step 包含多个 turn', 'turn 只能有一个 step'], a: 1, e: 'step = 一次模型请求加它引发的工具执行；turn 在领取第一份输入前开启、无所“欠”时关闭，可能包含 0 个 step(如 pre-step 拒绝)。' },
-  { q: '想在运行时给 agent 加一个新工具，DSH 的正规路径是？', o: ['改 agent-loop 源码加分支', 'cordis_define 一个包注册 ToolDefinition，审批后 cordis_run 挂载', '把函数写进提示词让模型自己调用', '重启进程加载新文件'], a: 1, e: '新工具走 ctx.tools.register(经 ctx.effect 返回 disposer)；运行时自改用 cordis_define 产不可变 packageId，cordis_run 人工审批后挂载——失败可一键回滚到 currentPackageId。' },
+  { q: '想在运行时给 agent 加一个新工具，DSH 的正规路径是？', o: ['改 agent-loop 源码加分支', 'cordis_define 一个包注册 ToolDefinition，审批后 cordis_run 挂载', '把函数写进提示词让模型自己调用', '重启进程加载新文件'], a: 1, e: '新工具走 ctx.tools.register(经 ctx.effect 返回 disposer)；运行时自改用 cordis_define 产不可变 packageId，cordis_run 人工审批后挂载——代码版本可指回 currentPackageId；外部状态和副作用需要另行恢复。' },
   { q: 'DSH 里 plugin_manager 工具由谁提供、干什么？', o: ['dsh-tool-cordis，读运行时 API', 'dsh-plugin-manager(boot 组)，管理当前 profile 的插件/bundle 启用与安装', 'dsh-bundle-base，编译插件', 'dsh-ui-cordis，渲染插件面板'], a: 1, e: 'dsh-tool-cordis 只发货 cordis_inspect_list/query 两个只读工具；持久的插件/bundle 管理归 boot 组的 plugin-manager(提供 pluginManager 服务 + plugin_manager 工具)。运行时自改工具(define/run/stop)由 cordis-host-runner 提供，不在发货目录。' },
 ];
 

@@ -58,6 +58,16 @@
 }
 
 * { box-sizing: border-box; }
+/* Foundational lessons keep derivations, examples and tables in one reading column. */
+#ch-rsi, #ch-godel, #ch-capmap, #ch-research-contract, #ch-paper-lab {
+  max-width: var(--measure);
+}
+.tbl caption {
+  text-align: left;
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 0 0 0.65rem;
+}
 html { scroll-behavior: smooth; }
 html, body { margin: 0; padding: 0; }
 

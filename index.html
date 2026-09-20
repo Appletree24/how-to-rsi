@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="dark light">
 <script>document.documentElement.classList.add('js');</script>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/main.css?v=20260920f">
+<link rel="stylesheet" href="assets/css/main.css?v=20260920g">
 </head>
 <body>
 <a class="skip-link" href="#main">跳到正文</a>
@@ -43,9 +43,9 @@
     <div class="callout warn"><span class="t">JavaScript 已禁用</span>章节正文可直接阅读；模拟器、探索器、测验与目录导航需要启用 JavaScript 才能使用。以下为目录：</div>
     <ol class="noscript-toc">
       <li><a href="#ch-home">首页</a></li>
-      <li><a href="#ch-rsi">01 什么是 RSI</a></li>
-      <li><a href="#ch-godel">02 哥德尔机谱系</a></li>
-      <li><a href="#ch-capmap">03 RSI 能力拆解</a></li>
+      <li><a href="#ch-rsi">01 改进程序与改进器</a></li>
+      <li><a href="#ch-godel">02 修改的证据与接受条件</a></li>
+      <li><a href="#ch-capmap">03 追踪一次自修改实验</a></li>
       <li><a href="#ch-eval">04 Agent 评测方法</a></li>
       <li><a href="#ch-carriers">05 载体对比</a></li>
       <li><a href="#ch-alignment">06 AI 对齐的目标与方法</a></li>
@@ -69,8 +69,8 @@
       <li><a href="#ch-practice">24 实战关卡</a></li>
       <li><a href="#ch-evalproject">25 实战项目</a></li>
 <!-- BEGIN RESEARCH NOSCRIPT TOC -->
-<li><a href="#ch-research-contract">R1 自修改、任务收益与递归收益</a></li>
-<li><a href="#ch-paper-lab">R2 STOP、DGM 与 HGM</a></li>
+<li><a href="#ch-research-contract">R1 检验递归收益</a></li>
+<li><a href="#ch-paper-lab">R2 STOP、DGM 与 HGM 的控制流程</a></li>
 <li><a href="#ch-evaluation-design">R3 评测的统计与实验设计</a></li>
 <li><a href="#ch-evaluator-integrity">R4 评分器误差与权限隔离</a></li>
 <li><a href="#ch-research-map">R5 自我改进的几类研究方法</a></li>
@@ -113,119 +113,192 @@
 
   <!-- ============ 01 什么是 RSI ============ -->
   <section class="chapter" id="ch-rsi">
-    <span class="ch-kicker">Chapter 01 · 模块一 基础概念</span>
-    <h1>什么是 <span class="grad">RSI</span></h1>
-    <p class="lead">RSI（Recursive Self-Improvement）指递归自我改进。这里关注的结构是：一次改进的结果参与后续改进过程。实现这样的循环、取得任务收益，以及持续加速，是需要分别讨论的问题。</p>
+  <span class="ch-kicker">01 · 基础概念</span>
+  <h1>改进一个程序，与改进它的改进器</h1>
+  <p class="lead">假设服务收到配置 <code>" 3s "</code>，需要把它解析成 3000 毫秒，当前程序却返回了错误。修复解析器是一件事；让负责修复的程序以后更有效地找到补丁，是另一件事。从这两个具体对象出发，才能说清“递归”发生在哪里。</p>
 
-    <h2>三种常被混用但不同的说法</h2>
-    <div class="grid cols3">
-      <div class="card reveal d1"><h3>自我改进(浅)</h3><p>改提示词、加工具、攒记忆：能力变强，但"如何改进"的规则由外部写死、运行中不变。今天能跑的绝大多数系统停在这里——Claude Code 的 skill、ChatGPT 的记忆都是这一层。</p></div>
-      <div class="card reveal d2"><h3>递归自我改进</h3><p>改进回路也是改进对象：agent 能改写自己的工具、策略、评估器乃至循环结构，改进产物反馈到后续改进过程；是否提高改进效率需要消融验证。Gödel Agent / DGM / HGM 是真实实例——第 02 章整章讲这条谱系。</p></div>
-      <div class="card reveal d3"><h3>智能爆炸(假想)</h3><p>递归收拢到不再依赖人类批准与新数据时，能力在短周期内自我加速。这是 Good 1965 年的原始设想，至今没有任何已部署系统到达——但它定义了护栏要防的方向。</p></div>
-    </div>
-    <div class="callout law"><span class="t">判别式</span>本站用“改进产物是否反馈到后续改进过程”作为工作定义。提示词也可能控制改进策略；可替换循环却未必带来收益。可修改性、任务改进和元改进是不同命题，详见 <a href="#/research-contract">R1 的操作定义</a>。</div>
+  <h2>先有一个可以观察的错误</h2>
+  <p>本章的解析器接收非负时长：没有单位时按毫秒解释，允许 <code>ms</code> 和 <code>s</code>、首尾空白、大小写单位，以及换算后恰好为整数毫秒的小数。非法输入返回 <code>None</code>。因此 <code>"10" → 10</code>、<code>" 3s " → 3000</code>、<code>"1.5s" → 1500</code>，而 <code>"-2s"</code> 和 <code>"0.1ms"</code> 应被拒绝。这是本实验自己定义的接口，不是通用时长标准。</p>
+  <p>初始版本只识别数字串。我们准备四种人工编写的补丁：支持单位 <code>units</code>、单位转小写 <code>case</code>、去首尾空白 <code>trim</code>、支持小数 <code>decimal</code>。每个候选版本由启用了哪些补丁确定，最多有 2⁴ = 16 种。后面的“搜索”就在这 16 种真实可执行的解析器配置中进行。</p>
+  <div class="codeblock"><div class="cb-head">初始行为与完整行为</div><pre data-lang="python">Solver().parse("10")                              # 10
+Solver().parse(" 3s ")                             # None
+Solver(("units", "trim")).parse(" 3s ")             # 3000
+Solver(("units", "case")).parse(" 3s ")             # None
+Solver(("units", "decimal")).parse("1.5s")          # 1500</pre></div>
+  <p>注意最后三个版本各有适用范围。一个补丁修复了某个输入，并不能说明它在所有输入上都更有用。首先要指定需要处理的输入集合，然后测量。</p>
 
-    <h2>概念源流</h2>
-    <p>1965 年，I.J. Good(图灵的战时同事、贝叶斯统计学家)在 <em>Advances in Computers</em> 第 6 卷发表 "Speculations Concerning the First Ultraintelligent Machine"(<a href="https://quoteinvestigator.com/2022/01/04/ultraintelligent/" target="_blank" rel="noopener">原文页码 31–88 可查</a>)，写下这段被引用至今的话：</p>
-    <div class="callout info"><span class="t">思想背景（意译）</span>Good 设想了能够设计更强机器的机器，并强调保持控制这一条件。这是思想假设，不能直接当作现代系统已经完成递归加速的证据。</div>
-    <p>中间四十年有两块拼图。一块是<strong>自我改进为什么可能具有工具价值</strong>：Omohundro 2008 的 "The Basic AI Drives"(<a href="https://selfawaresystems.files.wordpress.com/2008/01/ai_drives_final.pdf" target="_blank" rel="noopener">PDF</a>)论证，特定理性行为假设下，许多目标可能产生对自保、获取资源、保持目标完整——以及<strong>改进自己</strong>，因为更聪明的自己能更好地服务原目标。Bostrom 在《Superintelligence》(2014)里把它命名为 instrumental convergence(工具性趋同)。另一块是<strong>它长什么样</strong>：Schmidhuber 1987 年的毕业论文就写了"能改自己元学习算法的元学习器"，2003 年的 Gödel Machine(<a href="https://arxiv.org/abs/cs/0309048" target="_blank" rel="noopener">arXiv:cs/0309048</a>)把它推到极限形式——整个谱系是第 02 章的主线。</p>
-    <div class="codeblock">
-      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> RSI 思想年表</div>
-      <pre data-lang="log">1965  I.J. Good：超智能机器能设计更好的机器 → "intelligence explosion"
-1987  Schmidhuber 毕业论文：自指元学习(self-referential meta-learning)
-2003  Gödel Machine：自改必须有"期望效用提升"的形式证明
-2008  Omohundro "Basic AI Drives"：自我改进是工具性趋同子目标
-2014  Bostrom《Superintelligence》：instrumental convergence 系统化
-2016/17 AlphaGo → AlphaZero：自我对弈让策略飞涨——但改进器(训练回路)本身不变，是重要反例
-2023  STOP(arXiv:2310.02304)：LLM 改进"改进代码的代码"，研究让 LLM 支持的代码改进器改进自身
-2024  Gödel Agent(arXiv:2410.04444)：monkey-patch 直接改写运行中的自己
-2025  DGM(arXiv:2505.22954)/ AlphaEvolve / HGM(arXiv:2510.21614)：档案 + 基准门槛 + 谱系指标</pre>
-    </div>
-    <p class="small muted">以 AlphaGo/AlphaZero 为例：policy 在对弈中变强，但"变强的机制"(MCTS + 训练回路 + 奖励函数)从头到尾是人写死的。它证明的是"窄域内的自我提升"，不是"对提升机制的提升"。</p>
+  <h2>固定的改进器，也能让解题器变好</h2>
+  <p>将解析器称为解题器 S。改进器 I 接收 S，提出候选，再用测试得分决定是否保留。初始改进器 I₀ 的尝试顺序是 <code>units → case → trim → decimal</code>；每次只允许尝试两个补丁。分数相同就保留原版本，失败和无效尝试也消耗一次机会。</p>
+  <p>开发集有 10 条输入。初始 S₀ 只通过数字串那一条；启用 units 后，通过数字串及两条带小写单位的输入；随后加 case，又通过一条大写单位输入。分数依次为 1/10、3/10、4/10。<strong>这里 S 变了，I 的尝试顺序和接受规则都没有变。</strong></p>
+  <div class="codeblock"><div class="cb-head">固定改进器；伪代码中的评分都使用开发集</div><pre data-lang="python">best = initial_solver
+for patch in ("units", "case"):       # 顺序固定，预算为 2
+    candidate = enable(best, patch)
+    if score(candidate) > score(best):
+        best = candidate</pre></div>
+  <p>不断执行这样的循环，分数完全可能上涨。上涨说明找到了更好的解题器；它本身还没有说明“寻找更好版本的方法”发生了改进。普通超参数搜索、固定策略的程序修复，也可以产生类似曲线。</p>
 
-    <h2>按修改对象分类</h2>
-    <p>下列 L0–L5 是本站旧有教学索引，不是学界标准、产品成熟度或能力排名。修改对象、反馈闭环与证据强度应分开描述。</p>
-    <div class="layerstack" id="rsiLevels"></div>
-    <div class="callout info"><span class="t">使用边界</span>可热加载插件说明运行时可修改，不能说明已实现递归收益。将改进器的 prompt、工具或代码替换后，都需要同预算对照。DSH 教程是实现案例，研究证据标准见 R1–R4。</div>
+  <h2>怎样给改进器本身打分</h2>
+  <p>现在想修改 I 的补丁顺序。不能拿 I 的源代码直接去解析 <code>"3s"</code>，因为它的工作是产生解析器。给 I 打分需要多走一步：从同一个空补丁版本 S₀ 开始，让 I 用两个尝试机会找出 S，然后测量这个 S 的得分。</p>
+  <div class="codeblock"><div class="cb-head">元效用：评分对象是改进器，观测来自它产生的解题器</div><pre data-lang="text">U(S) = 解析器在指定任务集上的通过比例
+M(I) = U(从 S₀ 出发、由 I 用两个补丁机会得到的解析器)
 
-    <h2>一个 RSI 回路的最小形状</h2>
-    <p>无论哪一级，工程化 RSI 都由同一组零件组成——拆开看，每一格在真实系统里都有对应物：</p>
-    <div class="codeblock">
-      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> RSI loop(示意)</div>
-      <pre data-lang="log">目标(不变) → 诊断现状 → 提出改动 → 沙箱执行
-     → 评估效果 → 保留 or 回滚 → 记入日志 → 下一轮</pre>
-    </div>
-    <div class="tbl-wrap">
-      <table class="tbl">
-        <thead><tr><th>部件</th><th>职责</th><th>缺失的后果</th><th>真实系统里的样子</th></tr></thead>
-        <tbody>
-          <tr><td><strong>诊断</strong></td><td>读懂自己的现状与瓶颈：读代码、读日志、读上次为什么失败</td><td>改动无的放矢，退化成随机变异</td><td>Gödel Agent 的 <code>self_inspect</code>(读运行时内存里的自己)；DGM 让父代 agent 先分析自己的 benchmark 日志再提改动</td></tr>
-          <tr><td><strong>提议</strong></td><td>生成候选改动：新代码、新工具、新策略</td><td>没有变异源，回路停摆</td><td>DGM 每代产出一个新的 Python agent 变体；STOP 让 LLM 改进"生成改进的代码"</td></tr>
-          <tr><td><strong>评估</strong></td><td>给候选改动一个可判定的分数，独立于被改进者</td><td>没有评估是随机漂移；评估可被自改则是作弊温床</td><td>DGM 用经验分数引导搜索；HGM 用支系估计分配搜索与评估资源</td></tr>
-          <tr><td><strong>保留/回滚</strong></td><td>过门槛的改动落账，不过的回到已知好版本</td><td>一次坏改动就终止整条链</td><td>DGM 档案只收"能编译且仍可自改"的个体；DSH 用不可变 packageId + <code>currentPackageId</code> 回滚</td></tr>
-          <tr><td><strong>日志</strong></td><td>把"改了什么、为什么、效果如何"写成下一轮可读的记录</td><td>下一轮没有素材，谱系无从谈起</td><td>DGM 的 archive 同时是谱系图；HGM 的在线 CMP 估计量使用支系统计；理论目标与估计量应区分</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="small muted">五个部件一个都不能省。第 03 章把它展开成六张机制卡，第 04 章专讲其中最脆弱的一个——评估；第 24–25 章逐个把它们搭出来。</p>
+I₀: units → case → trim → decimal    得到 units + case    M(I₀) = 0.4
+I₁: trim → units → case → decimal    得到 trim + units    M(I₁) = 0.8</pre></div>
+  <p>为什么 I₁ 更高？开发集里有五条带空白的输入，其中两条同时带单位。先处理空白再处理单位，能在两个机会内覆盖更多情况。原因是任务构成与补丁组合，并没有神秘的“更高智能层级”。把输入构成换掉，排序可能反过来。</p>
+  <p>这也解释了两种测试的区别：U 检查“这个程序解得怎样”；M 检查“这个改进器在规定起点和预算下，通常能得到怎样的程序”。真实系统有随机性时，M 还需要对多个起点、任务和完整搜索过程取平均。本章先用确定性例子把调用关系看清。</p>
 
-  </section>
+  <h2>让 I₀ 参与修改 I₀</h2>
+  <p>如果新顺序由人手工指定，只能说人设计了更好的改进器。配套代码做了一个受限的自应用：仍使用同一个 <code>improve</code> 过程，但把目标从 Solver 换成 Improver，并将评分函数从 U 换成 M。</p>
+  <p>同一个操作名有两种解释：对 Solver 使用 trim，表示启用去空白补丁；对 Improver 使用 trim，表示把 trim 移到尝试顺序的第一位。I₀ 按自己的顺序依次提出这四种修改，用 M 比较，最终保留 trim 优先的 I₁。下一次修复解析器时，实际执行的是 I₁ 的顺序。</p>
+  <div class="codeblock"><div class="cb-head">调用结构；完整实现见 labs/improver_lab.py</div><pre data-lang="python">def meta_utility(candidate_improver):
+    solver = improve(candidate_improver, Solver(), U, budget=2)
+    return U(solver)
+
+I1 = improve(controller=I0, target=I0, utility=meta_utility, budget=4)
+S1 = improve(controller=I1, target=Solver(), utility=U, budget=2)</pre></div>
+  <p>上面省略了计账参数，实际程序会复用已取得的得分，避免重复评分。这一轮外层调用期间 controller 固定为 I₀；返回的 I₁ 只在后续调用中接管。否则，修改“下一项操作的顺序”可能让同一次循环跳项或重复运行，连预算都难以解释。</p>
+  <p><strong>这个例子展示的是配置层面的改进器自应用。</strong>四种补丁、移动顺序的操作、接受规则和评分函数都由人写好；它没有发明新的补丁或算法。保留这些固定部分，是为了让反馈关系可以完整追踪，不能据此声称实现了开放式 RSI。</p>
+
+  <h2>运行，然后读一条完整轨迹</h2>
+  <div class="codeblock"><div class="cb-head">仓库根目录 · Python 3.10+ 标准库</div><pre data-lang="bash">python labs/improver_lab.py
+python labs/improver_lab.py --rounds 2 --output lab-output/improver/two-rounds.json</pre></div>
+  <p>默认输出在 <code>lab-output/improver/report.json</code>。<code>training.trace</code> 同时记录内层解析器修改和外层顺序修改；查看 <code>stage</code> 以区分两者。最终每一条输入的期望值、实际值和通过状态都在 <code>methods.*.results</code> 中。</p>
+  <div class="tbl-wrap"><table class="tbl"><caption>实际执行结果 · 公开的确定性解析器任务；构建网页时从实验代码生成</caption><thead><tr><th>方法</th><th>开发集</th><th>确认集</th><th>变化集</th><th>整组评分次数（训练 + 应用）</th></tr></thead><tbody><tr><td>冻结 I₀</td><td>40%</td><td>40%</td><td>80%</td><td>3（0 + 3）</td></tr><tr><td>自应用后 I₁</td><td>80%</td><td>80%</td><td>30%</td><td>18（15 + 3）</td></tr><tr><td>穷举 16 个配置</td><td>100%</td><td>100%</td><td>100%</td><td>16（0 + 16）</td></tr></tbody></table></div>
+  <p>确认集只替换了数字，沿用了开发集的格式模板；它检查同类新输入，无法支持跨任务泛化结论。变化集则增加大写单位、减少空白。I₀ 在变化集上达到 8/10，I₁ 只达到 3/10：同一个自应用过程，产生了可复现的分布外退化。</p>
+  <p>再看成本：评一个改进器，需要运行一次基线解析器和两个候选，共 3 次整组评分。外层要评初始改进器和 4 个候选，所以训练为 5 × 3 = 15 次；随后用 I₁ 修复解析器还需 3 次，总计 18 次。穷举全部 16 种配置只需 16 次，而且得分更高。因此这次实验支持“学到的顺序在两个补丁机会内更适合这些模板”，不支持“从零开始比穷举更划算”。</p>
+  <p>所有方法最后还各执行 30 次单条输入检查，用于报告三个任务集。表里的成本单位是“对 10 条开发输入评分一次”，不是秒或 token；真实模型实验要另记调用、生成、验证和超时成本。重复自应用两轮还会发现：顺序不再变化，但外层搜索仍然付费。</p>
+
+  <h2>“递归”要指向具体的反馈关系</h2>
+  <p>在上述例子中，关键是新产生的 I₁ 被拿来承担后续改进工作。它不是因为函数调用栈出现了递归语法才有这个关系；把程序改写为 while 循环，关系仍在。相反，反复调用一个从不改变的 I₀，不会因为运行一百轮就自动成为“改进器的改进”。</p>
+  <p>文献对 RSI 的范围没有完全统一的操作口径。STOP 让调用模型的改进程序自应用，同时明确其底层语言模型没有改变，因此不称为 full RSI。<cite data-source="stop"><a href="https://arxiv.org/abs/2310.02304v3" target="_blank" rel="noopener">[stop]</a></cite>本站讨论实验时会写明是哪一部分更新、谁生成修改、更新后有没有被再次使用；不根据“改的是 prompt 还是 Python 文件”判定深浅。</p>
+  <p>例如，一段 prompt 如果决定补丁提议与实验选择，它就是改进策略的一部分；修改它可能改变 I。给解题器增加一个数据库工具则可能只改变 S。记忆也一样：保存答案和保存“以后优先尝试哪些改法”，作用的位置不同。普通优化器按固定公式更新动量缓存，首先是固定学习规则下的状态演化；仅凭“内部状态变了”还不足以支持更强的元改进主张。</p>
+  <p>人类审批和外部模型属于系统的依赖条件，应单独写清。审批存在，并不会抹去 I₀ 到 I₁ 的反馈；取消审批，也不会自动让 I₁ 更有效。能改评分器是另一个研究问题：如果连衡量成绩的规则也换了，新旧分数需要外部共同标准才能比较。</p>
+
+  <h2>从局部改进到智能爆炸，还缺什么</h2>
+  <p>Good 的原始论述从“设计机器本身也是一种智力活动”出发，设想更强机器继续设计更强机器。<cite data-source="good"><a href="https://languagelog.ldc.upenn.edu/myl/Good1964.pdf" target="_blank" rel="noopener">[good]</a></cite>这给出了正反馈的动机，没有给出本章解析器会持续加速的证明。“不再使用新数据”和“不再经过人工批准”都不是由这个反馈关系推出的定义条件。</p>
+  <p>可以用一个<strong>仅作推理练习的动力学模型</strong>说明差别。设 q 是某个明确能力指标，每轮获得的平均有效增益为 g(q)，一轮所需时间为 c(q)。平均增长速度近似为 <code>dq/dτ = g(q) / c(q)</code>。模型假设指标、环境和成本函数在讨论区间内有意义；它不是现实智能的测量定律。</p>
+  <ul>
+    <li>若 g/c 是常数 a，则 <code>q(τ) = q₀ + aτ</code>。系统可以持续改进，但没有加速。</li>
+    <li>若指标上限为 1，且 g/c = a(1−q)，则 <code>q(τ) = 1 − (1−q₀)e^(−aτ)</code>。反馈仍存在，收益却逐渐耗尽。</li>
+    <li>若假设 g/c = aq²，且 q₀&gt;0，则 <code>q(τ) = q₀ / (1−aq₀τ)</code>，在理想模型中出现有限时间发散。真正需要论证的正是这个超线性假设，以及为何验证、数据、硬件与部署成本不会使它失效。</li>
+  </ul>
+  <p>本实验最多只有 16 个解析器配置，得分上限是 1，无法无限增长。真实编码基准也会饱和。若要研究持续加速，需要换成能表达新增能力的任务分布和指标，记录完整资源投入，再检验增长机制；单条开发集涨分曲线做不到这些。</p>
+
+  <h2>换一个条件，结论还成立吗</h2>
+  <details class="research-exercise"><summary>把内层预算从 2 改为 4，I₁ 的优势会怎样？</summary><p>不能只看两个顺序都“列出了四个补丁”，还要检查接受规则。若先提一个暂时无收益、却与后续补丁互补的改动，严格贪心会丢掉它。运行所有顺序并记录被拒绝的中间候选，才能判断差异来自预算还是搜索路径。这个问题会在下一章的档案搜索中再次出现。</p></details>
+  <details class="research-exercise"><summary>如果我只保存最终的 80%，丢掉训练记录，会失去什么？</summary><p>至少失去三件事：I₁ 是否实际承担后续改进、得到 I₁ 花了多少预算、I₁ 是怎样从候选中选出来的。只有最终 S 的得分，无法重建元改进的因果过程，也无法排除人为挑选最好一次结果。</p></details>
+  <details class="research-exercise"><summary>怎样把这个问题搬到 RepoOps？</summary><p>把 S 换成工单 Agent 的提示词和检索配置，把 I 换成根据失败轨迹提出配置修改的程序。先固定 I 比较 S，再让当前 I 提议自身策略的候选。对每个 I 候选，从相同的 S₀ 重跑固定预算搜索；最终任务集只在选择结束后使用。此时能复用 P1–P7 的数据、评分、计账和实验基础，但仍需真正实现候选生成与隔离执行。</p></details>
+  <p class="reading-note">源码：<a href="labs/improver_lab.py">improver_lab.py</a> · <a href="labs/improver/README.md">实验说明</a>。数学定义与对照设计见 <a href="#/research-contract">R1</a>，论文中的具体做法见 <a href="#/paper-lab">R2</a>。</p>
+</section>
 
   <!-- ============ 02 哥德尔机谱系 ============ -->
   <section class="chapter" id="ch-godel">
-    <span class="ch-kicker">Chapter 02 · 基础概念</span>
-    <h1>哥德尔机与经验自改：不同的证据标准</h1>
-    <p class="lead">这些工作共享自引用问题，却不是逐代取代的同一条技术线。先分清证明、经验测量、档案探索和搜索策略，再讨论它们对 RSI 的意义。</p>
-    <h2>Gödel Machine：结论依赖公理与效用模型</h2>
-    <p>它搜索能支持有益重写的形式证明；保证相对于形式化环境、效用和公理成立。现实瓶颈包括建模误差、证明成本和不可证明但实际有用的修改，不能概括成“永远无法触发”，也不能认为证明会自动覆盖现实目标。<a href="https://arxiv.org/abs/cs/0309048">原论文</a></p>
-    <h2>从 STOP 到 Gödel Agent：明确谁在改谁</h2>
-    <p><a href="https://arxiv.org/abs/2310.02304v3">STOP</a> 让调用语言模型的代码改进器改进自身，模型权重固定；<a href="https://arxiv.org/abs/2410.04444v4">Gödel Agent</a> 研究修改自身逻辑。二者都需要把自修改权限与改进证据区分开。不要用 Python 函数是否递归、是否能热加载来代替实验判断。</p>
-    <h2>DGM：探索档案可以包含暂时较弱的候选</h2>
-    <p><a href="https://arxiv.org/html/2505.22954v3">DGM v3</a> 在固定基础模型之上修改编码 agent。通过有效性检查的候选进入档案，分数用于引导搜索，并非“只有比父代高分才入档”。正文和附录 C.2/C.4 分别给出机制与父代采样规则；详细拆解见 <a href="#/paper-lab">R2</a>。</p>
-    <p>读性能数字时，先确认搜索子集、最终测试集、基础模型与预算。搜索时的分数、在完整基准上的复评、换更强模型后的分数回答不同问题；任何一个都不能单独证明无界递归加速。</p>
-    <h2>模拟器：贪心爬坡 vs 开放档案</h2>
-    <p>保留原来的特性位玩具模型，观察为何暂时较差的状态可能通往更好的解。它只演示搜索景观，不运行模型、不复现 DGM，也不证明所有任务都应保留所有候选。</p>
-    <div class="sim" id="evoSim"></div>
-    <h2>HGM：估计未来支系价值，不是防作弊证明</h2>
-    <p><a href="https://arxiv.org/html/2510.21614v3">HGM v3</a> 区分当前编码表现与未来改进潜力，通过支系统计引导搜索并解耦展开/评估。理论 CMP、实际估计量和回顾性实证目标要分别阅读；oracle 定理有严格假设，实际估计器不自动继承最优保证。原文“human-level”结果是特定编码基准上对人工设计 agent 的比较，不等于一般人类智能。</p>
-    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>系统</th><th>时期 / 作者</th><th>机制与边界</th><th>评估</th><th>状态</th></tr></thead><tbody id="godelTable"></tbody></table></div>
-    <h2>从论文到自己的实验</h2>
-    <p>分别维护探索档案与正在使用的版本；对新机制设置固定预算基线；用冻结改进器检验递归收益；用独立确认数据检验最终候选。框架能替换插件，只解决可修改性，不能替代这些证据。</p>
-    <p>完整主线：<a href="#/research-contract">系统定义</a> → <a href="#/paper-lab">机制精读与反事实</a> → <a href="#/evaluation-design">实验设计</a> → <a href="#/reproducible-lab">运行方法实验</a>。相邻路线见 <a href="#/research-map">研究地图</a>。</p>
-  </section>
+  <span class="ch-kicker">Chapter 02 · 基础概念</span>
+  <h1>一次修改，要凭什么被接受？</h1>
+  <p class="lead">上一章的解析器在十条输入上涨分了。现在要决定是否用它替换旧版本：证明它更好、测量它更好、保留它继续探索，分别需要什么条件？沿着这个问题，才能看清 Gödel Machine、STOP、DGM 与 HGM 的联系和分歧。</p>
+
+  <h2>先确定“更好”是关于什么的命题</h2>
+  <p>考虑给解析器加 <code>strip()</code>。如果规格允许首尾空白，而且其余输入的返回值不变，可以尝试证明这个补丁满足规格。如果服务有严格延迟要求，功能正确还不够；如果输入标准实际上禁止空白，接受它反而改变了协议。要判断修改是否有益，需要同时给出环境、目标和成本。</p>
+  <p>测试能确认 <code>" 3s "</code> 这条输入是否通过。对有限测试集全通过，仍没有覆盖任意长度的输入、未列出的 Unicode 空白或资源耗尽。形式证明可以覆盖一个明确的输入集合，但前提是实现、规格与所用公理之间的对应可靠。两种方法都不能省略“结论在哪些条件下成立”。</p>
+
+  <h2>Gödel Machine 的比较对象包含“继续寻找”</h2>
+  <p>Gödel Machine 将程序、环境假设和效用写入形式系统，并运行证明搜索。论文 §4.1 的切换条件比较的是：现在执行候选重写的期望效用，与继续当前证明搜索、等待潜在更好重写的期望效用。后者不是“永远保持旧程序”。证明通过后可以重写系统，也可以重写证明搜索本身。结论依赖一致的公理系统及其中可表达的效用模型。<cite data-source="gm"><a href="https://arxiv.org/abs/cs/0309048v5" target="_blank" rel="noopener">[gm]</a></cite></p>
+  <div class="codeblock"><div class="cb-head">切换条件的教学记法；省略论文中的形式编码</div><pre data-lang="text">证明 A ⊢ U(现在执行 switchprog | 当前状态)
+          &gt; U(继续当前证明搜索 | 当前状态)
+
+若获得上述证明，执行 switchprog。
+没有找到证明，并不等于已经证明 switchprog 无益。</pre></div>
+  <p><strong>本站算例：</strong>设当前程序还要服务 1,000 个请求，预计成功率为 0.80；一个补丁能将其提升到 0.81。若只比较功能，收益是 10 个成功请求。若寻找和验证这个补丁的时间相当于丢掉 20 个请求，净效用可能变负。另一方面，继续搜索也许能找到 0.90 的方案，却可能等不到。切换命题需要把这些机会成本写进同一个效用模型。</p>
+  <p>这个算例的成功率与成本都是假设值，不是一份形式证明。它指出了困难所在：现实 API 的漂移、用户目标变化、硬件故障，都要么进入模型，要么留在保证之外。把“程序不会违反这个形式规格”写成“它在现实中总会有益”，跨过了尚未证明的一步。</p>
+  <p>因此，论文中的最优性不能理解为“先枚举所有补丁，再挑出绝对最强者”。也不能反过来写成“证明永远无法触发”。正确的问题是：哪些假设能形式化，哪些改动能在有用的时间内得到证明，建模与证明成本怎样进入效用。</p>
+
+  <h2>STOP：把证明问题换成一个可测的元效用</h2>
+  <p>第一章的 I₀ → I₁ 对应另一种做法：运行候选改进器，看它能把下游程序改到什么程度。STOP 用调用语言模型的程序执行这类自应用，基础模型保持固定。它给出了经验搜索路线，不需要先证明每一次修改有益；相应地，有限任务上的得分也不提供 Gödel Machine 那样的形式保证。<cite data-source="stop"><a href="https://arxiv.org/abs/2310.02304v3" target="_blank" rel="noopener">[stop]</a></cite></p>
+  <p>这里有两个预算：尝试多少个改进器，以及每个改进器获得多少下游改进机会。上一章训练用了 15 次整组评分，应用又用了 3 次。若只报告应用阶段，就把学习改进器的开销隐藏了。若训练好的策略能服务很多后续任务，训练成本可以摊销，但需要把使用次数明确列出。固定规则的穷举、随机搜索和人工策略都可能是必要的基线。</p>
+
+  <h2>为什么暂时退步的候选可能值得保留</h2>
+  <p>假设一个代理有两个互补补丁：A 更换工具返回格式，B 更新读取这个格式的逻辑。单独装 A 或 B 都会破坏兼容性；同时安装才有收益。如果搜索器一次只改一个部件、且立刻丢弃所有退步候选，它到不了 A+B。也可以设计一次提交两个补丁的提议器；保留弱候选只是改变可达路径的一种办法。</p>
+  <p>下面保留原来的八位模拟器。前六位各加 1 分；第七、第八位单独出现时另扣 12 分，同时出现时另加 35 分。全零为 0 分，前六位全开为 6 分，所有位全开为 43 分。每次仅翻转一位，所以从 6 分走向 43 分必经 6−11=−5 分的状态。严格贪心不会接受这一步。</p>
+  <div class="sim" id="evoSim"></div>
+  <p>开放档案从已保留状态中均匀选父代，允许穿过低分状态，也会把有限预算浪费在弱分支上。一次 60 代运行未必找到最优值；随机轨迹不能用来估计成功率，除非重复多次并统计。这个模拟器没有语言模型，也没有会更新的改进器，因而它展示的是搜索景观，单独运行它没有证明递归收益。</p>
+
+  <h2>DGM：让已经产生的代理参与后续修改</h2>
+  <p>DGM 将可继续工作的代理保存在档案中，选择父代后执行自修改。经验分数引导父代选择；候选入档不要求先超过父代。论文还比较了“当前代理修改自己”与“始终由初始代理修改当前目标”，借此研究更新修改者的贡献。基础模型和外部档案管理并非都随代理一起改变。<cite data-source="dgm"><a href="https://arxiv.org/html/2505.22954v3" target="_blank" rel="noopener">[dgm]</a></cite></p>
+  <p>这与上面的均匀采样模拟器有两个重要差别：论文使用有偏的父代采样规则，修改操作也由代理产生。它的无开放探索对照保留最新有效后代，并不等同于模拟器的“只接受不降分”规则。把交互演示当作论文复现，会同时误读搜索方法和消融结论。</p>
+  <p><strong>一个工程上的区分：</strong>档案回答“以后还可以从哪里继续搜索”，发布版本回答“现在给用户运行哪一个”。允许前者保留较弱候选，不要求后者跟着降级。两个对象可以有不同的准入条件，详见下一章的版本与实验记录。</p>
+
+  <h2>HGM：下一份预算花在哪里？</h2>
+  <p>有了档案，新的问题是：给现有代理再做一次任务评估，还是让某条支系继续产生后代？HGM 将展开与评估分开调度，并用支系数据估计未来搜索价值。当前分数、支系的合并通过率、未来最佳后代的期望表现，分别是不同的量。<cite data-source="hgm"><a href="https://arxiv.org/html/2510.21614v3" target="_blank" rel="noopener">[hgm]</a></cite></p>
+  <p>一个当前得分一般的节点，可能处在容易产生好后代的区域；一个得分高的节点，可能已经没有便宜的改进空间。但观察到“它后来生出了好后代”，还要检查它是否被分配了更多机会。R2 会具体计算 DGM 的父代权重，并用两条支系说明 HGM 的三个口径为什么不能混用。</p>
+
+  <h2>带着一个问题去读原论文</h2>
+  <p>先选你想检验的命题，再读对应机制：若关心“什么时候有形式理由切换”，读 Gödel Machine 的切换定理与效用假设；若关心“谁修改了谁”，读 STOP 的自应用与 DGM 的冻结修改者消融；若关心“有限预算怎样分配”，读 HGM 的策略与估计器。它们不能排成一条越来越高级的能力等级。</p>
+  <details class="research-exercise"><summary>有一个 90% 的弱探索分支和一个 95% 的发布版本，是否应该删除前者？</summary><p>仅凭这两个数不能决定。先问 90% 是否在相同任务与预算下测得、是否保持继续修改的能力、是否提供尚未探索的路径，再比较继续展开它与其他候选的预期收益及成本。发布时仍可保留 95% 的版本。若两个数字来自不同评分器，连强弱比较都还没建立。</p></details>
+  <p class="reading-note">继续阅读：<a href="#/capmap">把改进过程做成可追踪的实验</a> · <a href="#/paper-lab">STOP、DGM 与 HGM 的控制流程</a>。</p>
+</section>
 
   <!-- ============ 03 RSI 能力拆解 ============ -->
   <section class="chapter" id="ch-capmap">
-    <span class="ch-kicker">Chapter 03 · 模块二 机制与评测</span>
-    <h1>RSI <span class="grad">能力拆解</span>：六项机制</h1>
-    <p class="lead">自修改需要哪些工程条件？下面按修改能力、状态、评估、隔离、目标和控制措施拆解，列出 DSH 中对应的接口与仍需补充的部分。</p>
-    <div class="callout info"><span class="t">标记</span><span class="badge d">● 已有</span> 表示 DSH 现成可用；<span class="badge o">● 需扩展</span> 表示 seam 存在但要自己实现 Provider/策略。六张卡正好对应实战关卡的六个验收维度。</div>
-    <div id="capMapGrid"></div>
+  <span class="ch-kicker">Chapter 03 · 机制与评测</span>
+  <h1>把一次自修改做成可追踪的实验</h1>
+  <p class="lead">你让 Agent 给自己加了一个工具，下次运行也确实调用了它。接下来要回答：执行的是哪个版本，改善了哪些任务，耗费多少资源，失败后能恢复到什么状态？本章把第一章的解析器实验扩展成一份可以接到 RepoOps 的工程设计。</p>
 
-    <h2>机制边界：最容易误判的三条线</h2>
-    <ul>
-      <li><strong>改文件 ≠ 改运行时</strong>。往 CLAUDE.md/记忆里写内容是 L1，写 skill/工具文件是 L2——两者改的都是"被读取的数据"。只有改动落进"决定行为生成的结构"(注册 Service、替换 Provider、挂载插件)，才是第 01 章判据里的自改。分界线测试：改动后，agent 处理同一个输入的<strong>机制</strong>变了吗，还是只是看到的材料变了？</li>
-      <li><strong>日志 ≠ 记忆</strong>。会话 transcript 是按时间排的流水账；RSI 需要的记忆是可查询的"改动 → 版本 → 分数 → 裁决"结构化记录。DGM 的 archive 之所以是进化的数据结构而非日志，正因为每个节点带着可回放的评估结果——这也是 HGM 的 CMP 能算出来的前提。</li>
-      <li><strong>自我感觉 ≠ 评估</strong>。"agent 报告它改好了"在任何一层都不算评估。DGM 两次作弊(伪造工具调用标记 → 删检测标记再伪造)用的都是同一个缝：评估信号由被改进者自己产出。评估的裁决权必须在被改进者够不到的那一侧——这是机制三与机制六的接缝，也是第 04 章整章的主题。</li>
-    </ul>
+  <h2>先画出修改边界</h2>
+  <p>在解析器实验里，Solver 的 <code>enabled</code> 决定如何解题，Improver 的 <code>order</code> 决定先尝试什么补丁。同一个 JSON 文件也能同时保存这两项。因此，文件扩展名、是否热加载、是否注册 Service，都不足以区分解题器修改与改进器修改。需要追踪数据实际控制了哪一步。</p>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>改动</th><th>实际影响</th><th>需要检查的使用点</th></tr></thead><tbody>
+    <tr><td>给任务提示增加检索说明</td><td>可能改变解题策略 S</td><td>任务调用是否加载这个提示版本</td></tr>
+    <tr><td>提示改为“先分析超时，再提候选”</td><td>如果用于候选生成，会改变 I</td><td>下一轮候选生成是否由新版本执行</td></tr>
+    <tr><td>保存过去的错误</td><td>可能只是记录，也可能进入 S 或 I</td><td>谁读取、在什么阶段读取、是否改变决策</td></tr>
+    <tr><td>替换文件系统 Provider</td><td>改变执行环境及可用操作</td><td>对照组是否仍共享相同环境条件</td></tr>
+  </tbody></table></div>
+  <p>在实际项目中，先列出允许改动的路径或字段，以及不允许改动的模型配置、任务集、计账器和评分规则。本轮如果要研究评分规则本身，就另设比较标准。不能同时改答案和答案表，再用“通过率提高”解释能力变化。</p>
 
-    <h2>缺一块会怎么样：真实系统的反例</h2>
-    <div class="tbl-wrap">
-      <table class="tbl">
-        <thead><tr><th>缺的机制</th><th>真实后果</th><th>出处</th></tr></thead>
-        <tbody>
-          <tr><td>持久状态与记忆</td><td>Gödel Agent 单线自改、无档案：一次坏改动没有祖先可回退，改进历史只在当前进程里活着</td><td><a href="https://arxiv.org/abs/2410.04444" target="_blank" rel="noopener">arXiv:2410.04444</a></td></tr>
-          <tr><td>自我评估与验证</td><td>Gödel Agent 靠"目标 + 试错"推进，方向感弱；DGM 消融显示砍掉评估门槛(只自改不验证)早期涨一点就平台化</td><td><a href="https://arxiv.org/abs/2505.22954" target="_blank" rel="noopener">arXiv:2505.22954</a></td></tr>
-          <tr><td>护栏与审批</td><td>DGM 的 reward hacking：伪造工具调用日志；加检测后下一代学会删检测标记——护栏若与被改进者同处一个上下文，本身就是改进对象</td><td><a href="https://arxiv.org/abs/2505.22954" target="_blank" rel="noopener">arXiv:2505.22954</a> 安全讨论</td></tr>
-          <tr><td>目标管理与迭代策略</td><td>SICA(另一自改 agent 方法)在 HGM 对照实验里消耗 45% 预算后反复出错，再没能产出自改——没有"评估 vs 展开"的调度，预算被无效的子代耗尽</td><td><a href="https://arxiv.org/abs/2510.21614" target="_blank" rel="noopener">arXiv:2510.21614</a></td></tr>
-        </tbody>
-      </table>
-    </div>
+  <h2>候选必须先成为一个确定的版本</h2>
+  <p>如果候选只是工作目录里不断变化的几个文件，运行记录中的“v2”没有确定含义。至少要保存父版本、内容标识、生成者版本和运行环境。第一章使用不可变 dataclass；真实代码可采用提交、制品摘要或镜像标识。标识能帮助核对内容，不能替代隔离或证明内容正确。</p>
+  <div class="codeblock"><div class="cb-head">拟议的记录结构；RepoOps 元改进扩展需自行实现</div><pre data-lang="json">{
+  "candidate_id": "candidate-017",
+  "parent_id": "candidate-009",
+  "artifact_digest": "sha256:...",
+  "improver_id": "improver-003",
+  "proposal": "reduce search scope after repeated timeout",
+  "development_run_ids": ["run-108", "run-109"],
+  "decision": "archive",
+  "decision_reason": "valid candidate; confirmation not run"
+}</pre></div>
+  <p><code>parent_id</code> 表示改的是哪个起点，<code>improver_id</code> 表示谁生成修改。二者必须分开，否则无法区分“好起点容易改”和“修改者变强”。运行记录还要指向实际评分器版本、任务集标识和配置快照；只保存结论字符串，之后无法追查分数变动是哪个条件造成的。</p>
 
-    <h2>和第 04 章怎么接</h2>
-    <p>六项机制里最晚熟的是"自我评估与验证"——它不是多写一个插件就完事，而是要回答第 04 章的三个问题：<strong>谁来评</strong>(评估器独立于被改进者)、<strong>评什么</strong>(结果正确性 → 过程轨迹 → 谱系元生产力三级)、<strong>怎么防作弊</strong>(评估器不可自改、评测在隔离环境跑、看轨迹不只看输出)。其余五项是手脚与骨架，评估是回路里承担裁决的大脑：DGM 和 HGM 的差距不在"改自己"的能力，恰恰在评估指标——一个看自己跑分，一个看后代跑分。</p>
-    <div class="callout law"><span class="t">验收口径</span>判断六机制是否就位，别问"有没有这个包"，问"回路上缺了它会怎样"：缺自改通道 → 停在 L2；缺记忆 → 每轮从零开始；缺评估 → 随机漂移；缺沙箱 → 一次坏改动伤真系统；缺迭代策略 → 跑一轮就停；缺护栏 → 改动可能绕过审批生效。六个"缺了会怎样"就是第 24 章实战关卡的六个验收维度。</div>
-  </section>
+  <h2>一次运行至少产生三类事实</h2>
+  <p>第一类是候选做了什么：读取文件、发起检索、调用工具、写入产物。第二类是外部观测：断言通过、产物内容、退出状态、超时或权限拒绝。第三类是成本：模型调用和 token、CPU 时间、墙钟时间、验证费用。它们应通过运行 ID 关联，而不是混在一段模型自述中。</p>
+  <p>例如，候选输出“已修复 12 个工单”，但 runner 只收到 10 份完整结果，另两次超时。分母仍是预先安排的 12 个任务；超时不能从平均值中消失。若候选能写评测数据库中的 <code>passed</code> 列，记录再完整也不可信，需要先修复写权限和结果生成路径。</p>
+  <p>RepoOps 当前的规则代理与 SQLite 结果存储可以用来练习这些关联；它们不执行任意自生成代码，也不是一个现成的安全沙箱。接入候选执行时还需处理进程超时、任务目录、凭据和网络边界。仅把评分器放进另一个 Python 模块，候选仍可能读取或覆盖它。</p>
+
+  <h2>把“入档”和“发布”分成两个决定</h2>
+  <p>开发数据用于快速筛选和继续搜索；确认数据用于检验已经冻结的终选候选。两者频率和目的不同。若每生成一个候选就读取确认结果，再据此提下一次修改，确认集已经变成搜索反馈，换一个文件名不会恢复独立性。</p>
+  <div class="codeblock"><div class="cb-head">控制流草案；没有包含隔离执行实现</div><pre data-lang="python">candidate = propose(parent, improver, development_feedback)
+artifact = freeze(candidate)
+observations = run_development(artifact, fixed_runner)
+ledger.append(artifact, observations, full_cost)
+
+if valid_for_further_search(observations):
+    archive.add(artifact)  # 不要求超过当前发布版本
+
+# 在预先约定的终选时点才执行：
+selected = choose_using_development_only(archive)
+confirmation = confirm(selected, incumbent, locked_protocol)
+if confirmation.decision == "keep":
+    incumbent = selected</pre></div>
+  <p>这里的 <code>valid_for_further_search</code> 可以检查能启动、接口满足约定、仍能生成候选；它不等于“任务表现已提高”。<code>keep</code> 需要满足预先规定的质量、成本与关键错误约束。如果数据不足，<code>inconclusive</code> 也是完整结果，应保持旧发布版本，而不是勉强选胜者。</p>
+
+  <h2>回滚恢复的是什么？</h2>
+  <p>把代码指针从 v2 指回 v1，只恢复了代码选择。若 v2 已经修改数据库、写入记忆、创建外部资源或留下后台进程，v1 仍在新状态上运行。设计一次失败注入：候选先写一条错误记忆，再使任务失败；随后只回滚代码，观察后续任务是否仍读取那条记忆。这个实验能暴露“版本回退”和“环境恢复”的差别。</p>
+  <p>对离线基准，较容易的办法是每次从相同快照启动独立环境，运行结束后销毁。对真实服务，需要逐项定义事务回滚、补偿操作、兼容迁移或不可逆操作的审批。不要承诺一个通用 rollback 函数能恢复所有副作用；列明本实验实际涉及哪些状态即可。</p>
+
+  <h2>将记录接到元改进对照</h2>
+  <p>到这一步，只能证明修改可追踪。要检验新改进器 I₁，仍需回到同一批起点，分别让 I₀ 和 I₁搜索。不要让 I₁ 从 I₀ 已经优化好的末代继续，再拿两个末代分数直接比较；那样起点和累计预算都变了。</p>
+  <p>第一章的有限实验已经保存两层 trace 与评分成本。把它搬到 RepoOps 时，先让候选只修改少量检索、提示或重试参数；为每次完整搜索保存起点、候选序列、失败和终选。等这条实验链条可靠之后，再扩大可修改空间。R1 给出具体的预算与对照计算。</p>
+  <details class="research-exercise"><summary>你在面试中被问“Agent 自动优化后成功率提高 20%，怎么证明？”</summary><p>先说明这是绝对百分点还是相对增幅，再给出同任务的基线、候选冻结时点、评分规则和成本。若声称递归带来收益，还需展示冻结改进器对照，以及独立完整搜索的重复结果。展示一条失败轨迹，解释它怎样计入分母、为什么没有发布。能现场从运行 ID 追到输入、版本、断言与成本，比只展示一张汇总图更能支持自己的结论。</p></details>
+  <p class="reading-note">项目衔接：<a href="#/capstone-data">P1 数据与任务</a> · <a href="#/capstone-grading">P4 评分规则</a> · <a href="#/capstone-experiments">P7 实验对照</a>。这些链接介绍现有工程基础，上面的自动候选生成与发布控制仍是扩展设计。</p>
+</section>
 
   <!-- ============ 04 评测:RSI 的门槛 ============ -->
   <section class="chapter" id="ch-eval">
@@ -249,38 +322,38 @@
       <li><strong>环境可隔离</strong>：每次试运行从干净状态开始，上一轮写过的文件/建过的会话不会泄漏到这一轮——共享状态是评测污染最常见的来源（Anthropic 内部 eval 实测：Claude 通过读上一轮 trial 留下的 git 历史拿到不公平优势）。</li>
       <li><strong>有参考答案</strong>：出题时先自己写出一个正确解，证明这题真的可解，同时验证 grader 配置正确——很多"agent 全挂"的题其实是题出错了。</li>
     </ul>
-    <p class="small muted">一条实用判据：前沿模型跑到 pass@100 仍是 0%，大概率是<strong>题坏了</strong>而不是模型不行——回去查任务描述与判分器。这四条对应 Anthropic 八步的前两步，是把失败变成题的工艺，不是学术要求。</p>
+    <p class="small muted">若多次运行全部失败，应检查参考解、环境和评分器，也可能是模型尚不能完成任务。仅凭 pass@100 为 0，无法判断哪种解释更可能。</p>
 
     <h2>评测在改进循环中的作用</h2>
-    <p>回路是<code>目标 → 改动 → <b>评测</b> → 保留/回滚 → 记录</code>。改动由 LLM 生成（快、便宜、会出错），评测决定哪些改动能活下来——它是回路里承担裁决的部件。DGM 和 HGM 的差距就是评测的差距：DGM 看"这一代跑分高不高"，HGM 看"这一代的后代跑分高不高"。</p>
-    <div class="callout law"><span class="t">要点</span>评测是自改回路的<strong>选择压力</strong>：进化的方向、速度、甚至会不会作弊，都由评测函数的形状决定。</div>
+    <p>开发评测为候选选择提供反馈，确认评测检验冻结后的候选。DGM 使用代理档案与自修改，HGM 进一步研究展开、评估和支系价值估计的资源分配；两者的区别不能缩成“一个评自己，一个评后代”。具体控制流程与对照见 <a href="#/paper-lab">R2</a>。</p>
+    <div class="callout law"><span class="t">要点</span>评测是自改回路的<strong>选择压力</strong>：搜索结果还受候选生成方式、预算、任务构成和执行权限影响。较高代理分数未必对应更好的目标行为。</div>
 
     <h2>谁评谁：四种范式</h2>
     <div class="tbl-wrap">
       <table class="tbl">
-        <thead><tr><th>范式</th><th>谁在评</th><th>评什么</th><th>层级</th><th>防作弊性</th><th>代表</th></tr></thead>
+        <thead><tr><th>范式</th><th>谁在评</th><th>评什么</th><th>测量对象</th><th>防作弊性</th><th>代表</th></tr></thead>
         <tbody id="evalTable"></tbody>
       </table>
     </div>
-    <p class="small muted">共同点：<strong>评测者必须独立于被评者</strong>。证明、基准、谱系、人审的裁决权都不在被改进者手里。评测器一旦被自改污染，回路就退化成"自己给自己打分"。</p>
+    <p class="small muted">对可执行不可信候选的经验评测，应隔离候选与结果判定权限。这个工程要求不等于所有自改理论都假设外部裁决者；Gödel Machine 的自引用证明系统需要按它的公理与切换条件单独分析。</p>
 
     <h2>常见基准速览</h2>
     <p>基准应按目标任务分布选择；不同任务域不能组成单一的 RSI 能力阶梯：</p>
     <div class="tbl-wrap">
       <table class="tbl">
-        <thead><tr><th>基准</th><th>测什么</th><th>层级</th><th>备注</th></tr></thead>
+        <thead><tr><th>基准</th><th>测什么</th><th>测量对象</th><th>备注</th></tr></thead>
         <tbody id="evalBenchTable"></tbody>
       </table>
     </div>
-    <p class="small muted">SWE-bench Verified 的构造本身就是一次评测工程：<a href="https://openai.com/index/introducing-swe-bench-verified/" target="_blank" rel="noopener">OpenAI 联合 93 位有 Python 经验的开发者</a>，对 SWE-bench 抽出的 1699 条样本逐条人工筛查，剔掉"测试判不出正确解 / 描述欠定 / 不可复现"的题，留下 500 条无争议可判的子集——把"题先可判"做成了流程。METR 的 <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank" rel="noopener">time-horizon 方法学</a>则是另一条路：不问"对不对"，问"多长"——给每道题标定人类专家完成时长，拟合模型成功率随时长衰减的 logistic 曲线，取 50% 通过率对应的人类时长作"时间跨度"；&lt;4 分钟的题几乎全过，&gt;4 小时的题通过率 &lt;10%。把六年模型串起来，这条曲线约每 7 个月翻倍（在 SWE-bench Verified 上复现甚至更快，&lt;3 个月）——RSI 进展目前最严肃的量化代理。</p>
+    <p class="small muted"><a href="https://openai.com/index/introducing-swe-bench-verified/" target="_blank" rel="noopener">SWE-bench Verified 的人工筛查</a>说明任务描述与测试本身也需要校验。METR 的<a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank" rel="noopener">任务时间跨度指标</a>则将模型成功率与人类完成任务所需时间联系起来。它描述任务完成能力，单独使用不能识别改进器更新的贡献；研究递归收益仍需 R1 中的冻结改进器与预算对照。</p>
 
-    <h2>评什么：评测能力的三个层级</h2>
+    <h2>评什么：结果、过程与搜索价值</h2>
     <div class="grid cols3">
-      <div class="card reveal d1"><h3>L1 结果正确性</h3><p>给定输入,输出对不对——单测、断言、黄金答案。最硬、最便宜,但最容易被过拟合:模型可以"背题"。</p></div>
-      <div class="card reveal d2"><h3>L2 过程合理性</h3><p>不只问"答对了吗",还问"怎么答的"——工具调用轨迹、中间推理、副作用。能抓住"伪造成绩单"的作弊,但评测成本翻倍。</p></div>
-      <div class="card reveal d3"><h3>L3 谱系元生产力</h3><p>不评这一代,评它的后代——HGM 的支系价值估计。它仍继承底层评分器的漏洞，并受搜索预算和选择偏差影响；谱系聚合不保证防作弊。</p></div>
+      <div class="card reveal d1"><h3>结果正确性</h3><p>给定输入,输出对不对——单测、断言、黄金答案。最硬、最便宜,但最容易被过拟合:模型可以"背题"。</p></div>
+      <div class="card reveal d2"><h3>过程与副作用</h3><p>不只问"答对了吗",还问"怎么答的"——工具调用轨迹、中间推理、副作用。能抓住"伪造成绩单"的作弊,成本随观测与评分方案变化，需要单独计量。</p></div>
+      <div class="card reveal d3"><h3>支系搜索价值</h3><p>不评这一代,评它的后代——HGM 的支系价值估计。它仍继承底层评分器的漏洞，并受搜索预算和选择偏差影响；谱系聚合不保证防作弊。</p></div>
     </div>
-    <p class="small muted">实战建议：L1 是底线;L2 用来抓作弊(至少扫一遍工具调用轨迹);L3 先把 L1/L2 跑顺再谈。</p>
+    <p class="small muted">这些是不同的测量对象：先定义任务结果，再根据副作用与研究问题补充过程检查和搜索统计，不能将三者看成通用能力等级。</p>
 
     <h2>谁打分：三类评分器</h2>
     <p>Anthropic 把 grader 分三类，各自评轨迹(transcript)或结果(outcome)的一部分——关键是选对那一类：</p>
@@ -1367,27 +1440,21 @@ export function apply(ctx: Context, config: Config) {
     <p class="lead">五个 DSH 插件练习依次涉及运行时结构、插件加载、持久记忆、评测和策略替换。每关给出操作步骤与排查方法，卡片可以记录完成进度。</p>
     <div class="callout warn"><span class="t">动手前必读</span>先回第 11 章核对护栏清单：审批开启（<code>cordis_run</code> 首次激活要人点）；执行世界指向沙箱 Provider（fs/subprocess 不碰真实工作区）；每次改动产生新 packageId、<code>currentPackageId</code> 可随时 run 回滚；自改意图与结果落日志；裁决交给评估而非自我感觉。自检方法不变：把模型当对手推演——它能否用 <code>cordis_define</code> 定义一个插件来关掉审批？能，则停手。</div>
 
-    <h2>五关为什么是这个顺序</h2>
-    <p>RSI 回路的最小零件集：诊断现状 → 动手改 → 记住改了什么 → 评改得好不好 → 决定下一步改什么。五关按依赖序排——后一关直接消费前一关的产物，跳关等于在缺零件的回路里开车：</p>
-    <div class="tbl-wrap">
-      <table class="tbl">
-        <thead><tr><th>关卡</th><th>补的零件</th><th>对应机制 / 谱系</th><th>阶梯位置</th><th>产物交给谁</th></tr></thead>
-        <tbody>
-          <tr><td><b>L1 读图</b></td><td>诊断：先看清自己由什么组成</td><td>一切自改的前置——Gödel Agent 也得先读自己的代码</td><td>L3 前置</td><td>→ L2 定位改动落在哪层</td></tr>
-          <tr><td><b>L2 第一次自改</b></td><td>手：写代码 → 挂载 → 活着 → 卸载</td><td>运行时自我修改（Gödel Agent 式 monkey-patch 的工程化）</td><td>L3 入口</td><td>→ L3 的载体插件</td></tr>
-          <tr><td><b>L3 记忆</b></td><td>持久状态：自改日志跨会话可读</td><td>DGM 的 archive：版本 + 改动 + 结果都要落账</td><td>L3</td><td>→ L3+ 与第 25 章的日志 schema</td></tr>
-          <tr><td><b>L3+ 评估</b></td><td>选择压力：分数裁决改动生死</td><td>DGM 的实证门槛（SWE-bench 20→50% 的爬坡引擎）</td><td>L3 闭环</td><td>→ 第 25 章扩成三阶段管线</td></tr>
-          <tr><td><b>L4 策略插件化</b></td><td>改进改进过程：策略本身可替换</td><td>元改进研究设计：使搜索策略成为候选修改对象</td><td>L4</td><td>→ 递归本身</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="small muted">关卡标记与第 01 章阶梯不是一一映射：前两关是"能自改"的前置训练，运行时自改从第二关才开始；第四关标 L3+ 是因为评估把回路闭上了、但策略还硬编码在人手里——第五关才踏进 L4。</p>
+    <h2>练习之间怎样衔接</h2>
+    <p>下面按依赖安排五项工程练习。编号只表示练习顺序；加载插件、保存日志和替换策略各自解决一个实现问题，不构成 RSI 能力等级。</p>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>练习</th><th>本次产物</th><th>后续用途</th></tr></thead><tbody>
+      <tr><td>01 检查组合</td><td>配置与实际挂载清单</td><td>确定插件注册与读取位置</td></tr>
+      <tr><td>02 加载插件</td><td>确定版本、加载与卸载记录</td><td>为后续实验提供可重建起点</td></tr>
+      <tr><td>03 保存历史</td><td>版本、改动原因与结果关联</td><td>按运行 ID 追查观测</td></tr>
+      <tr><td>04 比较行为</td><td>固定任务上的基线与候选报告</td><td>供第 25 章的评测管线使用</td></tr>
+      <tr><td>05 替换策略</td><td>新策略参与后续改进的记录</td><td>进一步设计冻结策略对照</td></tr>
+    </tbody></table></div>
 
     <div class="exp-progress"><div class="ep-bar"><div id="expBarFill"></div></div><span id="expBarTxt" class="muted small"></span></div>
     <div id="expList"></div>
 
-    <h2>L1 · 读图：先知道"我"是谁</h2>
-    <p><strong>为什么这关存在。</strong>改自己之前必须能回答"我此刻的能力由哪些插件层叠出来"。这是回路的诊断相：DGM 每代从读取自身代码库开始，你在 DSH 里的等价物是 <code>--dump-config</code>（静态组合）加 <code>cordis_inspect_*</code>（运行时实况）。两个都要看：配置文件说"打算挂什么"，inspect 说"实际活了什么"，不一致就是第一个要查的 bug。</p>
+    <h2>练习01 · 读图：先知道"我"是谁</h2>
+    <p>检查静态配置与实际挂载情况：配置文件描述打算加载什么，运行时检视显示实际提供了什么。记录两者的不一致，再决定改动落在哪个服务或工具上；这一步只是在核对实验环境。</p>
     <p><strong>卡住时：</strong></p>
     <ul>
       <li><code>dsh --profile web --dump-config</code> 无输出或报错 → 确认 profile 名存在、Node ≥22.19；dump 是引导时打印，不是运行中查询。</li>
@@ -1395,10 +1462,10 @@ export function apply(ctx: Context, config: Config) {
       <li>Client 侧 query 一直 pending → Client 检视要等连着的浏览器页面应答；页面没开就没有答案。</li>
       <li>"找不到某服务" → ctx 键不等于包名：先 <code>Service.listService</code> 看签名目录，再查确切服务，别按包名猜。</li>
     </ul>
-    <p class="small muted">产物接力：一张当前组合清单（哪些 bundle/patch 叠出了我、cordis_* 工具在不在）——L2 写插件前用它判断注册目标在哪一层。</p>
+    <p class="small muted">产物接力：一张当前组合清单（哪些 bundle/patch 叠出了我、cordis_* 工具在不在）——练习02 写插件前用它判断注册目标在哪一层。</p>
 
-    <h2>L2 · 加载运行时插件</h2>
-    <p><strong>为什么这关存在。</strong>这是回路的最小闭环，也是与"写个脚本"的本质区别：插件挂载后真的在你体内注册了服务/工具/监听器。Gödel Agent 用 monkey-patch 无结构地做这件事；DSH 把它收敛成"定义不可变包 → 审批 → 挂载 → 可逆卸载"。多出来的那层审批摩擦就是护栏本身。</p>
+    <h2>练习02 · 加载运行时插件</h2>
+    <p>本关验证一次插件加载确实改变可调用工具或服务，并记录卸载是否回收注册。它证明扩展通道可用，尚未检验任务收益。审批行为、加载时机和卸载范围按实际使用的 DSH 版本确认。</p>
     <p><strong>卡住时：</strong></p>
     <ul>
       <li><code>cordis_define</code> 成功但什么都没发生 → define 只校验并记录源码，不执行 apply；必须 <code>cordis_run</code>。</li>
@@ -1408,10 +1475,10 @@ export function apply(ctx: Context, config: Config) {
       <li>卸载后副作用还在（同事件触发两次、工具残留）→ 有注册没走 <code>ctx.effect()</code>/<code>ctx.on()</code>；裸注册不归 fiber 管，stop 不会回收。</li>
       <li>审批被拒 → 授权判定是终局：别再发同一 package；改代码 define 新 package 再来。</li>
     </ul>
-    <p class="small muted">产物接力：一个真实跑过的 pluginId 加一次完整"挂载/停止"经验——L3 就是再写一个插件，只不过这次它写的东西要活过会话结束。</p>
+    <p class="small muted">产物接力：一个真实跑过的 pluginId 加一次完整"挂载/停止"经验——练习03 就是再写一个插件，只不过这次它写的东西要活过会话结束。</p>
 
-    <h2>L3 · 记忆：自改日志跨会话可读</h2>
-    <p><strong>为什么这关存在。</strong>DGM 的 archive 不是版本堆，是"每个版本改了什么、跑分多少"的结构化记录；没有它的改进是随机漂移。这关补回路的记忆——也是"模型可见 ⟺ 已记录"铁律的直接应用：下一轮自改要读到上一轮的事实，那事实必须先落成 session event 或 storage 记录。</p>
+    <h2>练习03 · 记忆：自改日志跨会话可读</h2>
+    <p>保存改动、版本与结果，才能重建下一轮使用了什么反馈。跨会话读回还需要明确的检索路径，数据落盘并不意味着自动进入模型上下文。</p>
     <p><strong>卡住时：</strong></p>
     <ul>
       <li>storage 服务拿不到 → 先 <code>ctx.get('storage')</code> 判 undefined；你的组合可能没挂 storage-sqlite 后端，这种情况退而用 session event。</li>
@@ -1419,10 +1486,10 @@ export function apply(ctx: Context, config: Config) {
       <li>fork/resume 后 agent"忘了"持续干活 → 这是特性：goal 激活（armed）故意不进持久日志，恢复后要人再授权才能自动续跑。</li>
       <li>日志落了账但下一轮看不到 → 落账不等于自动可见；要经 session 检索工具或投影读回，把"读回路径"也做成插件的一部分。</li>
     </ul>
-    <p class="small muted">产物接力：一份自改日志 schema（pluginId/packageId/意图/结果/时间）——L3+ 的 eval 插件往里加分数段，第 25 章的裁决日志在它上面扩。</p>
+    <p class="small muted">产物接力：一份自改日志 schema（pluginId/packageId/意图/结果/时间）——练习04 的 eval 插件往里加分数段，第 25 章的裁决日志在它上面扩。</p>
 
-    <h2>L3+ · 为插件改动加入评测</h2>
-    <p><strong>为什么这关存在。</strong>DGM 把 Gödel Machine 的证明门槛换成实证门槛：改动在基准上跑分，够格才进档案。这关把同一个选择压力装进你的回路——未通过就回滚到 <code>currentPackageId</code>。注意分界线：评估器与被改插件必须是两个插件，前者不能被后者改到。</p>
+    <h2>练习04 · 为插件改动加入评测</h2>
+    <p>给旧、新插件使用相同任务与评分规则，观察一次好改动和一次故意注入的坏改动。裁决写入候选无权覆盖的记录；两个不同插件名本身不构成隔离。代码指针恢复后，还要检查外部状态。</p>
     <p><strong>卡住时：</strong></p>
     <ul>
       <li>eval 没在挂载后触发 → <code>cordis_run</code> 的返回不是终态；监听 Run 的最终状态，或挂载后显式调用 eval 服务，别在工具调用里等浏览器侧结果。</li>
@@ -1432,15 +1499,15 @@ export function apply(ctx: Context, config: Config) {
     </ul>
     <p class="small muted">产物接力：<code>eval(version) → {score, failures[]}</code> 的最小实现——第 25 章把它扩成黄金集 / 隔离执行 / 裁决门三段。</p>
 
-    <h2>L4 · 策略插件化：改进改进过程</h2>
-    <p><strong>为什么这关存在。</strong>前四关的回路里，"改什么、何时改、改完怎么验"是人硬编码的。HGM 使用人类设计的 CMP 估计与采样策略引导搜索，不能说算法会自动改写这些规则。本关进一步尝试让策略进入修改空间：把改进策略抽成 Service 插件，回路每轮读它来决策——策略本身进入可改集合，递归开始收拢。</p>
+    <h2>练习05 · 策略插件化：改进改进过程</h2>
+    <p>将候选生成策略抽成可替换服务，并验证下一轮真的调用新版本。手动替换只能证明可修改性；若要检验元改进，需要记录策略如何产生，并与冻结策略在同一起点和预算下比较。</p>
     <p><strong>卡住时：</strong></p>
     <ul>
       <li>"策略"其实写死在宿主代码里 → 判定标准：能用 <code>cordis_run</code> update 把策略换成另一个 packageId 才算插件化。</li>
       <li>换了策略行为没变 → 检查回路是否每轮都重新读策略服务；只在启动时读一次等于没插件化。</li>
       <li>策略试图跳过审批 → 这正是护栏自检：策略插件也不应能绕过 <code>cordis_run</code> 审批；能绕过说明边界失效，回第 11 章。</li>
     </ul>
-    <p class="small muted">产物接力：一个可替换的策略 Service——此时回路的每个零件（诊断/手/记忆/评估/策略）都是插件，只剩审批在人手里。</p>
+    <p class="small muted">产物：一个可替换的策略服务与使用记录。接下来按 R1 设计共同起点、完整成本和冻结策略对照。</p>
 
     <h2>通用排查顺序</h2>
     <p>任何一关卡住，按这个顺序走，比盲目重试快：</p>
@@ -1458,7 +1525,7 @@ export function apply(ctx: Context, config: Config) {
       </table>
     </div>
 
-    <div class="callout info"><span class="t">不在 DSH 上做</span>这套关卡在任何允许运行时自改的载体上都成立：L1＝读运行时清单、L2＝一次可回滚的热挂载、L3＝自改日志、L3+＝行为门、L4＝策略可替换。pi 的 /reload extension 能走通前几级，Gödel Agent 证明过无结构自改也能跑——它们缺的是不可变版本与内置审批，这两件要自己补。DSH 只是目前把五个零件都做成默认实现的那一个。</div>
+    <p>换用其他载体时，保留版本、观测、评估与策略使用记录，再按目标版本实现加载和恢复。是否能改提示、代码或运行时组件，要检查具体接口；这些实现选择不直接决定递归收益。</p>
   </section>
 
   <!-- ============ 25 实战项目:自改评测管线 ============ -->
@@ -1558,76 +1625,124 @@ else:
 <!-- BEGIN GENERATED RESEARCH -->
 <section class="chapter" id="ch-research-contract">
   <span class="ch-kicker">研究笔记 / R1 · 问题定义</span>
-  <h1>自修改、任务收益与递归收益</h1>
-  <p class="lead">一个系统能修改自己，并不意味着修改有效。即使任务得分提高，也还需要单独检验：更新后的改进器，是否比冻结版本更有效。下面分别定义这三个命题。</p>
-  <h2>三个命题</h2>
-  <ol>
-    <li><strong>可修改性</strong>：系统能改源码、提示词、权重或持久记忆。这是操作权限与实现能力。</li>
-    <li><strong>有效改进</strong>：在预先指定的任务分布和资源约束下，新版本比旧版本更好。这需要对照与不确定性估计。</li>
-    <li><strong>递归收益</strong>：改进后的系统参与下一轮改进，并且比冻结的改进器更有效。这需要把“改进器更新”单独拿出来做消融。</li>
-  </ol>
-  <p>热加载没有验证第 2 项；benchmark 涨分没有自动验证第 3 项；第 3 项成立也没有证明无限加速。本文采用“改进产物反馈到后续改进过程”的工作定义，不要求每轮一定变好、不要求去掉所有人类参与，也不把权重必须变化当作所有论文共享的标准。STOP 自己对“full RSI”使用了更严格措辞。<cite data-source="stop"><a href="https://arxiv.org/abs/2310.02304v3" target="_blank" rel="noopener">[stop]</a></cite></p>
-  <h2>最小数学模型</h2>
-  <div class="codeblock"><div class="cb-head">记号约定</div><pre data-lang="text">S_t = (W_t, P_t, T_t, M_t, I_t)  # 权重、提示/策略、工具、记忆、改进器
-C_t = I_t(S_t, D_dev, B_search)   # 用搜索预算生成候选集合
-S_next = Select(C_t, E_fixed, D_select)
-U(S; D_target, B_infer) = E[任务得分 | 推理预算固定]
-Δ_task = U(S_next) - U(S_t)
-Δ_meta = E[U(Search(I_new, B_search))]
-       - E[U(Search(I_frozen, B_search))]</pre></div>
-  <p><code>Search</code> 的两组实验必须从同一批起点开始，使用同样的基础模型、数据可见范围与总预算；终选候选只在开发/选择数据上决定。最终评估用独立任务与完整搜索重复。否则 Δ_meta 同时混入了模型升级、更多调用或更好的初始代码，不能归因给递归。</p>
-  <p>评分器 <code>E_fixed</code> 在本次比较里固定。如果研究目标就是改进评分器，可以在另一个实验里更新它，再用独立的审计集与外部标准比较。把候选与它给自己打分的尺子一起更换，旧分数和新分数就失去共同含义。</p>
-  <h2>描述自改系统的四个维度</h2>
-  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>维度</th><th>应记录什么</th><th>常见误判</th></tr></thead><tbody>
-    <tr><td>修改对象</td><td>权重 / 上下文 / 工具 / 搜索器 / 数据生成器 / 评分器</td><td>“写代码一定比改 prompt 更深”</td></tr>
-    <tr><td>反馈闭环</td><td>只修改解题器，还是新解题器也参与下一轮修改</td><td>把普通迭代次数当递归层数</td></tr>
-    <tr><td>外部依赖</td><td>模型 API、人工选择、任务数据、预算和部署审批</td><td>有人审批就不算任何自改</td></tr>
-    <tr><td>证据强度</td><td>自述、开发集、独立确认、跨分布迁移、元改进消融</td><td>把权限更大当成能力更强</td></tr>
+  <h1>怎样把“递归带来收益”变成一个可检验命题</h1>
+  <p class="lead">第一章中，改进器的尝试顺序从 units 优先变成 trim 优先，最终解析器在同类输入上的得分由 40% 变成 80%。这个数足以回答什么，缺少什么对照才不能回答其他问题？本章从这次实验出发定义估计对象。</p>
+
+  <h2>将结构事实与效果命题分开</h2>
+  <p>可修改性可以通过代码路径和权限检查：系统是否能产生、保存并使用一个新版本。改进产物参与后续改进，是另一条可追踪的结构事实：记录中是否出现 I₀ 生成 I₁，随后 I₁ 生成下一批候选。两者都不需要保证每次得分上涨。对收益的判断需要另外设计实验。</p>
+  <p>本文将这种产物反馈到后续改进过程的关系作为工作定义，并明确哪些部分固定。文献用词并不完全一致；例如 STOP 对基础模型不变的自应用保留了“并非 full RSI”的限定。<cite data-source="stop"><a href="https://arxiv.org/abs/2310.02304v3" target="_blank" rel="noopener">[stop]</a></cite>使用共同的系统描述，比争论文件改动属于哪一“层”更容易比较实验。</p>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>主张</th><th>要观察什么</th><th>解析器实验提供了什么</th></tr></thead><tbody>
+    <tr><td>实现了配置自应用</td><td>谁生成新 I，新 I 在哪里再次使用</td><td>外层与内层 trace、I₀/I₁ 的顺序</td></tr>
+    <tr><td>解题器改善</td><td>固定任务和运行条件下 S 的差异</td><td>确认集逐条结果，0.4 → 0.8</td></tr>
+    <tr><td>新 I 更善于有限预算搜索</td><td>相同起点和搜索机会下终选 S 的表现</td><td>同一个空配置、各两次提议的比较</td></tr>
+    <tr><td>整个方法更省资源</td><td>包含训练与验证的总成本</td><td>未获支持：18 次整组评分劣于穷举的 16 次</td></tr>
+    <tr><td>跨任务递归收益</td><td>独立起点、任务族与完整搜索重复</td><td>未提供；变化集上还出现了退化</td></tr>
   </tbody></table></div>
-  <p>一个改 prompt 的系统，如果 prompt 控制下一轮的实验设计，也可能构成元级闭环；一个能替换任意 Service 的系统，如果替换后从不对照测试，只有可修改性。概念章中的 L0–L5 是教学索引；这里按各维度分别描述。</p>
-  <h2>质量与成本</h2>
-  <p>至少分开记录搜索成本、单题推理成本、验证成本和人工时间。成功率从 60% 到 70%，但每题从 1 次调用变成 20 次，可能是有价值的质量提升，却不能写成“效率提升”。应提供固定预算对比，或展示质量—成本的 Pareto 前沿：不存在另一版本同时更便宜且更准确，才叫非支配候选。</p>
-  <p>还要记录延迟分位数、超时和失败。并行线程数上升可以缩短墙钟时间，却增加总 CPU 小时；API 价格变化可以降低账单，却没有改进算法。度量需先定，不能见到哪条曲线漂亮就用哪条。</p>
-  <h2>从局部闭环到智能爆炸，还缺哪些证据</h2>
-  <p>局部改进可能遇到任务饱和、搜索空间限制、验证成本上涨、数据耗尽和收益递减。要支持“加速”，必须明确横轴：每单位时间、计算量还是资金的增益；再排除外部算力增长。有限轮次的最优值上升，也可能只是更多次随机搜索的自然结果。</p>
-  <details class="research-exercise"><summary>练习：把重试次数从 1 改成 8，算哪种改进？</summary><p>先问该策略是否由系统产生并反馈到以后，再问固定总调用预算下是否仍获益。它可能是自修改，也可能提高成功率；只有和冻结改进器、同预算搜索相比，才能讨论元改进。没有这些实验时，应报告“增加推理预算后的任务收益”。</p></details>
+
+  <h2>把搜索写成一个随机实验</h2>
+  <p>设 S₀ 是共同起点，I 是改进器，Ddev 是开发任务，B 是搜索预算，ξ 表示搜索中的随机性。一次 Search 包含候选生成、开发评估和终选，输出一个冻结的解题器。测试数据 Dtest 不参与这个选择。</p>
+  <div class="codeblock"><div class="cb-head">用于本章比较的定义</div><pre data-lang="text">S* = Search(I, S₀, Ddev, B, ξ)
+U(S*) = E[任务得分 | 目标分布，固定解题预算]
+
+Δtask = U(Snew) − U(Sold)
+Δmeta(B) = E[U(Search(Inew, S₀, Ddev, B, ξ))]
+         − E[U(Search(Ifrozen, S₀, Ddev, B, ξ))]</pre></div>
+  <p>Δtask 比较两个已经固定的解题器。Δmeta 比较两种产生解题器的方法，期望还要覆盖预先指定的起点、任务与搜索随机性。让同一个末代解题器多跑十次，只增加了任务测量，并没有形成十次独立的搜索实验。</p>
+  <p>本定义暂时条件于“已经获得 Inew”。如果 Inew 是从许多训练候选中挑出来的，训练搜索的失败与成本仍需另报。若要检验“允许 I 在多轮过程中更新”这套策略，就把整段训练与应用放进每次重复，在开始前随机分配冻结组与更新组；不能先挑出最好的一条训练轨迹，再只重复它的末代。</p>
+
+  <h2>最容易混淆的两个起点</h2>
+  <p>假设 I₀ 把 S₀ 从 20% 改到 40%，随后 I₁ 接着把它改到 60%。仅凭 40% 与 60%，无法断定 I₁ 比 I₀ 更有效：I₁ 得到了更好的起点，也使用了额外搜索预算。对照至少有两种，各回答一个不同问题。</p>
+  <ul>
+    <li>比较冻结的 I₀ 与冻结的 I₁：都从 S₀ 开始，各给 B 预算，考察学到的改进策略能否迁移到同一起点。</li>
+    <li>比较连续搜索策略：两组都从 S₀ 开始并获得同样总预算，一组始终使用 I₀，另一组允许更新 I。训练和应用开销都算在总预算内。</li>
+  </ul>
+  <p>若实际系统用的是“当前代理修改当前代理”，更新会同时改变起点和修改者。可增加交叉对照：旧修改者/新修改者分别作用于旧起点/新起点。只有观察这四种组合，才更容易区分起点收益、修改者收益及二者交互。这是本站建议的设计，并非所有论文都已做过的实验。</p>
+
+  <h2>固定预算必须具体到可计量的资源</h2>
+  <p>相同轮数并不等于相同预算。一个候选可能调用模型一次，另一个可能嵌套几十次搜索；同样 token 数也可能来自价格不同的模型。先选择与研究问题对应的主要约束，再记录其他成本，避免实验后临时更换有利的横轴。</p>
+  <p>在有限解析器实验中，一次整组评分执行十条输入。I₀ 的应用成本是 3 次评分；I₁ 的训练成本是 15 次，之后应用仍为 3 次。如果 I₁ 后续复用 K 次，平均搜索评分成本为 <code>3 + 15/K</code>；K=1 时为 18，K=15 时为 4。I₀ 仍然是每次 3。摊销缩小了差距，没有单凭这个算式证明效率超过 I₀；还要比较相应质量。</p>
+  <p>对于单次从零搜索，穷举只用 16 次评分便找到 100% 的配置。给自应用方法同样 16 次总预算，它甚至无法完成这里约定的 15 次训练加 3 次应用。当前结果只支持两次提议预算下的策略适配，不能用来声称端到端效率胜过穷举。</p>
+  <p>真实模型实验应保存累计成本曲线：在各个预算检查点，记录截至当时仅根据开发数据能选出的最佳版本。训练、被拒绝候选、超时和验证都入账。事后挑出一条好分支，却不计寻找它的其他分支，会低估搜索成本。墙钟延迟另记；并行十个工作进程可能更快完成，但并没有减少十份计算。</p>
+
+  <h2>从四次配对结果看重复的单位</h2>
+  <p><strong>下面是手算数据，不是模型实验结果。</strong>设四次独立完整搜索在相应确认任务上的结果如下；每行两组共享同一任务族与起点，但各自重跑候选生成和终选：</p>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>搜索重复</th><th>冻结组</th><th>更新组</th><th>配对差</th></tr></thead><tbody>
+    <tr><td>1</td><td>0.60</td><td>0.70</td><td>+0.10</td></tr>
+    <tr><td>2</td><td>0.70</td><td>0.70</td><td>0</td></tr>
+    <tr><td>3</td><td>0.50</td><td>0.40</td><td>−0.10</td></tr>
+    <tr><td>4</td><td>0.60</td><td>0.80</td><td>+0.20</td></tr>
+  </tbody></table></div>
+  <p>平均差为 0.05，即 5 个百分点。但四个搜索重复很少，其中还出现一次退化。把每次的 100 道题当成 400 次独立搜索，会严重夸大对搜索稳定性的了解。任务层噪声和搜索层噪声要分开处理；若任务来自同一仓库或模板，还需考虑相关性。具体估计方法见 R3，本例不据四行数据宣称显著有效。</p>
+  <p>共同起点与配对任务减少了一部分无关波动，但仅设相同随机种子不保证模型调用被有效配对：两种策略可能消耗不同数量的随机数、生成不同长度的轨迹。配对首先来自实验设计中的共同条件，不能只来自一个 seed 标签。</p>
+
+  <h2>确认集也有使用历史</h2>
+  <p>第一章的 confirm 是公开的格式变体，所有人都能看到。它适合复查代码是否对同类新数字生效，没有隐藏题目的污染保护。shift 则是预先构造的另一种格式混合，用来展示目标分布一变，结论就可能反转。二者都不是生产部署泛化的证据。</p>
+  <p>实际研究中，需要记录候选生成者和实验者看过哪些反馈。若看完确认结果再改策略、再挑阈值，下一轮就需新的确认设计，或使用事先规定的序贯协议。所谓“冻结候选”必须能由时间戳、版本与数据访问路径支持；一个布尔字段本身没有隔离能力。</p>
+
+  <h2>将主张写到证据能够支撑的范围</h2>
+  <p>本实验可以这样报告：“在公开的十条格式模板上，配置自应用学到了 trim 优先的顺序；给定两个补丁机会，确认集通过率从 4/10 提升到 8/10。包含训练时搜索成本更高，且变化集由 8/10 降到 3/10。实验未修改补丁生成算法，也未测试真实模型或仓库任务。”</p>
+  <p>这份表述同时包含机制、比较条件、收益、代价和失败。它比“实现递归自改并大幅提升智能”更具体，也为下一步实验留下明确问题：能否用更少训练成本得到同等顺序？能否在格式比例变化时识别并避免退化？能否将收益迁移到没有参与训练的任务族？</p>
+  <details class="research-exercise"><summary>怎样验证增加重试从 1 次到 8 次的收益？</summary><p>固定每题预算时，8 次重试可能已经超支；固定整体工作量时，则要比较完成率、总调用和延迟。在搜索实验中，还要让冻结改进器获得相同资源。分别报告预算增加带来的解题收益，以及策略改变在同预算下的贡献。若两者无法分离，应保留这个限制。</p></details>
+  <p class="reading-note">下一节：<a href="#/paper-lab">对照论文里的修改者、选择器与预算</a>。配套实验：<a href="labs/improver/README.md">运行与轨迹说明</a>。</p>
 </section>
 
 <section class="chapter" id="ch-paper-lab">
   <span class="ch-kicker">研究笔记 / R2 · 机制精读</span>
-  <h1>STOP、DGM 与 HGM</h1>
-  <p class="lead">这几项工作修改的对象、保留候选的方式和选择下一次修改起点的方法各不相同。下面对照它们的控制流程，重点看 DGM 的档案选择和 HGM 的谱系指标。</p>
-  <h2>修改对象与选择方法</h2>
-  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>工作</th><th>核心对象</th><th>精读入口</th><th>不能直接推出</th></tr></thead><tbody>
-    <tr><td>Gödel Machine <cite data-source="gm"><a href="https://arxiv.org/abs/cs/0309048" target="_blank" rel="noopener">[gm]</a></cite></td><td>以形式证明支持自修改</td><td>switching 条件、公理与效用建模</td><td>任意现实环境都可及时找到证明</td></tr>
-    <tr><td>STOP <cite data-source="stop"><a href="https://arxiv.org/abs/2310.02304v3" target="_blank" rel="noopener">[stop]</a></cite></td><td>让代码改进器改进自身</td><td>元效用如何由下游任务构造</td><td>基础模型也在自我训练</td></tr>
-    <tr><td>DGM <cite data-source="dgm"><a href="https://arxiv.org/html/2505.22954v3" target="_blank" rel="noopener">[dgm]</a></cite></td><td>能编辑自身的编码 agent 档案</td><td>§3、§4.3、附录 C.2/C.4/E</td><td>每个入档候选都优于父代</td></tr>
-    <tr><td>HGM <cite data-source="hgm"><a href="https://arxiv.org/html/2510.21614v3" target="_blank" rel="noopener">[hgm]</a></cite></td><td>支系潜力估计与搜索资源分配</td><td>Assumption 1、§3.2–3.3、附录 D</td><td>实际估计器继承 oracle 的最优性</td></tr>
+  <h1>沿控制流程读 STOP、DGM 与 HGM</h1>
+  <p class="lead">读完论文后，应该能够指出谁生成候选、谁决定下一个起点、评分来自哪里、哪个部件被固定。本节围绕这些具体调用展开，并把原文机制与本站算例分开。</p>
+
+  <h2>STOP：一个改进器怎样成为自己的输入</h2>
+  <p>阅读位置：v3 的 §3–4、Algorithm 1 与式 (2)。原文用下游任务的效用评价改进器，并将改进器代码作为它自己的待改对象；底层语言模型不随该过程更新。<cite data-source="stop"><a href="https://arxiv.org/abs/2310.02304v3" target="_blank" rel="noopener">[stop]</a></cite>第一章的有限配置实验借用了这个自应用关系，但没有复现论文的语言模型候选生成。</p>
+  <div class="codeblock"><div class="cb-head">控制流程的简化记法</div><pre data-lang="text">I(u, s, L) → 候选程序        # 改进器调用固定语言模型 L
+M(I) = 下游任务上 u(I(u, s, L)) 的平均
+I_next = I(M, I, L)          # 当前 I 以自身为待改程序
+
+下一轮使用 I_next，重新生成程序或改进器候选。</pre></div>
+  <p>符号位置很重要：内层的 u 衡量一个程序做题的结果，外层的 M 衡量一段“改程序的程序”。如果只给 I 的文本风格打分，就没有测量它能否产生更好的下游程序。若每次评价 M 都嵌套调用 I，元级候选的成本也不再等于一次普通任务调用。</p>
+  <p>回到本仓库源码：<code>edit</code> 对 Solver 启用补丁，对 Improver 调整补丁顺序；<code>train_improver</code> 用下游两次提议后的得分作为 M。我们可以逐项读出 I₀ 对自己的四个提议：</p>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>外层操作</th><th>候选顺序开头</th><th>两次内层提议后的得分</th><th>接受？</th></tr></thead><tbody>
+    <tr><td>初始版本</td><td>units, case</td><td>0.4</td><td>基线</td></tr>
+    <tr><td>units 移到前面</td><td>units, case</td><td>0.4</td><td>否，无变化也计成本</td></tr>
+    <tr><td>case 移到前面</td><td>case, units</td><td>0.3</td><td>否</td></tr>
+    <tr><td>trim 移到前面</td><td>trim, units</td><td>0.8</td><td>是</td></tr>
+    <tr><td>decimal 移到前面</td><td>decimal, trim</td><td>0.4</td><td>否，基于当前保留顺序提议</td></tr>
   </tbody></table></div>
-  <h2>DGM：档案与父代选择</h2>
-  <p>论文 v3 的算法把通过有效性检查的候选加入档案，不要求它即时胜过父代。其父代权重含 <code>sigmoid(10 × (score − 0.5)) / (1 + n_children)</code>，其中子代计数指仍有代码编辑能力的子代；这会抑制已经被反复展开的节点，方向不是“孩子越多越优先”。<cite data-source="dgm"><a href="https://arxiv.org/html/2505.22954v3" target="_blank" rel="noopener">[dgm]</a></cite></p>
-  <p><strong>本站分析：</strong>研究档案可以保存弱分支，用户正在使用的版本却不必随之降级。维护两个引用：<code>archive</code> 供探索，<code>incumbent</code> 供使用。若把它们都叫 keep，就会把“允许搜索暂时退步”误解为“允许生产版本退步”。</p>
-  <div class="codeblock"><div class="cb-head">教学抽象 · 不复刻具体实现</div><pre data-lang="text">parent = choose_parent(archive)
-child = improve(parent, development_feedback)
-if valid_for_further_search(child):
-    archive.add(child, parent=parent.id, evidence=development_score)
-# 另一个、低频且独立的发布决定：
-if confirm_frozen_candidate(child, incumbent) == "keep":
-    incumbent = child</pre></div>
-  <p>最关键的对照：让初始 agent 始终担任修改者，与让改进后的 agent 继续参与修改比较。还应分别关闭档案探索、打乱诊断反馈、增加普通 best-of-N 的采样预算。只有对照回答了不同问题，消融才有解释力。</p>
-  <h2>HGM：CMP 有三种不同的含义</h2>
-  <p>理论 CMP 关心未来搜索后，从某个支系终选出来的 agent 的期望效用；§3.3 的在线估计量则合并支系成功/失败计数，并配合自适应评估。附录 D 的回顾性实证目标用后代中最好的经验均值，且排除支系根。这三者不能互换。<cite data-source="hgm"><a href="https://arxiv.org/html/2510.21614v3" target="_blank" rel="noopener">[hgm]</a></cite></p>
-  <p>定理的限制包含：只关心最终 agent、试验可重复、证明不耗预算、每次自改耗一单位预算。实际系统里的有限样本估计、非平稳任务和异构计算成本并未因此得到最优性保证。</p>
-  <p><strong>本站算例：</strong>支系 A 有一个 9/10 和一个 1/10 的后代；B 有两个 6/10。按合并通过率，A=50%、B=60%；按当前最佳后代，A=90%、B=60%。指标选错会让结论反转。若给 A 的强后代再分配更多测试，合并通过率也会改变，即使没有生成更强的后代——因此必须把搜索策略和观测过程一起分析。</p>
-  <h2>一个可做的元改进实验</h2>
-  <ol>
-    <li>准备若干独立起点与任务族，固定基础模型和总调用/token 预算。</li>
-    <li>A 组冻结改进器；B 组允许更新改进器；C 组用同预算随机搜索。每组重复完整搜索轨迹，不能仅重复末代测评。</li>
-    <li>各组只在开发数据上选终选候选；对新任务集运行一次预先规定的确认实验。</li>
-    <li>报告终选效用、达到目标所需预算、失败搜索比例和成本曲线。不只展示最成功的一条轨迹。</li>
-  </ol>
-  <p>如果 B 只在训练过的仓库占优，跨仓库没有优势，应收窄为“这个任务分布上的搜索收益”。如果 B 优势在预算对齐后消失，优先接受“更多计算解释了涨分”。这些都是有价值的负结果。</p>
-  <details class="research-exercise"><summary>练习：为什么“后代越好”不一定证明祖先更会改进？</summary><p>强祖先可能获得了更多展开预算、更容易的任务、更强的外部模型或人工帮助。比较时应固定剩余预算、随机化资源分配，并用独立重复的完整搜索衡量祖先的边际贡献。仅从一棵已经选优的树做相关分析，不能单独建立因果解释。</p></details>
+  <p>为什么 case 优先只有 0.3？空解析器没有单位处理，提前启用大小写转换没有增加通过项，因此被严格贪心拒绝；接着启用 units 只得到 0.3。这个失败说明 M 受接受规则与补丁交互共同影响，不能把顺序中的某个词直接当成“好策略”。</p>
+  <p>阅读真实 STOP 结果时，也要分别记录训练任务、未见实例、跨任务迁移，以及选出了哪次运行的改进器。冻结模型仅排除了权重升级这一种解释，不能排除更多调用、元级过拟合或对个别起点的适配。R1 的完整搜索对照适用于这些疑问。</p>
+
+  <h2>DGM：修改者与被修改者原本是同一个节点</h2>
+  <p>阅读位置：v3 的 §3、§4.3、附录 C.2–C.4。DGM 在代理档案中选父代，让它产生自身代码的修改；外部档案管理与父代选择保持固定。附录 C.3 还描述了独立诊断模型生成改进建议，再交由编码代理实现的分工。不能把所有参与组件都视为正在自改的同一个程序。<cite data-source="dgm"><a href="https://arxiv.org/html/2505.22954v3" target="_blank" rel="noopener">[dgm]</a></cite></p>
+  <div class="codeblock"><div class="cb-head">突出修改者的差别；省略诊断与执行细节</div><pre data-lang="text">parent = select(archive)
+
+自修改条件：child = modify(modifier=parent, target=parent)
+冻结修改者：child = modify(modifier=initial_agent, target=parent)
+
+候选通过有效性检查后入档；任务分数影响后续选择。
+外部 select 不因 child 的代码变化而自动更新。</pre></div>
+  <p>这解释了一个容易漏掉的对照：冻结修改者不等于永远只改初始代码。它仍可以针对已经改进的 parent 工作，只是负责动手的 modifier 保持初始版本。如果两组的 target 也不同，就同时改变了两个变量。</p>
+  <p><strong>本站延伸实验：</strong>为每次修改分别保存 <code>modifier_id</code> 和 <code>target_id</code>，在同一组目标版本上比较旧、新修改者。再做整段搜索的冻结组/更新组比较：前者帮助定位局部贡献，后者回答累计预算下的方法表现。两个实验结果可以不同，因为新的修改者也会改变未来能遇到的起点。</p>
+
+  <h2>手算一次 DGM 的父代选择</h2>
+  <p>附录 C.2 的可选父代得分小于 1；其权重为 <code>sigmoid(10(α−0.5)) / (1+n)</code>，α 是表现，n 计仍有代码编辑能力的子代数，再对可选父代归一化。<cite data-source="dgm"><a href="https://arxiv.org/html/2505.22954v3" target="_blank" rel="noopener">[dgm]</a></cite>这个分母会降低已反复展开节点的权重。</p>
+  <p><strong>本站算例：</strong>假设只有两个可选父代。A 得分 0.8、已有 9 个这样的子代；B 得分 0.5、没有子代。A 的未归一化权重约为 <code>0.9526/10 = 0.0953</code>，B 为 <code>0.5/1 = 0.5</code>。归一化后 A 约 16%，B 约 84%。较高当前分数并不意味着这一次更可能被选中。</p>
+  <p>这是一条具体的探索策略，不是“子代越多越有潜力”的定理。若改变候选任务子集，α 会改变；若改变什么算可继续工作的子代，n 会改变。复现时需要连同这两项定义一起保存，不能只抄 sigmoid 公式。</p>
+  <p>还有两个阅读陷阱。其一，无开放探索消融继续使用最新有效后代，不能替换成只保留历史最高分的严格爬坡。其二，论文附录 E.1 的历史费用估算中，SWE-bench 完整方法一次运行约 22,000 美元，对照约 10,000 美元；这些是原文特定设置的估算，表明相同迭代数量不等于相同花费，也不是今天复现的报价。<cite data-source="dgm"><a href="https://arxiv.org/html/2505.22954v3" target="_blank" rel="noopener">[dgm]</a></cite>报告优势时应说明具体比较的是轮数、调用、费用还是墙钟时间。</p>
+
+  <h2>HGM：展开一个节点，还是多评一次已有节点</h2>
+  <p>阅读位置：v3 的 §2–3.3。HGM 的树策略可以选择产生新代理，也可以给已有代理增加一次任务评估，分别涉及选择、展开和评估策略。<cite data-source="hgm"><a href="https://arxiv.org/html/2510.21614v3" target="_blank" rel="noopener">[hgm]</a></cite>与“一代生成一个代理，再给所有代理相同测试量”相比，可变评估次数使搜索资源分配与观测误差相互影响。</p>
+  <p><strong>本站算例：</strong>两个代理分别测得 1/1 和 60/100。把前者视为确定的 100% 最优，会忽略它的巨大不确定性；把每个代理一律测到 100 次，又可能把预算耗在很差的候选上。一个调度器既要决定哪里可能产生好后代，也要决定哪里值得补充测量。只看最后的树，无法还原这些选择花费了多少预算。</p>
+
+  <h2>CMP：目标、在线估计与事后统计</h2>
+  <p>§3.2 的理论 CMP 是给定未来策略与预算，在一个支系中终选代理的期望效用。§3.3 的在线机制使用支系成功/失败统计引导采样。附录 D 的回顾性实证目标则看最佳后代的经验均值，并排除根节点。三者针对同一个研究问题，却不是同一个可互换的数字。<cite data-source="hgm"><a href="https://arxiv.org/html/2510.21614v3" target="_blank" rel="noopener">[hgm]</a></cite></p>
+  <p><strong>本站算例：</strong>A 支系的两个后代分别为 9/10 和 1/10；B 为 6/10 和 6/10。合并通过率为 A=50%、B=60%；当前最佳后代则为 A=90%、B=60%。指标一换，排序就反过来。未来还有多少预算、是否能再生成更好后代，这些信息尚未包含在这四个分数中，因此两种统计量都不等于理论 CMP。</p>
+  <p>再给 A 的强后代测十次，假设又通过九次。A 的合并通过率变成 <code>(9+1+9)/(10+10+10) = 63.3%</code>，现在超过 B。但没有产生新后代，已有强后代的通过率也仍是 90%。变化来自采样权重。分析这种自适应数据时，必须保留每个节点的测试次数和资源分配规则。</p>
+  <p>理论的 Assumption 1 包含只关心最终代理、可重复的任务试验、不消耗预算的证明以及单位成本自改等条件。<cite data-source="hgm"><a href="https://arxiv.org/html/2510.21614v3" target="_blank" rel="noopener">[hgm]</a></cite>部署中的修改耗时可能相差几个数量级，任务也可能漂移。实际估计器的表现需要实验支持，不能直接继承理想条件下的最优性结论。</p>
+
+  <h2>把阅读结论转成一个可执行的对照</h2>
+  <p>若在 RepoOps 上研究这一问题，可以先固定模型和候选字段，以冻结的规则改进器为起点。建立四组：固定改进器的顺序搜索、允许更新改进器、同预算随机搜索、带档案但固定改进器的搜索。根据想识别的机制选择比较，不必一次实现所有复杂方法。</p>
+  <p>每组从同一批起点开始，只读开发数据；预算到点时用事先规定的规则终选，再运行确认。记录所有完整轨迹，包括零收益与失败轨迹。若新方法只在同轮数比较中领先，而总成本对齐后优势消失，应报告这一结果。若档案有用但更新修改者无收益，则证据支持的是搜索组织方式。</p>
+  <details class="research-exercise"><summary>一篇报告只画出最优后代分数随迭代上升，能说明什么？</summary><p>首先核对曲线是否是历史最大值：这种曲线按定义不会下降。它可以说明搜索找到过哪些候选，但不能单独说明单位预算效率提高，也不能说明修改者变强。至少补上同预算固定修改者、随机搜索、完整成本和独立搜索重复。若使用后代回顾统计选择“最强祖先”，还需将这次事后选择与独立验证分开。</p></details>
+  <p class="reading-note">本文没有复现三篇论文的模型实验。第一章的配置自应用、第二章的八位搜索模型均是独立教学实验；其结果不能替代论文基准。原文版本与阅读范围见 <a href="#/research-sources">R8</a>。</p>
 </section>
 
 <section class="chapter" id="ch-evaluation-design">
@@ -1804,7 +1919,7 @@ python -m unittest discover -s tests -v</pre></div>
   <h2>论文、文档与岗位资料</h2>
   <p>“摘要/元数据”只支持路线定位；标为“全文指定章节”的条目用于相应的机制讨论。</p>
   <p>招聘原文用于分析工作能力，个人面试自述和编辑整理只用于抽取考察主题；它们不是公司官方题库，也不支持技术正确性。项目中的步骤与面试练习由本站编写，具体映射见 <a href="docs/capstone/source-map.md">实战来源说明</a>。</p>
-  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>来源</th><th>版本</th><th>阅读范围</th></tr></thead><tbody><tr><td><a href="https://arxiv.org/abs/cs/0309048" target="_blank" rel="noopener">Gödel Machines: Fully Self-Referential Optimal Universal Self-Improvers</a><br><code>gm</code></td><td>arXiv cs/0309048</td><td>摘要；形式化结论的条件边界</td></tr><tr><td><a href="https://arxiv.org/abs/2310.02304v3" target="_blank" rel="noopener">Self-Taught Optimizer (STOP)</a><br><code>stop</code></td><td>arXiv v3 · COLM 2024</td><td>摘要；改进器自应用、冻结基础模型的范围</td></tr><tr><td><a href="https://arxiv.org/html/2505.22954v3" target="_blank" rel="noopener">Darwin Gödel Machine</a><br><code>dgm</code></td><td>arXiv v3 · 2026-03-12</td><td>全文 §3、§4.2–4.4、附录 C.2/C.4/E；档案、权重方向、基准口径</td></tr><tr><td><a href="https://arxiv.org/html/2510.21614v3" target="_blank" rel="noopener">Huxley-Gödel Machine</a><br><code>hgm</code></td><td>arXiv v3 · 2025-10-29</td><td>全文 Assumption 1、§3.2–3.3、附录 D；CMP 三种口径与定理边界</td></tr><tr><td><a href="https://arxiv.org/abs/2410.04444v4" target="_blank" rel="noopener">Gödel Agent</a><br><code>godel-agent</code></td><td>arXiv v4 · ACL 2025</td><td>摘要/元数据；自修改方法定位，未复现实验</td></tr><tr><td><a href="https://arxiv.org/abs/1506.02629" target="_blank" rel="noopener">Generalization in Adaptive Data Analysis and Holdout Reuse</a><br><code>adaptive</code></td><td>arXiv 1506.02629</td><td>摘要；自适应数据复用问题定位</td></tr><tr><td><a href="https://arxiv.org/html/2107.03374v2" target="_blank" rel="noopener">Evaluating Large Language Models Trained on Code</a><br><code>humaneval</code></td><td>arXiv v2</td><td>全文 §2.1、附录 A；pass@k 的组合估计与插件估计偏差</td></tr><tr><td><a href="https://arxiv.org/html/2406.12045v1" target="_blank" rel="noopener">τ-bench: A Benchmark for Tool-Agent-User Interaction</a><br><code>tau</code></td><td>arXiv v1</td><td>全文指标部分；pass^k 可靠性口径</td></tr><tr><td><a href="https://arxiv.org/abs/2306.05685" target="_blank" rel="noopener">Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena</a><br><code>judge</code></td><td>arXiv 2306.05685</td><td>摘要；位置、冗长和自我偏好等 judge 局限</td></tr><tr><td><a href="https://arxiv.org/abs/2210.10760" target="_blank" rel="noopener">Scaling Laws for Reward Model Overoptimization</a><br><code>overoptimization</code></td><td>arXiv 2210.10760</td><td>摘要；代理奖励与目标奖励的偏离</td></tr><tr><td><a href="https://arxiv.org/abs/2312.06942" target="_blank" rel="noopener">AI Control: Improving Safety Despite Intentional Subversion</a><br><code>control</code></td><td>arXiv 2312.06942</td><td>摘要；对手模型下的控制协议定位</td></tr><tr><td><a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/SAFETY.md" target="_blank" rel="noopener">DeepSeek Harness · SAFETY.md</a><br><code>dsh-safety</code></td><td>commit ddefc45fbc7f8e46dd73185e68295696d1297887</td><td>完整文件；实验状态、未审计与隔离限制。不是全仓安全验证</td></tr><tr><td><a href="https://arxiv.org/abs/2303.17651" target="_blank" rel="noopener">Self-Refine: Iterative Refinement with Self-Feedback</a><br><code>self-refine</code></td><td>arXiv 2303.17651</td><td>摘要；推理时反馈改写，无额外训练</td></tr><tr><td><a href="https://arxiv.org/abs/2303.11366" target="_blank" rel="noopener">Reflexion: Language Agents with Verbal Reinforcement Learning</a><br><code>reflexion</code></td><td>arXiv 2303.11366</td><td>摘要；语言反馈与记忆路线</td></tr><tr><td><a href="https://arxiv.org/abs/2305.16291" target="_blank" rel="noopener">Voyager: An Open-Ended Embodied Agent</a><br><code>voyager</code></td><td>arXiv 2305.16291</td><td>摘要；课程、技能与探索路线</td></tr><tr><td><a href="https://arxiv.org/abs/2203.14465" target="_blank" rel="noopener">STaR: Bootstrapping Reasoning With Reasoning</a><br><code>star</code></td><td>arXiv 2203.14465</td><td>摘要；生成、筛选推理与微调闭环</td></tr><tr><td><a href="https://arxiv.org/abs/1703.03400" target="_blank" rel="noopener">Model-Agnostic Meta-Learning</a><br><code>maml</code></td><td>arXiv 1703.03400</td><td>摘要；快速适应的元学习定位</td></tr><tr><td><a href="https://arxiv.org/abs/2003.03384" target="_blank" rel="noopener">AutoML-Zero: Evolving Machine Learning Algorithms From Scratch</a><br><code>automl-zero</code></td><td>arXiv 2003.03384</td><td>摘要；学习算法的程序搜索路线</td></tr><tr><td><a href="https://arxiv.org/abs/2408.08435" target="_blank" rel="noopener">Automated Design of Agentic Systems</a><br><code>adas</code></td><td>arXiv 2408.08435</td><td>摘要与 DGM 相关工作；固定 meta-agent 对照定位</td></tr><tr><td><a href="https://arxiv.org/abs/1901.01753" target="_blank" rel="noopener">Paired Open-Ended Trailblazer (POET)</a><br><code>poet</code></td><td>arXiv 1901.01753</td><td>摘要；环境与解法共同演化定位</td></tr><tr><td><a href="https://deepmind.google/blog/funsearch-making-new-discoveries-in-mathematical-sciences-using-large-language-models/" target="_blank" rel="noopener">Mathematical discoveries from program search with large language models</a><br><code>funsearch</code></td><td>作者机构发布 · 2023-12-14</td><td>作者机构说明；程序搜索与外部评估定位，论文入口未成功读取</td></tr><tr><td><a href="https://code.claude.com/docs/en/sandboxing" target="_blank" rel="noopener">Claude Code · Sandboxing</a><br><code>claude-sandbox</code></td><td>产品文档 · 检查于 2026-09-19</td><td>沙箱文档；纠正旧站“无内置 OS 沙箱”的断言</td></tr><tr><td><a href="https://arxiv.org/abs/2512.08093" target="_blank" rel="noopener">Training LLMs for Honesty via Confessions</a><br><code>confessions</code></td><td>arXiv 2512.08093 · 首次提交 2025-12</td><td>元数据；修正年份，不代表全文复现</td></tr><tr><td><a href="https://job-boards.greenhouse.io/anthropic/jobs/5198255008" target="_blank" rel="noopener">Anthropic · Research Engineer, Model Evaluations</a><br><code>job-evals</code></td><td>招聘页，2026-09-19 访问</td><td>核对职责、最低/优选资格与代表性项目；用于能力分析，不保证持续开放。</td></tr><tr><td><a href="https://job-boards.greenhouse.io/anthropic/jobs/5283063008" target="_blank" rel="noopener">Anthropic · Software Engineer, Research Infrastructure</a><br><code>job-infra</code></td><td>招聘页，2026-09-19 访问</td><td>核对职责和资格；海外资深岗位样本，不代表国内总体需求。</td></tr><tr><td><a href="https://job-boards.greenhouse.io/anthropic/jobs/5390811008" target="_blank" rel="noopener">Anthropic · Applied AI, Research Engineer</a><br><code>job-applied</code></td><td>招聘页，2026-09-19 访问</td><td>核对角色说明与职责中的原型、评测和技术沟通；不是面试题来源。</td></tr><tr><td><a href="https://github.com/datawhalechina/hello-agents/blob/203e9fac88b23291b407f76549e250fd51c295e3/Extra-Chapter/Extra01-%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93.md" target="_blank" rel="noopener">Datawhale 社区 · LLM &amp; VLM &amp; Agent 面试问题总结</a><br><code>interview-dw</code></td><td>commit 203e9fac88b23291b407f76549e250fd51c295e3</td><td>作者称整理自 2025 秋招多次真实技术面试。核对声明与 Agent/RAG/评估主题；个人自述，未独立验证，不作为技术原理依据。</td></tr><tr><td><a href="https://notes.kamacoder.com/interview/llm/20260506bytedance.html" target="_blank" rel="noopener">卡码 · 字节 Agent 开发四面面经（转载与编辑整理）</a><br><code>interview-byte</code></td><td>网页 2026-09-19 访问；原始分享不在本站</td><td>核对公开转载的候选人经历及编辑提炼的问题主题；未访问付费原帖。不可作为企业标准题库或技术答案权威。</td></tr><tr><td><a href="https://github.com/SWE-agent/mini-SWE-agent/blob/04d809ceab9df28f9adaed044884180159172930/src/minisweagent/agents/default.py" target="_blank" rel="noopener">mini-SWE-agent · DefaultAgent 源码</a><br><code>mini-code</code></td><td>commit 04d809ceab9df28f9adaed044884180159172930</td><td>核对 run/step/query/execute_actions、预算检查与轨迹保存；未安装或跑榜。</td></tr><tr><td><a href="https://github.com/UKGovernmentBEIS/inspect_ai/blob/ec4dfc6953784dc45b79de3147530c89868c6e26/src/inspect_ai/_eval/task/task.py" target="_blank" rel="noopener">Inspect AI · Task 源码</a><br><code>inspect-code</code></td><td>commit ec4dfc6953784dc45b79de3147530c89868c6e26</td><td>核对 Task 构造参数及 dataset/solver/scorer、限制、错误处理说明；未实测适配。</td></tr><tr><td><a href="https://github.com/harbor-framework/harbor/blob/2993946dd5b64a46dac3aa766d03065f432a1468/src/harbor/trial/trial.py" target="_blank" rel="noopener">Harbor · Trial 源码</a><br><code>harbor-code</code></td><td>commit 2993946dd5b64a46dac3aa766d03065f432a1468</td><td>核对 Trial 文件前 180 行：任务/环境/verifier 依赖、路径和初始化关系；非完整生命周期审计。</td></tr><tr><td><a href="https://docs.harborframework.com/tutorials/create-a-task" target="_blank" rel="noopener">Harbor 官方 · Create a task</a><br><code>harbor-task</code></td><td>在线文档 2026-09-19</td><td>核对任务文件、init/oracle/view 命令与 reward 文件；未在本仓库运行 Harbor。</td></tr><tr><td><a href="https://docs.harborframework.com/core-concepts/tasks/separate-verifier" target="_blank" rel="noopener">Harbor 官方 · Separate verifier</a><br><code>harbor-verifier</code></td><td>在线文档 2026-09-19</td><td>核对默认共享环境、显式 separate 配置、镜像选择和 artifact 传递；运行时兼容性待学习者验证。</td></tr><tr><td><a href="https://github.com/gepa-ai/gepa/blob/15ee314f9c7d34ec153b809d401f42f55c4dcd76/src/gepa/core/adapter.py" target="_blank" rel="noopener">GEPA · GEPAAdapter / EvaluationBatch 源码</a><br><code>gepa-code</code></td><td>commit 15ee314f9c7d34ec153b809d401f42f55c4dcd76</td><td>核对接口与逐样本输出/反馈/错误语义，前 180 行；未实现本项目 GEPA 插件。</td></tr><tr><td><a href="https://github.com/gepa-ai/gepa" target="_blank" rel="noopener">GEPA 官方仓库 · 反思优化</a><br><code>gepa-overview</code></td><td>README 2026-09-19</td><td>核对文本候选、轨迹反馈和适配器定位；未引用宣传收益或声称复现。</td></tr><tr><td><a href="https://docs.ollama.com/api/chat" target="_blank" rel="noopener">Ollama 官方 · Generate a chat message</a><br><code>ollama-chat</code></td><td>在线 API 文档 2026-09-19</td><td>核对本机 /api/chat、messages、stream、format 和 usage 字段；本仓库只做 HTTP 契约 mock 测试，未运行真实权重。</td></tr></tbody></table></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>来源</th><th>版本</th><th>阅读范围</th></tr></thead><tbody><tr><td><a href="https://languagelog.ldc.upenn.edu/myl/Good1964.pdf" target="_blank" rel="noopener">Speculations Concerning the First Ultraintelligent Machine</a><br><code>good</code></td><td>I. J. Good · Advances in Computers 6 · 1965</td><td>§2，原刊页 33；机器设计正反馈的历史论述</td></tr><tr><td><a href="https://arxiv.org/abs/cs/0309048v5" target="_blank" rel="noopener">Gödel Machines: Fully Self-Referential Optimal Universal Self-Improvers</a><br><code>gm</code></td><td>arXiv v5 · 2006-12-17（首版 2003）</td><td>§2–4、Theorem 4.1；切换与继续搜索的比较、公理和效用条件</td></tr><tr><td><a href="https://arxiv.org/abs/2310.02304v3" target="_blank" rel="noopener">Self-Taught Optimizer (STOP)</a><br><code>stop</code></td><td>arXiv v3 · COLM 2024</td><td>§3–4、Algorithm 1、式 (2)、§5.2；自应用、元效用与固定模型</td></tr><tr><td><a href="https://arxiv.org/html/2505.22954v3" target="_blank" rel="noopener">Darwin Gödel Machine</a><br><code>dgm</code></td><td>arXiv v3 · 2026-03-12</td><td>§3、§4.3、附录 C.2–C.4、E.1；修改者对照、诊断分工、档案权重、费用口径</td></tr><tr><td><a href="https://arxiv.org/html/2510.21614v3" target="_blank" rel="noopener">Huxley-Gödel Machine</a><br><code>hgm</code></td><td>arXiv v3 · 2025-10-29</td><td>§2、Assumption 1、§3.2–3.3、附录 D；展开/评估分离与 CMP 三种口径</td></tr><tr><td><a href="https://arxiv.org/abs/2410.04444v4" target="_blank" rel="noopener">Gödel Agent</a><br><code>godel-agent</code></td><td>arXiv v4 · ACL 2025</td><td>摘要/元数据；自修改方法定位，未复现实验</td></tr><tr><td><a href="https://arxiv.org/abs/1506.02629" target="_blank" rel="noopener">Generalization in Adaptive Data Analysis and Holdout Reuse</a><br><code>adaptive</code></td><td>arXiv 1506.02629</td><td>摘要；自适应数据复用问题定位</td></tr><tr><td><a href="https://arxiv.org/html/2107.03374v2" target="_blank" rel="noopener">Evaluating Large Language Models Trained on Code</a><br><code>humaneval</code></td><td>arXiv v2</td><td>全文 §2.1、附录 A；pass@k 的组合估计与插件估计偏差</td></tr><tr><td><a href="https://arxiv.org/html/2406.12045v1" target="_blank" rel="noopener">τ-bench: A Benchmark for Tool-Agent-User Interaction</a><br><code>tau</code></td><td>arXiv v1</td><td>全文指标部分；pass^k 可靠性口径</td></tr><tr><td><a href="https://arxiv.org/abs/2306.05685" target="_blank" rel="noopener">Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena</a><br><code>judge</code></td><td>arXiv 2306.05685</td><td>摘要；位置、冗长和自我偏好等 judge 局限</td></tr><tr><td><a href="https://arxiv.org/abs/2210.10760" target="_blank" rel="noopener">Scaling Laws for Reward Model Overoptimization</a><br><code>overoptimization</code></td><td>arXiv 2210.10760</td><td>摘要；代理奖励与目标奖励的偏离</td></tr><tr><td><a href="https://arxiv.org/abs/2312.06942" target="_blank" rel="noopener">AI Control: Improving Safety Despite Intentional Subversion</a><br><code>control</code></td><td>arXiv 2312.06942</td><td>摘要；对手模型下的控制协议定位</td></tr><tr><td><a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/SAFETY.md" target="_blank" rel="noopener">DeepSeek Harness · SAFETY.md</a><br><code>dsh-safety</code></td><td>commit ddefc45fbc7f8e46dd73185e68295696d1297887</td><td>完整文件；实验状态、未审计与隔离限制。不是全仓安全验证</td></tr><tr><td><a href="https://arxiv.org/abs/2303.17651" target="_blank" rel="noopener">Self-Refine: Iterative Refinement with Self-Feedback</a><br><code>self-refine</code></td><td>arXiv 2303.17651</td><td>摘要；推理时反馈改写，无额外训练</td></tr><tr><td><a href="https://arxiv.org/abs/2303.11366" target="_blank" rel="noopener">Reflexion: Language Agents with Verbal Reinforcement Learning</a><br><code>reflexion</code></td><td>arXiv 2303.11366</td><td>摘要；语言反馈与记忆路线</td></tr><tr><td><a href="https://arxiv.org/abs/2305.16291" target="_blank" rel="noopener">Voyager: An Open-Ended Embodied Agent</a><br><code>voyager</code></td><td>arXiv 2305.16291</td><td>摘要；课程、技能与探索路线</td></tr><tr><td><a href="https://arxiv.org/abs/2203.14465" target="_blank" rel="noopener">STaR: Bootstrapping Reasoning With Reasoning</a><br><code>star</code></td><td>arXiv 2203.14465</td><td>摘要；生成、筛选推理与微调闭环</td></tr><tr><td><a href="https://arxiv.org/abs/1703.03400" target="_blank" rel="noopener">Model-Agnostic Meta-Learning</a><br><code>maml</code></td><td>arXiv 1703.03400</td><td>摘要；快速适应的元学习定位</td></tr><tr><td><a href="https://arxiv.org/abs/2003.03384" target="_blank" rel="noopener">AutoML-Zero: Evolving Machine Learning Algorithms From Scratch</a><br><code>automl-zero</code></td><td>arXiv 2003.03384</td><td>摘要；学习算法的程序搜索路线</td></tr><tr><td><a href="https://arxiv.org/abs/2408.08435" target="_blank" rel="noopener">Automated Design of Agentic Systems</a><br><code>adas</code></td><td>arXiv 2408.08435</td><td>摘要与 DGM 相关工作；固定 meta-agent 对照定位</td></tr><tr><td><a href="https://arxiv.org/abs/1901.01753" target="_blank" rel="noopener">Paired Open-Ended Trailblazer (POET)</a><br><code>poet</code></td><td>arXiv 1901.01753</td><td>摘要；环境与解法共同演化定位</td></tr><tr><td><a href="https://deepmind.google/blog/funsearch-making-new-discoveries-in-mathematical-sciences-using-large-language-models/" target="_blank" rel="noopener">Mathematical discoveries from program search with large language models</a><br><code>funsearch</code></td><td>作者机构发布 · 2023-12-14</td><td>作者机构说明；程序搜索与外部评估定位，论文入口未成功读取</td></tr><tr><td><a href="https://code.claude.com/docs/en/sandboxing" target="_blank" rel="noopener">Claude Code · Sandboxing</a><br><code>claude-sandbox</code></td><td>产品文档 · 检查于 2026-09-19</td><td>沙箱文档；纠正旧站“无内置 OS 沙箱”的断言</td></tr><tr><td><a href="https://arxiv.org/abs/2512.08093" target="_blank" rel="noopener">Training LLMs for Honesty via Confessions</a><br><code>confessions</code></td><td>arXiv 2512.08093 · 首次提交 2025-12</td><td>元数据；修正年份，不代表全文复现</td></tr><tr><td><a href="https://job-boards.greenhouse.io/anthropic/jobs/5198255008" target="_blank" rel="noopener">Anthropic · Research Engineer, Model Evaluations</a><br><code>job-evals</code></td><td>招聘页，2026-09-19 访问</td><td>核对职责、最低/优选资格与代表性项目；用于能力分析，不保证持续开放。</td></tr><tr><td><a href="https://job-boards.greenhouse.io/anthropic/jobs/5283063008" target="_blank" rel="noopener">Anthropic · Software Engineer, Research Infrastructure</a><br><code>job-infra</code></td><td>招聘页，2026-09-19 访问</td><td>核对职责和资格；海外资深岗位样本，不代表国内总体需求。</td></tr><tr><td><a href="https://job-boards.greenhouse.io/anthropic/jobs/5390811008" target="_blank" rel="noopener">Anthropic · Applied AI, Research Engineer</a><br><code>job-applied</code></td><td>招聘页，2026-09-19 访问</td><td>核对角色说明与职责中的原型、评测和技术沟通；不是面试题来源。</td></tr><tr><td><a href="https://github.com/datawhalechina/hello-agents/blob/203e9fac88b23291b407f76549e250fd51c295e3/Extra-Chapter/Extra01-%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93.md" target="_blank" rel="noopener">Datawhale 社区 · LLM &amp; VLM &amp; Agent 面试问题总结</a><br><code>interview-dw</code></td><td>commit 203e9fac88b23291b407f76549e250fd51c295e3</td><td>作者称整理自 2025 秋招多次真实技术面试。核对声明与 Agent/RAG/评估主题；个人自述，未独立验证，不作为技术原理依据。</td></tr><tr><td><a href="https://notes.kamacoder.com/interview/llm/20260506bytedance.html" target="_blank" rel="noopener">卡码 · 字节 Agent 开发四面面经（转载与编辑整理）</a><br><code>interview-byte</code></td><td>网页 2026-09-19 访问；原始分享不在本站</td><td>核对公开转载的候选人经历及编辑提炼的问题主题；未访问付费原帖。不可作为企业标准题库或技术答案权威。</td></tr><tr><td><a href="https://github.com/SWE-agent/mini-SWE-agent/blob/04d809ceab9df28f9adaed044884180159172930/src/minisweagent/agents/default.py" target="_blank" rel="noopener">mini-SWE-agent · DefaultAgent 源码</a><br><code>mini-code</code></td><td>commit 04d809ceab9df28f9adaed044884180159172930</td><td>核对 run/step/query/execute_actions、预算检查与轨迹保存；未安装或跑榜。</td></tr><tr><td><a href="https://github.com/UKGovernmentBEIS/inspect_ai/blob/ec4dfc6953784dc45b79de3147530c89868c6e26/src/inspect_ai/_eval/task/task.py" target="_blank" rel="noopener">Inspect AI · Task 源码</a><br><code>inspect-code</code></td><td>commit ec4dfc6953784dc45b79de3147530c89868c6e26</td><td>核对 Task 构造参数及 dataset/solver/scorer、限制、错误处理说明；未实测适配。</td></tr><tr><td><a href="https://github.com/harbor-framework/harbor/blob/2993946dd5b64a46dac3aa766d03065f432a1468/src/harbor/trial/trial.py" target="_blank" rel="noopener">Harbor · Trial 源码</a><br><code>harbor-code</code></td><td>commit 2993946dd5b64a46dac3aa766d03065f432a1468</td><td>核对 Trial 文件前 180 行：任务/环境/verifier 依赖、路径和初始化关系；非完整生命周期审计。</td></tr><tr><td><a href="https://docs.harborframework.com/tutorials/create-a-task" target="_blank" rel="noopener">Harbor 官方 · Create a task</a><br><code>harbor-task</code></td><td>在线文档 2026-09-19</td><td>核对任务文件、init/oracle/view 命令与 reward 文件；未在本仓库运行 Harbor。</td></tr><tr><td><a href="https://docs.harborframework.com/core-concepts/tasks/separate-verifier" target="_blank" rel="noopener">Harbor 官方 · Separate verifier</a><br><code>harbor-verifier</code></td><td>在线文档 2026-09-19</td><td>核对默认共享环境、显式 separate 配置、镜像选择和 artifact 传递；运行时兼容性待学习者验证。</td></tr><tr><td><a href="https://github.com/gepa-ai/gepa/blob/15ee314f9c7d34ec153b809d401f42f55c4dcd76/src/gepa/core/adapter.py" target="_blank" rel="noopener">GEPA · GEPAAdapter / EvaluationBatch 源码</a><br><code>gepa-code</code></td><td>commit 15ee314f9c7d34ec153b809d401f42f55c4dcd76</td><td>核对接口与逐样本输出/反馈/错误语义，前 180 行；未实现本项目 GEPA 插件。</td></tr><tr><td><a href="https://github.com/gepa-ai/gepa" target="_blank" rel="noopener">GEPA 官方仓库 · 反思优化</a><br><code>gepa-overview</code></td><td>README 2026-09-19</td><td>核对文本候选、轨迹反馈和适配器定位；未引用宣传收益或声称复现。</td></tr><tr><td><a href="https://docs.ollama.com/api/chat" target="_blank" rel="noopener">Ollama 官方 · Generate a chat message</a><br><code>ollama-chat</code></td><td>在线 API 文档 2026-09-19</td><td>核对本机 /api/chat、messages、stream、format 和 usage 字段；本仓库只做 HTTP 契约 mock 测试，未运行真实权重。</td></tr></tbody></table></div>
   <p class="reading-note">补充或修正资料，请参阅 <a href="CONTRIBUTING.md">贡献说明</a>。历史勘误见 <a href="docs/content-audit.md">内容审计记录</a>。</p>
 </section>
 
@@ -2257,9 +2372,9 @@ meta_gain = E[U(search(I_updated, S0, D, B))]
 </div>
 
 <script src="assets/js/editor.js?v=20260920e"></script>
-<script src="assets/js/data.js?v=20260920e"></script>
-<script src="assets/js/research-data.js?v=20260920e"></script>
+<script src="assets/js/data.js?v=20260920g"></script>
+<script src="assets/js/research-data.js?v=20260920g"></script>
 <script src="assets/js/research.js?v=20260919r"></script>
-<script src="assets/js/app.js?v=20260920e"></script>
+<script src="assets/js/app.js?v=20260920g"></script>
 </body>
 </html>
