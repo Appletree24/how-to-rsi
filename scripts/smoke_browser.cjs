@@ -34,14 +34,19 @@ const {chromium} = require('playwright');
     const first=await page.locator('#biasResult').innerText();
     await page.locator('#biasRun').click();
     assert.equal(await page.locator('#biasResult').innerText(),first);
+    await page.goto(url+'#/paper-lab');
     await page.locator('#searchBtn').click();
     await page.locator('#paletteInput').fill('Hoeffding');
-    assert.match(await page.locator('#paletteResults').innerText(),/统计与实验设计/);
-    await page.keyboard.press('Escape');
+    const statisticsTitle = await page.locator('#ch-evaluation-design h1').innerText();
+    await page.locator('#paletteResults .p-item').filter({hasText:statisticsTitle}).click();
+    await page.waitForFunction(()=>location.hash==='#/evaluation-design' &&
+      document.querySelector('#ch-evaluation-design').classList.contains('active'));
     await page.locator('#searchBtn').click();
     await page.locator('#paletteInput').fill('fencing');
-    assert.match(await page.locator('#paletteResults').innerText(),/队列、租约与故障恢复/);
-    await page.keyboard.press('Escape');
+    const platformTitle = await page.locator('#ch-capstone-platform h1').innerText();
+    await page.locator('#paletteResults .p-item').filter({hasText:platformTitle}).click();
+    await page.waitForFunction(()=>location.hash==='#/capstone-platform' &&
+      document.querySelector('#ch-capstone-platform').classList.contains('active'));
     await page.locator('#themeBtn').click();
     assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
     await page.locator('#themeBtn').click();
@@ -54,7 +59,6 @@ const {chromium} = require('playwright');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'mobile horizontal overflow');
     await page.goto(url+'#/capstone');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'capstone mobile overflow');
-    assert.match(await page.locator('#ch-capstone').innerText(),/16 周/);
     await page.goto(url+'#/eval');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'evaluation chapter mobile overflow');
     assert.ok(await page.locator('#ch-eval .eval-figure-scroll').evaluateAll(figures=>

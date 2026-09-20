@@ -1,32 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="840" height="582" viewBox="0 0 840 582" role="img" aria-labelledby="title desc">
   <title id="title">至少做对一次，不等于每次都做对</title>
   <desc id="desc">单题每次成功率为 75%，各次独立且条件不变。三次至少成功一次的概率为 98.44%，三次全成功为 42.19%。十次时分别约为 99.9999% 与 5.63%。这是公式算例，不是产品实测。</desc>
-  <rect width="840" height="582" fill="#faf9f6"/>
+  <rect width="840" height="582" fill="#faf9f6" />
   <g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
     <text x="30" y="35" font-size="16" fill="#5e625f">相同的单次成功率，回答两个不同的问题</text>
-    <path d="M30 69H72" stroke="#2b5bd7" stroke-width="3"/>
+    <path d="M30 69H72" stroke="#2b5bd7" stroke-width="3" />
     <text x="84" y="75" font-size="18">pass@k = 1 − (1 − p)ᵏ</text>
     <text x="390" y="75" font-size="17" fill="#40587f">k 次中至少成功一次</text>
-    <path d="M30 103H72" stroke="#555e6b" stroke-width="3" stroke-dasharray="7 5"/>
+    <path d="M30 103H72" stroke="#555e6b" stroke-width="3" stroke-dasharray="7 5" />
     <text x="84" y="109" font-size="18">passᵏ = pᵏ</text>
     <text x="390" y="109" font-size="17" fill="#555e6b">k 次全部成功</text>
     <text x="86" y="139" font-size="15" fill="#5e625f">概率</text>
     <g stroke="#dddfe3" stroke-width="1">
-      <path d="M86 152H774M86 219H774M86 286H774M86 353H774M86 420H774"/>
+      <path d="M86 152H774M86 219H774M86 286H774M86 353H774M86 420H774" />
     </g>
     <g font-size="14" fill="#5e625f" text-anchor="end">
       <text x="72" y="157">100%</text><text x="72" y="224">75%</text><text x="72" y="291">50%</text><text x="72" y="358">25%</text><text x="72" y="425">0%</text>
     </g>
-    <path d="M86 152V420H774" fill="none" stroke="#858b93" stroke-width="1.2"/>
-    <polyline points="86.000,219.000 162.444,168.750 238.889,156.188 315.333,153.047 391.778,152.262 468.222,152.065 544.667,152.016 621.111,152.004 697.556,152.001 774.000,152.000" fill="none" stroke="#2b5bd7" stroke-width="3" stroke-linejoin="round"/>
-    <polyline points="86.000,219.000 162.444,269.250 238.889,306.938 315.333,335.203 391.778,356.402 468.222,372.302 544.667,384.226 621.111,393.170 697.556,399.877 774.000,404.908" fill="none" stroke="#555e6b" stroke-width="3" stroke-dasharray="7 5" stroke-linejoin="round"/>
-    <g fill="#faf9f6" stroke="#2b5bd7" stroke-width="2.5"><circle cx="86" cy="219" r="4"/><circle cx="238.889" cy="156.188" r="4"/><circle cx="774" cy="152" r="4"/></g>
-    <g fill="#faf9f6" stroke="#555e6b" stroke-width="2.5"><rect x="234.889" y="302.938" width="8" height="8"/><rect x="770" y="400.908" width="8" height="8"/></g>
+    <path d="M86 152V420H774" fill="none" stroke="#858b93" stroke-width="1.2" />
+    <polyline points="86.000,219.000 162.444,168.750 238.889,156.188 315.333,153.047 391.778,152.262 468.222,152.065 544.667,152.016 621.111,152.004 697.556,152.001 774.000,152.000" fill="none" stroke="#2b5bd7" stroke-width="3" stroke-linejoin="round" />
+    <polyline points="86.000,219.000 162.444,269.250 238.889,306.938 315.333,335.203 391.778,356.402 468.222,372.302 544.667,384.226 621.111,393.170 697.556,399.877 774.000,404.908" fill="none" stroke="#555e6b" stroke-width="3" stroke-dasharray="7 5" stroke-linejoin="round" />
+    <g fill="#faf9f6" stroke="#2b5bd7" stroke-width="2.5"><circle cx="86" cy="219" r="4" /><circle cx="238.889" cy="156.188" r="4" /><circle cx="774" cy="152" r="4" /></g>
+    <g fill="#faf9f6" stroke="#555e6b" stroke-width="2.5"><rect x="234.889" y="302.938" width="8" height="8" /><rect x="770" y="400.908" width="8" height="8" /></g>
     <g font-size="14" fill="#5e625f" text-anchor="middle">
       <text x="86" y="443">1</text><text x="162.444" y="443">2</text><text x="238.889" y="443">3</text><text x="315.333" y="443">4</text><text x="391.778" y="443">5</text><text x="468.222" y="443">6</text><text x="544.667" y="443">7</text><text x="621.111" y="443">8</text><text x="697.556" y="443">9</text><text x="774" y="443">10</text>
     </g>
-    <text x="774" y="468" text-anchor="end" font-size="15" fill="#5e625f">尝试次数 k</text>
-    <path d="M30 484H810" stroke="#d9dce1"/>
+    <text x="756" y="468" text-anchor="end" font-size="15" fill="#5e625f">尝试次数 k</text>
+    <path d="M30 484H810" stroke="#d9dce1" />
     <g font-size="16">
       <text x="30" y="512" font-weight="700">k</text><text x="300" y="512" text-anchor="middle" font-weight="700">1</text><text x="500" y="512" text-anchor="middle" font-weight="700">3</text><text x="710" y="512" text-anchor="middle" font-weight="700">10</text>
       <g fill="#2b5bd7"><text x="30" y="539">pass@k</text><text x="300" y="539" text-anchor="middle">75%</text><text x="500" y="539" text-anchor="middle">98.44%</text><text x="710" y="539" text-anchor="middle">99.9999%</text></g>

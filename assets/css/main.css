@@ -1010,6 +1010,32 @@ cite[data-source] { font: 0.78em var(--sans); font-style: normal; white-space: n
   }
 }
 
+/* Shared chapter figures: flat hand-authored SVG schematics. */
+.chapter figure.fig { margin: 30px 0; min-width: 0; max-width: 100%; }
+.chapter figure.fig .fig-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  contain: inline-size;
+  border: 1px solid var(--line);
+  background: #faf9f6;
+}
+.chapter figure.fig img { display: block; width: 100%; min-width: 580px; height: auto; }
+.chapter figure.fig figcaption {
+  margin-top: 10px;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+@media (max-width: 640px) {
+  .chapter figure.fig figcaption::before {
+    content: "图片可左右滑动查看。";
+    display: block;
+    margin-bottom: 4px;
+    color: var(--acc);
+  }
+}
+
 /* ---------- 就地编辑 ---------- */
 .edit-toggle {
   position: fixed; right: 18px; bottom: 18px; z-index: 90;

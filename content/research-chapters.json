@@ -2,72 +2,72 @@
   {
     "id": "research-contract",
     "num": "R1",
-    "title": "检验递归收益",
+    "title": "自改进的收益：产物、搜索方法与训练成本",
     "short": "问题定义",
-    "blurb": "共同起点、元效用、总预算、训练摊销与完整搜索重复。",
+    "blurb": "任务收益、元收益、共同起点与完整成本。",
     "icon": "book",
     "module": "research"
   },
   {
     "id": "paper-lab",
     "num": "R2",
-    "title": "STOP、DGM 与 HGM 的控制流程",
+    "title": "STOP、DGM 与 HGM：自改进的控制流程",
     "short": "机制精读",
-    "blurb": "自应用轨迹、修改者消融、父代权重与 CMP 手算。",
+    "blurb": "STOP、DGM、HGM的修改对象、控制流程与预算分配。",
     "icon": "book",
     "module": "research"
   },
   {
     "id": "evaluation-design",
     "num": "R3",
-    "title": "评测的统计与实验设计",
-    "short": "实验设计",
-    "blurb": "配对比较、bootstrap、选择偏差、数据分离与 pass@k。",
+    "title": "自改进评估中的差值、不确定性与版本决策",
+    "short": "配对比较",
+    "blurb": "从逐题差值推到聚类、置信边界和三态裁决。",
     "icon": "book",
     "module": "research"
   },
   {
     "id": "evaluator-integrity",
     "num": "R4",
-    "title": "评分器误差与权限隔离",
+    "title": "评分器的测量误差与信任边界",
     "short": "评分器",
-    "blurb": "judge 校准、外部验证、CoT 边界与副作用回滚。",
+    "blurb": "从评分涨幅追查误判、目标错配与权限篡改。",
     "icon": "book",
     "module": "research"
   },
   {
     "id": "research-map",
     "num": "R5",
-    "title": "自我改进的几类研究方法",
-    "short": "路线地图",
-    "blurb": "自训练、记忆、元学习、程序搜索与开放式环境。",
+    "title": "自我改进方法地图：变化对象与收益归因",
+    "short": "修改对象",
+    "blurb": "答案、记忆、权重与搜索程序的更新方法及收益归因。",
     "icon": "book",
     "module": "research"
   },
   {
     "id": "reproducible-lab",
     "num": "R6",
-    "title": "用合成数据练习评测",
-    "short": "运行实验",
-    "blurb": "Python 合成数据实验、输入检查与三态裁决。",
+    "title": "合成评测实验：从原始观测到离线裁决",
+    "short": "运行评测",
+    "blurb": "输入缺行、统计计算、五种裁决与发布边界。",
     "icon": "book",
     "module": "research"
   },
   {
     "id": "research-roadmap",
     "num": "R7",
-    "title": "研究练习与开放问题",
-    "short": "研究练习",
-    "blurb": "记忆泛化、搜索效率与评分器过拟合。",
+    "title": "三个研究问题：记忆迁移、谱系选择与评分器过拟合",
+    "short": "实验设计",
+    "blurb": "记忆迁移、谱系选择、评分器过拟合的研究取舍。",
     "icon": "book",
     "module": "research"
   },
   {
     "id": "research-sources",
     "num": "R8",
-    "title": "参考资料与版本",
+    "title": "研究来源、版本与结论范围",
     "short": "参考资料",
-    "blurb": "论文、源码与岗位资料的版本和阅读范围。",
+    "blurb": "论文、源码、算例与本地实验的版本和引用范围。",
     "icon": "book",
     "module": "research"
   }

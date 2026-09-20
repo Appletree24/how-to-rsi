@@ -1,0 +1,52 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" width="840" height="500" viewBox="0 0 840 500" role="img" aria-labelledby="title desc">
+  <ns0:title id="title">更新改进器的迁移对照实验</ns0:title>
+  <ns0:desc id="desc">用家族 A 的历史搜索更新改进器 I，与冻结的 I 从同一 S0 在新家族 B 上各做完整搜索；U 在搜索不可见任务上测量，两条曲线均值之差即 meta_gain，每次完整搜索才算一条实验重复。</ns0:desc>
+  <ns0:defs>
+    <ns0:marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><ns0:path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5" /></ns0:marker>
+  </ns0:defs>
+  <ns0:rect width="840" height="500" fill="#faf9f6" />
+  <ns0:g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <ns0:text x="30" y="35" font-size="16" fill="#5e625f">P9 改解题器 S；这里只改改进器 I 的一个部分，S0、模型、工具、候选空间与终选规则两组共享</ns0:text>
+
+    <ns0:rect x="30" y="60" width="250" height="86" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="46" y="88" font-size="16" font-weight="700">家族 A：历史搜索经验</ns0:text>
+    <ns0:text x="46" y="112" font-size="14">修改提示 / 失败抽样 /</ns0:text>
+    <ns0:text x="46" y="133" font-size="14">候选选择策略，只改其一</ns0:text>
+
+    <ns0:rect x="352" y="60" width="180" height="86" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <ns0:text x="368" y="88" font-size="16" font-weight="700">I_updated</ns0:text>
+    <ns0:text x="368" y="112" font-size="14">一次性元训练成本；</ns0:text>
+    <ns0:text x="368" y="133" font-size="14">迁移前冻结，报摊销成本</ns0:text>
+
+    <ns0:rect x="604" y="60" width="180" height="86" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="620" y="88" font-size="16" font-weight="700">I_frozen（对照）</ns0:text>
+    <ns0:text x="620" y="112" font-size="14">不读历史经验；</ns0:text>
+    <ns0:text x="620" y="133" font-size="14">与 updated 组同起点</ns0:text>
+
+    <ns0:path d="M280 103H350" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <ns0:rect x="30" y="190" width="780" height="140" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <ns0:text x="48" y="216" font-size="15" fill="#40587f">新家族 B：两条并行完整搜索（B 的失败轨迹在终选前不得泄漏给更新过程）</ns0:text>
+
+    <ns0:rect x="48" y="232" width="170" height="64" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="64" y="258" font-size="16" font-weight="700">共同 S0</ns0:text>
+    <ns0:text x="64" y="279" font-size="14">相同初始解题器</ns0:text>
+
+    <ns0:rect x="230" y="232" width="350" height="30" rx="3" fill="#fff" stroke="#2b5bd7" />
+    <ns0:text x="246" y="252" font-size="15" font-weight="700">search(I_updated, S0, D_B)</ns0:text><ns0:rect x="230" y="272" width="350" height="30" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="246" y="292" font-size="15" font-weight="700">search(I_frozen, S0, D_B)</ns0:text><ns0:rect x="600" y="232" width="200" height="70" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="616" y="256" font-size="15" font-weight="700">selected_S</ns0:text>
+    <ns0:text x="616" y="280" font-size="14">x：累计预算</ns0:text>
+    <ns0:text x="616" y="299" font-size="14">y：开发表现</ns0:text>
+
+    <ns0:path d="M168 250H228" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:path d="M168 288H228" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:path d="M470 267H530" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <ns0:rect x="200" y="372" width="520.0" height="72" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <ns0:text x="216" y="398" font-size="15" font-weight="700">meta_gain = E[U(I_updated)] − E[U(I_frozen)]</ns0:text><ns0:text x="216" y="424" font-size="14">U 在搜索不可见的任务上测量；一次完整搜索 = 一条实验重复</ns0:text>
+    <ns0:path d="M660 267H700V370H642" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <ns0:text x="30" y="472" font-size="15" fill="#5e625f">消融至少一项：冻结 I 的记忆 · 打乱反馈（保留等量文本）· 禁止选择策略更新——逐项排除替代解释。</ns0:text>
+  </ns0:g>
+</ns0:svg>

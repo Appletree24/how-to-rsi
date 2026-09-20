@@ -1,27 +1,54 @@
 <section class="chapter" id="ch-capstone-sandbox">
-  <span class="ch-kicker">RepoOps Lab / P8 · 第 10–11 周 · 前置：P4–P7、容器基础</span>
-  <h1>在 Harbor 中运行仓库修复</h1>
-  <p class="lead">前面的 Agent 只返回处置建议。现在把一张 RepoOps 任务迁移到 Harbor，让 Agent 修改服务配置，再由独立 verifier 检查修改后的行为。</p>
-  <h2>写文件后的新增权限</h2>
-  <p>前面已经确定任务契约、评分和预算，升级执行环境时才能定位新增问题。Host 上的 subprocess 不是沙箱；普通容器共享宿主内核，也不能仅凭“用了 Docker”宣称可承受任意恶意程序。学习实验使用无凭据、无宿主敏感挂载、受限网络与资源的专用环境；更强对手需要额外隔离设计。</p>
-  <h2>迁移步骤与具体文件</h2>
+  <span class="ch-kicker">RepoOps / P8 · 隔离执行</span>
+  <h1>仓库修复的沙箱与独立验收</h1>
+  <p class="lead">知识助手的“扩容连接池”是一条文本建议；仓库修复器写入配置后，产物还需要经过权限检查和实际执行。测试、环境与成功标记一旦落入 Agent 的可写范围，测试通过就可能失去意义。本章以一张 Harbor 修复任务为例，讨论从接收 patch 到独立验证服务行为的信任边界。</p>
+  <h2>连接池任务的行为契约</h2>
+  <p>任务仍是 checkout 的连接池耗尽，但不再接受 <code>resize_pool</code> 这个字符串作为完成。<code>instruction.md</code> 应说明公开负载范围、数据库总连接配额、允许修改的配置文件、运行时限与可观察的成功条件：在约定负载下不出现连接池耗尽，同时不越过数据库配额。哪些阈值属于合同必须公开；隐藏测试只能隐藏实例与组合，不能临时添加用户从未声明的要求。</p>
+  <p>池上限同时受单副本负载和数据库总配额约束。设同时运行的副本数为 n、每副本池上限为 p、其他业务占用与安全预留为 r、数据库配额为 Q，至少要满足 <code>n × p + r ≤ Q</code>。这个上界并不保证吞吐或延迟达标；事务持有时间、连接泄漏与重试放大仍可能导致耗尽。单副本测试因此无法覆盖更多副本下的安全性。这里给出任务模型，未报告服务性能实测。</p>
+  <p>应允许不同合法配置达到同一行为，不要求 patch 与人工答案逐字相同。若公开约束下仅改配置无法同时满足延迟和配额，正确产物应是有证据的不可满足说明或升级请求，而不是擅自放宽测试。本任务首先要由人工 oracle 确认可解，才能把 Agent 失败解释为能力问题。</p>
+  <h2>执行权限与隔离环境</h2>
+  <p>当前 RepoOps runner 只有 search/read/finish，返回建议而不修改文件。下文是迁移到仓库修复任务的设计，涉及 Harbor 任务、独立 verifier、patch 过滤与资源隔离；本仓库尚无可直接运行的 Harbor 任务，也未完成容器兼容实测。已有 JSON 轨迹提供追溯信息，安全控制则需要在执行环境与产物入口落实。</p>
+  <p>Host 上的 subprocess 不是沙箱；普通容器共享宿主内核，也不能仅凭 Docker 宣称可承受任意恶意程序。教学环境至少使用无真实凭据、无敏感宿主挂载、无容器管理 socket 的专用环境，并限制网络、CPU、内存、进程数、磁盘与时间。工具允许改配置，不代表系统其他路径天然只读；应把契约落实为文件权限、产物验证和独立验收。更强对手需要额外隔离设计，不能用本练习替代安全评估。</p>
+  <h2>separate 模式与产物传递</h2>
+  <p>Harbor 默认 verifier 与 Agent 同容器；显式设置 <code>[verifier] environment_mode="separate"</code>，或配置 verifier 专属 environment，才会使用独立环境。新环境不会自动继承 Agent 的文件修改，因此需要传递产物。官方在线文档还说明会复制 Agent 发布目录 <code>/logs/artifacts/</code> 以及声明的 artifacts，按 source 路径恢复；因此不能误以为“只声明一个 patch”就自动过滤了所有不可信产物。实际行为需对锁定的安装版本核验。<cite data-source="harbor-verifier"></cite></p>
+  <p>直接把 Agent 修改后的整个工作区交给 verifier，会连同被篡改的测试、依赖、启动脚本与缓存一起带入。这里采用<strong>干净基线 + 已审查的最小 patch</strong>：恢复可信基础仓库与依赖，只把允许变更应用到指定路径，再由可信入口运行隐藏测试。独立容器分开执行位置，产物入口还必须阻止发布目录覆盖 <code>/tests</code>、解释器、启动入口或结果文件。</p>
+  <h2>从冻结产物到可信裁决</h2>
   <ol>
-    <li>阅读 Harbor 官方 Create a task，使用 <code>harbor task init repoops-checkout</code> 建目录。固定框架依赖版本和镜像 digest，保留安装日志；本站记录的是源码核对提交，不是已测试的兼容组合。<cite data-source="harbor-task"></cite></li>
-    <li><code>instruction.md</code> 描述验收行为：给定并发负载下连接池不得耗尽，最大连接数不得超过数据库配额，修改只允许落在配置文件。</li>
-    <li><code>environment/</code> 放小型被测服务、公开失败日志和配置；<code>solution/solve.sh</code> 是人工 oracle；<code>tests/</code> 保存外部行为验证。测试应覆盖边界负载，避免只检查配置等于一个固定数字。</li>
-    <li><code>task.toml</code> 写 agent/verifier 时间限制、CPU/内存与隔离配置。先用 oracle 跑通，再用空提交和错误配置确认 verifier 会失败。</li>
-    <li>接 mini-SWE-agent：把 provider、提示与工具预算固定，读取其轨迹；对照自研循环和该基线，只有在观测到具体瓶颈后才添加专用工具。</li>
-    <li>将 Harbor trial 结果适配到 RepoOps 实验账本，保留原始 status、reward、错误、耗时和 artifact；未知字段/缺失 reward 不得默认成功。</li>
+    <li><strong>绑定基线与环境。</strong>保存仓库 commit、任务版本、镜像 digest、依赖锁文件、构建命令与架构。Agent 交付的 patch 必须声明对应基线；不匹配不能静默挑一个能套上的版本。</li>
+    <li><strong>冻结并收取产物。</strong>Agent 结束后停止可变写入，生成不可变快照/patch 与内容哈希，记录实际收取的字节。不能先审一个文件，稍后再从仍可写的路径取另一份来执行。</li>
+    <li><strong>在隔离暂存区解析。</strong>限定大小、文件数、操作类型与允许路径；规范化后拒绝路径穿越、绝对路径、符号链接逃逸及未授权的文件模式/二进制变更。配置任务拒绝新增脚本、依赖、测试修改与额外可执行文件。不要先解包到可信目录，再检查文件名。</li>
+    <li><strong>应用到干净基线。</strong>只在可信 checkout 上应用允许改动，冲突或基线 hash 不符是无效产物。应用后检查实际文件树与权限，不只相信 patch 的头部声明；保留最终树摘要供复验。</li>
+    <li><strong>由可信入口验证。</strong>verifier 自己启动服务与负载，不调用 Agent 提供的“测试成功脚本”。隐藏用例、测试运行器与判分逻辑只在可信边界内；结果由 verifier 写出，Agent 自报的 reward 只是不可信文本。</li>
+    <li><strong>提交完整裁决。</strong>关联 patch hash、环境、测试版本、原始输出与 trial。解析失败、缺失 reward、超时、基础设施错误和任务失败分开保存，未知状态绝不默认成功。</li>
   </ol>
-  <h2>独立 verifier 需要显式启用</h2>
-  <p>Harbor 文档说明，默认 verifier 与 Agent 使用同一容器；可通过 <code>[verifier] environment_mode="separate"</code> 或 verifier 专属 environment 配置启用独立环境。独立环境不会自动继承 Agent 的文件修改，因此必须声明要传递的产物。只传递允许的 patch/配置，不能把整个已被修改的测试环境复制给裁判。<cite data-source="harbor-verifier"></cite></p>
-  <div class="codeblock"><div class="cb-head">官方 CLI 的最小操作；需先安装框架和容器运行时</div><pre data-lang="bash">harbor task init repoops-checkout
+  <p>这条链同时解决可重现性：别人可以从同一 commit、同一镜像和同一 patch 重做验收，而不是依赖 Agent 容器里无法解释的残留状态。若专属 verifier 镜像预装测试，需按官方模式把可信测试打包进去；不能假定任何 separate 配置都会在运行时自动上传 tests。<cite data-source="harbor-verifier"></cite></p>
+  <h2>作弊提交与拒绝位置</h2>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>故意构造的提交</th><th>应该在哪里被阻止</th><th>为什么正常测试通过不够</th></tr></thead><tbody>
+    <tr><td>删掉失败断言，或写一个 reward=1 文件</td><td>patch 白名单拒绝；独立可信裁判不读取自报成功</td><td>同环境 grader 可能被改写，返回码为 0 不代表业务成立</td></tr>
+    <tr><td>把配置路径变成指向测试目录的链接</td><td>暂存与应用后的路径/文件类型检查</td><td>只检查路径字符串会漏掉真实写入位置</td></tr>
+    <tr><td>配置只识别公开负载或测试标记，其他输入失败</td><td>相同公开契约下的隐藏边界负载、不同副本数与顺序</td><td>记住有限样例不是实现需求；隐藏用例也不能随意超出合同</td></tr>
+    <tr><td>关闭告警、忽略连接错误，却没有恢复服务</td><td>外部请求成功率、延迟及数据库连接占用联合验证</td><td>日志安静与服务可用不是同一个指标</td></tr>
+    <tr><td>无限创建进程或阻塞验证</td><td>运行环境资源限额、外部 deadline 与清理</td><td>Agent 自愿停止不是强制预算，也不能防残留进程</td></tr>
+  </tbody></table></div>
+  <p>反馈本身也是泄漏通道。Agent 可见测试用于开发，最终隐藏 verifier 不能把完整测试源码、精确参考 patch、秘密文件路径或可反推出全部实例的输出回传给下一轮搜索。可以返回预定义的粗粒度失败类别；若在最终集上不断试 patch，即使没有直接读取测试文件，也已经通过反馈适配了测试集。<a href="#/capstone-improve">P9</a> 必须把开发反馈与最终确认分开。</p>
+  <p>仓库修复还要避免环境泄漏：公共镜像不应提前烘焙隐藏测试或答案，构建上下文与缓存不能把它们带进 Agent；Agent 与 grader 不共享可写目录、秘密环境变量或可访问的调试端口。日志导出同样受控。隔离文件读取只是必要条件，公开 issue 的既有补丁或训练污染也可能让基准偏易；报告来源、去重与公开状态，不能声称完全排除预训练污染。</p>
+  <h2>单张 Harbor 任务的接入步骤</h2>
+  <ol>
+    <li>按官方 Create a task，用 <code>harbor task init repoops-checkout</code> 建目录，固定框架版本、镜像 digest 与安装日志；兼容性由这一锁定组合的实际运行确定。<cite data-source="harbor-task"></cite></li>
+    <li><code>instruction.md</code> 放行为合同；<code>environment/</code> 放小型服务、公开日志与初始配置；<code>solution/solve.sh</code> 是人工 oracle；<code>tests/</code> 放可信外部行为验证，不只断言配置等于某个常量。</li>
+    <li><code>task.toml</code> 配 agent/verifier 时限、资源、网络与 separate 模式，按安装版本配置产物传递。先运行 oracle、空 patch、错误配置及上述作弊提交，再接真实 Agent。</li>
+    <li>用 mini-SWE-agent 作执行基线，固定 provider、prompt、工具与预算，保留轨迹；与自研循环比较时只在观察到具体瓶颈后新增专用工具。读其 environment 接入与 Harbor Trial 生命周期，入口见源码映射。<cite data-source="mini-code"></cite><cite data-source="harbor-code"></cite></li>
+    <li>把 Harbor 原始 status、reward、错误、耗时和 artifact 映射到 RepoOps 账本，同时保留原始值；映射规则版本化，不能将未知值折叠为通过。</li>
+  </ol>
+  <div class="codeblock"><div class="cb-head">官方 CLI 操作步骤 · 需先安装框架、容器运行时并填写任务</div><pre data-lang="bash">harbor task init repoops-checkout
 # 按本章填写任务、环境、solution、tests 和 task.toml
 harbor run -p repoops-checkout -a oracle
 harbor view ./jobs</pre></div>
-  <p>本章命令是给学习者的操作步骤，本仓库没有预生成可直接运行的 Harbor 任务或完成容器实测。真实 Agent 的命令和可用名称以你锁定版本的 <code>harbor run --help</code> 为准。优先验证一个完整任务，再批量迁移。</p>
-  <h2>公开基准怎样选</h2>
-  <p>偏代码修复选 SWE-bench 风格的 issue→patch→tests；偏命令行和系统任务选 Terminal-Bench/Harbor 的任务形式。先按项目能力挑 10–20 个可运行任务作为开发子集，记录筛选标准、来源许可、镜像和排除项；这不是完整榜单复现，不与公开榜单直接比较。验证集须避免和用于学习工具的任务重叠。</p>
-  <p>需要读懂两处代码：mini 的环境执行如何接入 Agent；Harbor 的 Trial 如何关联任务、执行环境、verifier、结果和生命周期。固定版本入口见源码映射。源码审阅只能支持设计理解，不能替代你自己的兼容性测试。<cite data-source="mini-code"></cite><cite data-source="harbor-code"></cite></p>
-  <div class="research-exercise"><h3>练习：验证一张迁移任务</h3><p>对迁移任务运行四次检查：oracle 应通过，错误实现应失败，Agent 修改可见的 grader 文件不应改变独立评分，超时任务应在预算内终止。记录 Agent 与 verifier 的权限范围。如果发现框架适配缺陷，保存锁定版本、最小复现和测试，作为开源 issue 或 PR 的依据。</p></div>
+  <p>真实 Agent 名称与参数以锁定版本的 <code>harbor run --help</code> 为准。偏代码修复可选 SWE-bench 风格的 issue→patch→tests，偏命令行任务可选 Terminal-Bench/Harbor 形式。接入阶段可按公开标准挑 10–20 个可运行开发任务，记录许可、镜像、筛选与排除项；这一子集不构成完整榜单复现，也不得与公开榜单直接比较。确认集与熟悉工具、调试任务的样本保持隔离。</p>
+  <figure class="fig">
+    <div class="fig-scroll" tabindex="0" role="region" aria-label="图：Harbor 任务的执行与独立判分边界，可横向滚动"><img src="assets/figures/fig-capstone-sandbox-boundary.svg" alt="task 目录定义验收行为、被测环境、oracle、外部测试与资源隔离；Agent 环境只允许改配置且无凭据、受限网络与资源，verifier 在 separate 模式下运行于独立环境，只接收声明传递的 patch/配置产物，结果记入实验账本。" loading="lazy" decoding="async" width="840" height="500"></div>
+    <figcaption>图 · separate 分离执行环境；patch 过滤、发布目录限制与可信应用入口共同约束产物传递。默认模式共享环境，所画白名单需要由接入层实现。</figcaption>
+  </figure>
+  <div class="research-exercise"><h3>隔离边界的验证实验</h3><p>锁定环境后，先运行 oracle、空提交与错误实现，确定任务可解且验证能识别失败；再提交修改可见测试、伪造 reward 与越界路径的产物，检查独立裁决及拒绝位置。超时实验确认外部终止与清理，增加副本数的实验重新检查连接配额。每次保存冻结产物、干净基线重放日志与任务/环境错误分类；Agent 的成功自述不参与裁决。框架适配缺陷可整理为带版本的最小复现，再提交开源 issue/PR。</p></div>
+  <p class="research-next">产物隔离限制了候选修改裁判的能力。<a href="#/capstone-improve">P9</a> 转向另一项问题：在裁判、权限和预算固定时，失败反馈对候选搜索有多大帮助。</p>
 </section>

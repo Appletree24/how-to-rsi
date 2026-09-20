@@ -1,29 +1,83 @@
 <section class="chapter" id="ch-capstone-agent">
-  <span class="ch-kicker">RepoOps Lab / P2 · 第 2 周 · 前置：P1、异常与 HTTP</span>
-  <h1>Agent 循环与工具协议</h1>
-  <p class="lead">RepoOps 只提供 search、read、finish 三个工具。模型决定下一步，程序负责解析和执行。非法参数、工具超时和预算耗尽，都需要在循环中有明确的处理分支。</p>
-  <h2>从源码看控制流</h2>
-  <p>精读 mini-SWE-agent 固定提交中的 <code>DefaultAgent.run / step / query / execute_actions</code>：run 管异常与保存，step 组织查询和执行，query 检查限制并记账，environment 执行动作。注意费用限制可能在上一次调用已超限后才阻止下一次调用；预算检查的时机是工程语义的一部分。本站借鉴职责划分，没有复制其全部工具、并发或安全能力。<cite data-source="mini-code"></cite></p>
-  <div class="codeblock"><div class="cb-head">实现顺序</div><pre data-lang="text">创建初始消息 → 检查剩余预算 → 调用 policy
-→ 记录调用与 usage → 严格解析动作
-→ finish: 提交结果；search/read: 取观察并追加消息
-→ 下一步；异常或预算耗尽: 写明终态并交给评分器</pre></div>
-  <h2>模型响应、工具参数与执行权限</h2>
-  <p><strong>模型层</strong>返回文本和 usage，不决定是否成功。<strong>动作层</strong>只接受严格字段集：search/query、read/id、finish/answer/citations；未知工具和额外字段直接结束为 invalid_output。<strong>环境层</strong>只查询内存文档，无 shell、文件写入和网络工具。即便文档写着“删除日志”，它也不能增加工具权限。</p>
-  <p>输入范围收窄以后，仍不能宣称解决了 prompt injection：模型可能选择错误答案、漏读证据或反复调用。代码里的规则策略抗注入测试只证明该夹具和分发器的行为，不能推断真实 LLM 的鲁棒性。</p>
-  <h2>加入错误分支与循环上限</h2>
-  <ol>
-    <li>在 <a href="projects/repoops/agent.py">agent.py</a> 中跟踪 checkout-0 的四个动作；给每个字段写出消费者。删除一步 read，观察哪条评分条件失效。</li>
-    <li>用 <code>--max-steps 2</code> 运行 evidence，确认 budget_exhausted 仍有 trial 和调用计数。失败调用也必须计入成本，不能靠重试抹掉。</li>
-    <li>加入一个格式修复机会：只把 schema 错误交还模型，不暴露 expected_answer；修复也消耗同一个总预算。先固定协议，再比较“不修复/一次修复”。这是作业，不是默认实现。</li>
-    <li>保留只读工具，接本机真实模型。首先跑一题，人工检查完整轨迹，再扩大到开发集。不要先让模型操作主机 shell。</li>
-  </ol>
-  <h2>接入本机 Ollama</h2>
-  <p>准备已经安装好权重、监听 <code>127.0.0.1:11434</code> 的 Ollama。执行前记录本机模型的精确 digest；模型名可指向不同权重，单记名字不够。适配器使用官方 <code>/api/chat</code> 的 messages、stream=false、format=json 和 token usage 字段。本仓库未预装模型，本次维护未测量真实模型质量。<cite data-source="ollama-chat"></cite></p>
-  <div class="codeblock"><div class="cb-head">将两个占位值换成你的本机模型信息</div><pre data-lang="bash">python -m projects.repoops.runner run --policy ollama \
+  <span class="ch-kicker">RepoOps / P2 · Agent 循环</span>
+  <h1>模型提出动作，程序决定是否接受</h1>
+  <p class="lead">模型给出“已经解决”的回答时，可能还没有读取手册；答案也可能正确，却在 deadline 之后才返回。执行程序需要分别记录模型输出、工具事实和结果接受时间。RepoOps 的只读循环提供了一个小型例子：模型提出动作，解析器与环境决定动作能否执行，评分器再判断任务是否完成。</p>
+  <h2>从四个动作读出职责边界</h2>
+  <p>现有 RepoOps 只提供 search、read、finish。沿 <a href="projects/repoops/agent.py">agent.py</a> 的 <code>RulePolicy.generate</code> 与 <code>run_agent</code> 跟踪 checkout-0：这是一条确定性规则轨迹，不是语言模型规划能力的示例。naive 在读事故后直接采纳建议；evidence 多查一次当前规则，两者的不同正好可由轨迹解释。</p>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>步骤</th><th>输入 / 动作</th><th>执行器新增的可信事实</th><th>尚不能证明什么</th></tr></thead><tbody>
+    <tr><td>1</td><td>read checkout-incident-0</td><td>文档存在时记录观察与 read_ids</td><td>工单建议不自动成为正确处置</td></tr>
+    <tr><td>2</td><td>search checkout current runbook</td><td>只返回候选 ID 和标题</td><td>命中标题不代表读过正文，不能据此补 read_ids</td></tr>
+    <tr><td>3</td><td>read checkout-runbook</td><td>当前手册正文进入观察，ID 进入已读集合</td><td>读取不证明理解，也不证明任意引用支持答案</td></tr>
+    <tr><td>4</td><td>finish resize_pool + 两条引用</td><td>协议合法且及时返回，运行 status=ok</td><td>ok 不是 passed；语义与证据由 P4 的 grade 另判</td></tr>
+  </tbody></table></div>
+  <p>资料短且固定时，一次提供完整上下文并要求引用，是合理的基线。循环的收益来自按需取证和根据工具结果调整下一步，同时也增加延迟、费用与失败点。因此两种方式的比较需要同时观察证据覆盖与成本。仓库修复依赖执行后的环境反馈，知识助手则未必需要同样大的动作空间。</p>
+  <h2>响应、动作、权限是三道不同的门</h2>
+  <p><strong>模型层</strong>返回文本和 usage，不决定任务成功。<strong>动作层</strong>解析严格字段集：search/query、read/id、finish/answer/citations；未知工具、额外字段和不合类型的参数结束为 invalid_output。<strong>环境层</strong>实际执行授权操作：当前仅查询传入的内存文档，没有 shell、写文件或网络工具。生产中即使 schema 允许 read/id，仍必须独立校验该用户对 id 的权限；类型检查不是 ACL。</p>
+  <p><code>decode_action</code> 限制响应长度、查询长度、动作代码格式和引用数量，并拒绝重复引用。合法的动作仍可能是胡编的答案或无权访问的请求。当前 Corpus 对未知文档返回 <code>{"error":"document not found"}</code> 作为观察，而不是把整个 trial 判成 provider_error；read_ids 只在确实取得正文后加入。模型从失败观察修正选择与执行器把失败伪装成成功是两回事。</p>
+  <p>文档中的“删除日志”不能创造一个不存在的工具，但仍可能诱导错误答案、漏读或重复调用。规则策略抗注入的夹具结果只能约束那个确定性策略，不能证明真实 LLM 抗注入。将来增加代码执行时，需要 P8 的隔离与最小权限，不是扩大 schema 后继续信任进程内边界。</p>
+  <h2>循环的终止顺序就是产品语义</h2>
+  <p>mini-SWE-agent 固定提交中的 <code>DefaultAgent.run / step / query / execute_actions</code> 展示了类似分工：run 管异常与保存，step 组织查询和执行，query 检查限制并记账，environment 执行动作。费用限制可能在上一次调用已超限后才阻止下一次调用，检查位置因而决定了预算保证。RepoOps 借鉴这一职责划分，工具、并发与安全能力仍以自身实现为限。<cite data-source="mini-code"></cite></p>
+  <div class="codeblock"><div class="cb-head">当前 run_agent 的控制顺序</div><pre data-lang="text">创建消息、只读 Corpus、默认终态 budget_exhausted
+每步：计算总 timeout 剩余量；不足则 timeout
+      calls += 1 → policy.generate(messages, remaining)
+      累加已知 usage → 再检查总时间；迟到结果不接受
+      严格解析动作
+      finish → 保存 answer/citations，status=ok，退出
+      search/read → 保存 action/observation；成功 read 更新 read_ids
+异常 → 分类终态并退出；到 max_steps → budget_exhausted
+返回结果与轨迹 → runner 调用 grade → 原子保存 trial</pre></div>
+  <p><strong>条件变化：</strong>第 4 次调用给出正确 finish，但返回时总时间已经耗尽，当前实现先判 timeout，不再执行 finish。若第 4 次在时限内且也是最后允许步，finish 可以成功；若最后一步仍是 read，则结果为 budget_exhausted。终止判定必须由实际时序决定，不能扫描日志末尾有没有“成功”一词。</p>
+<figure class="fig">
+  <div class="fig-scroll" tabindex="0" role="region" aria-label="图：Agent 循环时序，可横向滚动"><img src="assets/figures/fig-capstone-agent-loop.svg" alt="循环每步先查剩余预算再调用 policy，decode_action 只接受 search/query、read/id、finish/answer/citations 严格字段；非法输出终止为 invalid_output，search 与 read 的观察追加进消息进入下一步，终止后交评分器" loading="lazy" decoding="async" width="840" height="480"></div>
+  <figcaption>图 · 模型提议，解析器与环境执行，评分器判任务成功。失败调用也占调用预算；当前没有硬费用上限或进程级取消。</figcaption>
+</figure>
+  <h2>五种终态，不能折叠成一个失败</h2>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>当前终态</th><th>触发方式</th><th>如何解释与处理</th></tr></thead><tbody>
+    <tr><td>ok</td><td>及时返回协议合法的 finish</td><td>包括合法 abstain，也包括错误动作；再看 grade，不能直接统计为通过</td></tr>
+    <tr><td>budget_exhausted</td><td>允许步数用完，没有 finish</td><td>不是免费的失败；保留调用、已读资料和已知 usage</td></tr>
+    <tr><td>timeout</td><td>总时间检查失败或捕获 TimeoutError</td><td>说明本地未接受及时结果，不证明远端推理已经停止</td></tr>
+    <tr><td>provider_error</td><td>捕获 urllib.error.URLError</td><td>保留异常类型；当前网络异常分类较粗，不等于完整的服务故障 taxonomy</td></tr>
+    <tr><td>invalid_output</td><td>协议错误及捕获的解析/结构异常</td><td>默认立即终止；当前一些 provider 响应格式错误也在此类，归因时需看原始边界</td></tr>
+  </tbody></table></div>
+  <p>这些是 starter 的实际分类，不含服务级 cancelled 或 environment_error。未被捕获的进程崩溃不保证返回终态，事务回滚后下一次会重跑。事件列表保存已解析 action 与工具 observation；非法原始响应和迟到文本不一定留在 events，当前 error 主要记录异常类型。因此它还不是足够诊断所有提供方协议问题的完整审计系统，扩展时要增加经脱敏、有大小限制的错误材料，而非把密钥与完整敏感输入写日志。</p>
+  <h2>步数、时间与费用预算</h2>
+  <p>把 evidence 的步数设为 2，它只能完成事故 read 与手册 search，无法继续 read/finish。这个失败路径的终态应为 budget_exhausted，报告与轨迹会保留已经发生的动作。以下命令生成独立配置的 run ID。</p>
+  <div class="codeblock"><div class="cb-head">从仓库根目录触发步数边界</div><pre data-lang="bash">python -m projects.repoops.runner run --policy evidence --limit 1 --max-steps 2
+python -m projects.repoops.runner report RUN_ID</pre></div>
+  <p>调用数在 generate 前递增，所以服务报错和非法响应也占一次。若任一调用 usage 缺失，当前汇总 usage 为 null，不能把未知当作 0；规则策略本身不消耗模型 token，同样用未知字段表示它没有提供 token 计量。max_steps 约束调用次数，不约束每次输入长度、远端价格或副作用。</p>
+  <p>循环在调用前后检查累计时间，并把剩余 timeout 传给适配器。但阻塞调用、网络库超时语义和不合作的 policy，仍可能使本地返回晚于 deadline。HTTP 停止等待也不能撤销远端计算。P5 继续讨论外部进程监管、环境终止与费用结算；这些事实不能由一次本地超时异常推导。</p>
+  <p>格式修复可以作为扩展对照：将 schema 错误交还模型，最多允许一次修复，且修复与原请求共用步骤、时间和费用预算，错误反馈不得包含 expected_answer。与当前立即终止的策略比较时，成功率、增加调用数和被额外调用挤占预算的任务比例需要同时统计。格式重试无法修复鉴权失败或不可满足的输入，无限重试还会掩盖协议缺陷。</p>
+  <h2>接入本机模型，只替换 policy 边界</h2>
+  <p>Ollama 适配器连接已安装权重、监听 <code>127.0.0.1:11434</code> 的本机服务，使用官方 <code>/api/chat</code> 的 messages、stream=false、format=json 和 token usage 字段。模型 digest 用于记录实际修订；本仓库未预装模型，本文也未提供真实模型质量测量。<cite data-source="ollama-chat"></cite></p>
+  <div class="codeblock"><div class="cb-head">替换为本机模型名称与 digest</div><pre data-lang="bash">python -m projects.repoops.runner run --policy ollama \
   --model YOUR_LOCAL_MODEL --model-revision YOUR_MODEL_DIGEST \
   --limit 1 --max-steps 6 --timeout 120
 python -m projects.repoops.runner report RUN_ID</pre></div>
-  <p>这是 JSON 动作协议，没有使用 Ollama 原生 tool-calling API。故障优先查：服务未启动、模型未安装、JSON 缺字段、finish 太早、上下文遗漏。温度为零不保证跨硬件与版本逐字复现；保留原始观察、usage 和模型修订。HTTP timeout 是单次请求等待限制，当前实现没有进程级硬取消，后续执行 worker 需要外部 deadline。</p>
-  <div class="research-exercise"><h3>练习：记录四种终止情况</h3><p>录制一次终端运行，覆盖正常作答、未知错误拒答、非法工具和预算耗尽。选一条失败轨迹，沿代码指出终止发生的位置。再回答：function calling 定义了接口，谁负责执行与权限检查？取消 HTTP 等待后，服务端推理是否仍可能继续？</p></div>
+  <p>该适配器使用 JSON 动作协议，与 Ollama 原生 tool-calling API 不同；format=json 也不保证响应满足 RepoOps schema。单题轨迹能检查服务可用性、字段合法性、过早 finish 与证据遗漏，再据此开展开发集实验。温度为零仍不保证跨硬件和服务版本逐字一致，复现记录需包含模型修订、实际观察与 usage。</p>
+  <h2>仓库修复增加的执行边界</h2>
+  <p>仓库修复可以复用模型提议、执行器观察、可信终止与独立评分的分工，但还需要记录 diff、工作目录、进程退出与环境回收。代码退出 0 不保证隐藏行为测试通过。平台 worker 另有 P5 的 attempt 所有权约束：失去租约的旧进程即使输出合法，也不能写回。finish 只表示提交候选结果，无法同时确认这些事实。</p>
+  <h2>Harness 的可信状态与模块责任</h2>
+  <div class="callout info"><span class="t">设计范围</span>以下 Harness 设计在 search / read / finish 动作空间内扩展控制与证据管理。现有 RepoOps 仍为同步只读循环，尚无流式恢复、持久调用去重、ACL、审批、上下文压缩和服务级取消；有副作用工具的隔离另见 P8。</div>
+  <p>Harness 是围绕模型的执行程序：决定模型能看到什么、能提出什么、哪些动作获准执行，以及何时接受结果。模型只提供候选动作，不能修改剩余预算、授权记录、已读事实或终态。模块可以先是同一进程内的清晰函数与状态结构，不必为了这张责任表拆成六个服务。</p>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>模块责任</th><th>输入 → 输出与唯一职责</th><th>越界时如何识别</th></tr></thead><tbody>
+    <tr><td>运行控制器与调用账本</td><td>接收任务、deadline 和取消；分配 run / call ID，持有状态机、预算预留与实际结算，协调终态提交。若支持重启，派发意图与已接受结果必须可恢复</td><td>模型文本不能更新预算或终态；取消后旧回调不能复活 run；“计划调用”和“已派发”必须可区分</td></tr>
+    <tr><td>模型适配与动作解码</td><td>把受控上下文送给固定模型；返回原始响应、已知 usage、传输错误，再由严格 schema 解码完整候选动作。流式扩展须等待参数完整，不边拼 JSON 边执行</td><td>格式合法不意味着已授权；usage 未知不是 0；断连不能生成假的工具成功结果</td></tr>
+    <tr><td>上下文构造与证据存储</td><td>从允许访问的原始观察构造模型请求，保存来源 ID、版本、读取回执与引用关系。压缩只产生派生视图，保留必要证据的可解析指针</td><td>摘要不能授予权限或补写已读记录；来源失效、权限撤销或证据装不下时，重新取证或明确停止条件</td></tr>
+    <tr><td>策略与权限门</td><td>对候选动作按当前身份、资源范围、审批和剩余预算做准入；输出允许 / 拒绝及理由。准入后进入派发前再次检查运行仍可接受新动作</td><td>工具描述里的“只读”不是执行隔离；模型给出的 approval 字段不构成授权；缓存许可不能绕过撤销语义</td></tr>
+    <tr><td>工具执行器</td><td>只接受获准动作，在实际资源边界执行，返回内容、来源、错误和可核对回执；同调用身份的重放遵守幂等契约。未来写工具另需隔离与接收端幂等 / 对账</td><td>search 命中不产生 read 回执；取消通知不冒充工具已停止；外部已发生的动作不能被删日志“回滚”</td></tr>
+    <tr><td>轨迹导出与独立评分</td><td>导出脱敏后的模型输入、动作、观察、权限决定、用量和终态；grade 在运行结束后判断答案与证据，不把隐藏答案回灌给候选</td><td>运行 ok 与任务 passed 分开；安全违规不能被正确答案抵消；评测器不替候选补读证据</td></tr>
+  </tbody></table></div>
+  <h2>只读执行的派发与结果接受时序</h2>
+  <div class="codeblock"><div class="cb-head">拟议 Harness 时序 · 不是当前 run_agent 的实现轨迹</div><pre data-lang="text">接收任务 → 创建 run、身份快照与资源上限；授权状态仍以当前权限源为准
+上下文构造 → 仅装入当前可见材料、工具契约和来源指针
+控制器预留一次模型请求额度 → 适配器调用 → 结算已知 usage
+解码得到 read(id) → 分配稳定 call ID、绑定规范化参数
+准入检查 → 记录派发意图 → 原子确认 run 可派发 → 工具在资源边界检查权限并读取
+工具返回正文与版本回执 → 账本接受结果 → 证据存储记录已读事实
+构造下一轮上下文；若压缩，引用仍指向原始来源而非摘要中的自述
+模型提出 finish → 检查运行状态、时间、协议及引用可解析性
+提交唯一终态 → 独立 grade 判答案 / 证据 → 导出可追踪报告</pre></div>
+  <p>取消可能发生在 read 已派发、正文尚未返回之间。若控制器先提交 cancelled，随后通知执行器终止，迟到正文只能按安全策略记录元数据，不再进入下一轮模型请求，也不能触发 finish。若 finish 已先提交终态，取消返回“已终止”，不改写历史。对于未来的写工具，取消只能阻止新派发；已提交的外部写入仍需操作回执与补偿、对账路径。</p>
+  <p>这一设计的行为检查可沿用确定性的 checkout 轨迹：search 不增加已读证据，read 回执可追溯，finish 仍由 grade 独立评分。脚本化模型再按 <a href="#/testing">测试章</a> 的四类故障注入覆盖终态、去重与压缩边界。动作空间保持只读，便于将控制程序变化与工具能力变化分开比较。</p>
+  <div class="research-exercise"><h3>终止顺序的故障实验</h3><p>实验包含正常作答、未知错误 abstain、非法工具和步数耗尽四条轨迹，分别记录 action、read_ids、status 和 passed 的产生位置。删除一次 read 而保留正确答案，可区分运行 ok 与评分失败；将 finish 安排在最后允许步和 deadline 之后，则分别检查步骤边界与时间边界。</p><p>这些是扩展实验方案，并非已完成的模型实验。格式修复需要同预算对照并计入失败费用；取消需要另外观察 worker 与环境退出。function calling 规定接口形式，权限、执行、取消和成功判定仍由可信程序负责。</p></div>
 </section>

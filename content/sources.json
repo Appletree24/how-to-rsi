@@ -179,9 +179,9 @@
     "id": "claude-sandbox",
     "title": "Claude Code · Sandboxing",
     "url": "https://code.claude.com/docs/en/sandboxing",
-    "version": "产品文档 · 检查于 2026-09-19",
-    "checked_at": "2026-09-19",
-    "scope": "沙箱文档；纠正旧站“无内置 OS 沙箱”的断言"
+    "version": "在线产品文档 · 检查于2026-09-20",
+    "checked_at": "2026-09-20",
+    "scope": "沙箱平台、权限排除与非沙箱重试说明；文档快照不是CLI版本，未运行产品或作安全审计。"
   },
   {
     "id": "confessions",
@@ -267,17 +267,17 @@
     "id": "harbor-verifier",
     "title": "Harbor 官方 · Separate verifier",
     "url": "https://docs.harborframework.com/core-concepts/tasks/separate-verifier",
-    "version": "在线文档 2026-09-19",
-    "scope": "核对默认共享环境、显式 separate 配置、镜像选择和 artifact 传递；运行时兼容性待学习者验证。",
-    "checked_at": "2026-09-19"
+    "version": "在线官方文档 · 2026-09-20",
+    "scope": "默认shared；separate新环境不继承Agent改动，自动复制/logs/artifacts/与声明artifacts并按source路径恢复；专属镜像须预装测试。未运行Harbor任务。",
+    "checked_at": "2026-09-20"
   },
   {
     "id": "gepa-code",
     "title": "GEPA · GEPAAdapter / EvaluationBatch 源码",
     "url": "https://github.com/gepa-ai/gepa/blob/15ee314f9c7d34ec153b809d401f42f55c4dcd76/src/gepa/core/adapter.py",
     "version": "commit 15ee314f9c7d34ec153b809d401f42f55c4dcd76",
-    "scope": "核对接口与逐样本输出/反馈/错误语义，前 180 行；未实现本项目 GEPA 插件。",
-    "checked_at": "2026-09-19"
+    "scope": "Candidate、EvaluationBatch、outputs/scores/trajectories逐样本对齐、capture_traces及单题失败与系统性错误语义；未实现本项目GEPA插件。",
+    "checked_at": "2026-09-20"
   },
   {
     "id": "gepa-overview",
@@ -342,5 +342,46 @@
     "version": "在线官方文档 · 2026-09-20",
     "checked_at": "2026-09-20",
     "scope": "Single-run annotation queues、rubric、分配与复核流程；核对纠正输入输出后 Add to Dataset，不声称为某客户生产实现。"
+  }
+  ,
+  {
+    "id": "elastic-rrf",
+    "title": "Elasticsearch · Reciprocal rank fusion",
+    "url": "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion",
+    "version": "在线官方文档 · 2026-09-20",
+    "checked_at": "2026-09-20",
+    "scope": "公式、从1开始的rank、rank_constant与rank_window_size及候选裁剪；未运行Elasticsearch或核验性能宣传。"
+  },
+  {
+    "id": "sqlite-transactions",
+    "title": "SQLite · Transaction",
+    "url": "https://www.sqlite.org/lang_transaction.html",
+    "version": "官方文档 · 页面更新2026-02-18",
+    "checked_at": "2026-09-20",
+    "scope": "§2.1–2.3读写事务、BEGIN IMMEDIATE、单写者及COMMIT语义；不作为多机调度性能依据。"
+  },
+  {
+    "id": "stripe-idempotency",
+    "title": "Stripe API · Idempotent requests",
+    "url": "https://docs.stripe.com/api/idempotent_requests",
+    "version": "在线官方文档 · 2026-09-20",
+    "checked_at": "2026-09-20",
+    "scope": "同键返回首个执行结果、参数冲突、未开始执行的例外及键清理后的重用；仅为下游契约例子，未调用支付API。"
+  },
+  {
+    "id": "go-context-cancel",
+    "title": "Go · context.CancelFunc",
+    "url": "https://github.com/golang/go/blob/go1.26.0/src/context/context.go",
+    "version": "Go go1.26.0",
+    "checked_at": "2026-09-20",
+    "scope": "CancelFunc说明：通知放弃工作、不等待工作停止、允许并发调用；未运行跨进程取消实验。"
+  },
+  {
+    "id": "dsh-runtime-contracts",
+    "title": "DeepSeek Harness · Runtime contract documents",
+    "url": "https://github.com/deepseek-ai/deepseek-harness/tree/ddefc45fbc7f8e46dd73185e68295696d1297887/docs",
+    "version": "commit ddefc45fbc7f8e46dd73185e68295696d1297887",
+    "checked_at": "2026-09-20",
+    "scope": "architecture、cordis-primer、tool-execution-pipeline、subsystems/persistence及postmortem/0001、0002全文，session与attachment前300行；文档核对不是源码或运行验证，session与persistence的flush时点表述存在冲突。"
   }
 ]

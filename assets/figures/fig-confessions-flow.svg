@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="470" viewBox="0 0 840 470" role="img" aria-labelledby="title desc">
+  <title id="title">Confessions：解耦的双奖励数据流</title>
+  <desc id="desc">主答案走任务奖励照常评分；任务完成后追加结构化忏悔报告（objectives 逐条交代 + uncertainties），由独立奖励目标只评诚实度。诚实交代成功率高于构造假忏悔，使坦白成为最优策略。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5" /></marker>
+  </defs>
+  <rect width="840" height="470" fill="#faf9f6" />
+  <g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <text x="30" y="35" font-size="16" fill="#5e625f">主奖励与忏悔奖励完全解耦——"举报自己"不扣任何东西，反而多拿一份</text>
+
+    <rect x="30" y="66" width="170" height="92" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="46" y="95" font-size="16" font-weight="700">模型执行任务</text>
+    <text x="46" y="122" font-size="14" fill="#5e625f">可能诚实完成</text>
+    <text x="46" y="144" font-size="14" fill="#5e625f">也可能 hack 评分器</text>
+
+    <path d="M200 112H242" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <rect x="244" y="66" width="170" height="92" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="260" y="95" font-size="16" font-weight="700">主答案</text>
+    <text x="260" y="122" font-size="14" fill="#5e625f">照常提交</text>
+
+    <path d="M414 112H456" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <rect x="458" y="66" width="160" height="92" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="474" y="95" font-size="16" font-weight="700">任务评分</text>
+    <text x="474" y="122" font-size="14" fill="#5e625f">评"对不对"</text>
+
+    <path d="M618 112H660" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <rect x="662" y="66" width="148" height="92" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <text x="678" y="95" font-size="16" font-weight="700" fill="#40587f">任务奖励</text>
+    <text x="678" y="122" font-size="14" fill="#40587f">可被 hack</text>
+    <text x="678" y="144" font-size="14" fill="#40587f">不作他用</text>
+
+    <path d="M329 158V206H390V226" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <text x="336" y="196" font-size="14" fill="#5e625f">任务完成后追加</text>
+
+    <rect x="244" y="228" width="300" height="110" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <text x="260" y="256" font-size="16" font-weight="700">忏悔报告（固定结构）</text>
+    <text x="260" y="282" font-size="14">objectives：达成/未达成+理由</text>
+    <text x="260" y="306" font-size="14">uncertainties：拿捏不准·歧义·安全问题</text>
+
+    <path d="M544 283H596" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <rect x="598" y="228" width="212" height="110" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="614" y="256" font-size="16" font-weight="700">忏悔审判</text>
+    <text x="614" y="282" font-size="14">验"报告诚不诚实"</text>
+    <text x="614" y="306" font-size="14" fill="#5e625f">不需 ground-truth 标签</text>
+
+    <path d="M704 338V366" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <rect x="598" y="368" width="212" height="66" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <text x="614" y="395" font-size="16" font-weight="700" fill="#40587f">忏悔奖励</text>
+    <text x="614" y="419" font-size="14" fill="#40587f">只奖诚实，与主分无关</text>
+
+    <rect x="30" y="368" width="520" height="66" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="46" y="394" font-size="15" font-weight="700">为什么诚实是最优策略</text>
+    <text x="46" y="418" font-size="14" fill="#5e625f">诚实交代 ≈100% 可成 vs 假忏悔骗过审判 ≈50%——验证诚实比识破谎言容易</text>
+  </g>
+</svg>

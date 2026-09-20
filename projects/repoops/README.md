@@ -15,6 +15,20 @@ python -m unittest discover -s tests -v
 
 `evidence` 确实执行工具：读工单、搜索手册、读当前手册、提交答案；成绩由 grader 根据结果和已读证据计算。不存在 API 花费；token usage 为 null，不会伪造 token 或美元数据。
 
+### 检索与调度的故障实验
+
+```sh
+python3 projects/repoops/retrieval_failure_lab.py
+python3.11 projects/repoops/lease_failure_lab.py
+```
+
+第二条命令也可使用其他带 `sqlite3` 支持的 Python 3.10+ 解释器。
+
+- [检索实验](retrieval_failure_lab.py)：候选证据召回从 0.5 升到 1，上下文覆盖仍为 0.5；排序/上下文 oracle 与版本过滤分别定位、修复该合成案例，并检查不可见文档是否影响返回结果。
+- [租约实验](lease_failure_lab.py)：在临时 SQLite 数据库中执行到期、重领、迟到提交、重复提交及取消的确定性时序；独立账本展示结果被拒不代表外部费用被撤销。
+
+两者直接运行、自检并打印 JSON，无需模型或网络。它们独立于主 runner，是 P3/P5 的机制实验，不是实际检索模型质量、并发 worker 服务或生产安全的证明。正文包含对应的公开面经主题、本站延伸追问、实际输出与适用边界。
+
 ## 运行、续跑、查看轨迹
 
 ```sh
@@ -42,7 +56,7 @@ python -m projects.repoops.runner report RUN_ID
 
 只连接 `http://127.0.0.1:11434/api/chat`，不处理云端密钥。`--model-revision` 是调用者声明并记录的修订，本实现未向服务器认证它；正式实验应核对服务端实际 digest。采用 messages + JSON action 协议，不是原生 function calling。可用 `--prompt PATH` 替换系统提示；两组真实模型实验应保持其它参数不变。规则策略不依赖 prompt 文本，不能用它测 prompt 优化收益。
 
-HTTP 适配器经过 mock 协议测试；本次维护没有运行本地模型权重。超时是调用等待与循环检查，不是服务端推理硬取消。真实推理可能消耗本机 GPU/CPU；模型效果和硬件占用需要你测量。
+HTTP 适配器的测试覆盖 mock 协议交互，未包含本地模型权重运行。超时约束调用等待与循环检查，无法硬取消服务端推理。模型效果和 GPU/CPU 占用取决于实际模型与运行环境。
 
 ## 文件与契约
 
@@ -61,7 +75,7 @@ HTTP 适配器经过 mock 协议测试；本次维护没有运行本地模型权
 
 当前 dataset 内仍公开保存 expected_answer；只有函数参数层面的隔离，没有进程级保密。未知文档读取返回错误对象；不存在 shell 或任意路径读写工具。严格 schema 防止调用不存在的工具，但不证明模型不会被文档内容误导。
 
-所有结果标注 `public_demo=true`，发布决策固定为 `disabled_public_demo`。不要把 `test_public` 改名后送入旧评测门伪装成密封确认集。正式评测适配请遵循 P7 的访问、抽样与冻结协议。
+所有结果标注 `public_demo=true`，发布决策固定为 `disabled_public_demo`。`test_public` 是公开数据，改名不会使其成为独立确认集。正式评测的数据访问、抽样与冻结协议见 P7。
 
 ## 完成范围
 

@@ -1,0 +1,58 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" width="840" height="500" viewBox="0 0 840 500" role="img" aria-labelledby="title desc">
+  <ns0:title id="title">轨迹反馈驱动的候选优化回路</ns0:title>
+  <ns0:desc id="desc">候选在开发集上 evaluate 产生 outputs/scores/trajectories；make_reflective_dataset 只从开发轨迹提取失败反馈交给修改器生成新候选；候选生成、反思、评估、重试全部计入搜索总预算。</ns0:desc>
+  <ns0:defs>
+    <ns0:marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><ns0:path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5" /></ns0:marker>
+  </ns0:defs>
+  <ns0:rect width="840" height="500" fill="#faf9f6" />
+  <ns0:g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <ns0:text x="30" y="35" font-size="16" fill="#5e625f">一轮迭代：反馈只来自开发轨迹；所有调用都记账，预算设硬上限</ns0:text>
+
+    <ns0:rect x="60" y="86" width="290.0" height="86" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="76" y="114" font-size="17" font-weight="700">候选（可序列化）</ns0:text>
+    <ns0:text x="76" y="138" font-size="14">parent_id·摘要·hash·成本</ns0:text>
+    <ns0:text x="76" y="159" font-size="14" fill="#5e625f">schema 外字段 → 拒绝</ns0:text>
+
+    <ns0:rect x="390" y="86" width="250" height="86" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="406" y="114" font-size="17" font-weight="700">evaluate(batch, cand)</ns0:text>
+    <ns0:text x="406" y="138" font-size="14">固定模型·预算·dev</ns0:text>
+    <ns0:text x="406" y="159" font-size="14" fill="#5e625f">逐样本返回，失败留在批次中</ns0:text>
+
+    <ns0:rect x="390" y="252" width="250" height="86" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="406" y="280" font-size="17" font-weight="700">EvaluationBatch</ns0:text>
+    <ns0:text x="406" y="304" font-size="14">outputs·scores·traj</ns0:text>
+    <ns0:text x="406" y="325" font-size="14" fill="#5e625f">数组与样本一一对应</ns0:text>
+
+    <ns0:rect x="60" y="252" width="290.0" height="86" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="76" y="280" font-size="14" font-weight="700">make_reflective_dataset</ns0:text>
+    <ns0:text x="76" y="304" font-size="14">只取开发轨迹：目标 · 动作 ·</ns0:text>
+    <ns0:text x="76" y="325" font-size="14">工具观察 · 失败类别</ns0:text>
+
+    <ns0:rect x="60" y="392" width="350.0" height="60" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <ns0:text x="76" y="416" font-size="16" font-weight="700">修改器 → 新候选</ns0:text>
+    <ns0:text x="76" y="438" font-size="14">改 system_prompt 与证据策略</ns0:text>
+
+    <ns0:path d="M280 129H388" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:path d="M500 172V250" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:path d="M390 295H350" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:path d="M170 338V390" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:path d="M170 392V356H44V129H60" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <ns0:rect x="652" y="86" width="152.0" height="166" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <ns0:text x="668" y="114" font-size="16" font-weight="700">搜索预算账本</ns0:text>
+    <ns0:text x="668" y="142" font-size="14">候选生成 · 反思调用</ns0:text>
+    <ns0:text x="668" y="163" font-size="14">候选评估 · 重试</ns0:text>
+    <ns0:text x="668" y="192" font-size="14">调用前预留额度</ns0:text>
+    <ns0:text x="668" y="213" font-size="14">结束后结算；硬上限</ns0:text>
+    <ns0:path d="M650 150H640" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:path d="M650 200H600V252" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <ns0:rect x="652" y="288" width="152.0" height="130" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <ns0:text x="668" y="314" font-size="15" fill="#40587f">数据边界</ns0:text>
+    <ns0:text x="668" y="342" font-size="14">dev_select</ns0:text><ns0:text x="668" y="363" font-size="14">final：只测冻结终选</ns0:text>
+    <ns0:text x="668" y="392" font-size="14" fill="#5e625f">反馈不含确认集</ns0:text>
+    <ns0:text x="668" y="411" font-size="14" fill="#5e625f">源码或外部密钥</ns0:text>
+
+    <ns0:text x="30" y="482" font-size="15" fill="#5e625f">与随机/无反馈搜索同总预算、同终选规则、同模型比较——归因只来自“读了失败轨迹”这一个处理变量。</ns0:text>
+  </ns0:g>
+</ns0:svg>

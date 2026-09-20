@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="520" viewBox="0 0 840 520" role="img" aria-labelledby="title desc">
+  <title id="title">45 条术语的四条依赖主线</title>
+  <desc id="desc">把 45 条术语按定义中的引用关系排成四条主线：运行骨架 seam→scope、配置堆叠 profile→bundle→patch、时间单位 step→turn→round、评测口径 outcome→grader→pass@k→饱和，箭头指被定义引用的一方。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5" /></marker>
+  </defs>
+  <rect width="840" height="520" fill="#faf9f6" />
+  <g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <text x="30" y="35" font-size="16" fill="#5e625f">45 条术语按定义中的引用关系排开；箭头指被引用的一方 · 查词先定位主线再回溯</text>
+
+    <rect x="30" y="58" width="780" height="118" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <text x="48" y="82" font-size="15" fill="#40587f">运行骨架 · 挂在什么上、对谁可见</text>
+    <rect x="56" y="98" width="128" height="48" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <text x="72" y="127" font-size="16" font-weight="700">能力接缝 seam</text>
+    <rect x="226" y="98" width="124" height="48" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <text x="242" y="127" font-size="16" font-weight="700">作用域 scope</text>
+    <rect x="392" y="98" width="252" height="48" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="408" y="118" font-size="14">scope key · agent.ctx</text>
+    <text x="408" y="138" font-size="14">restriction · setup · lineage</text>
+    <path d="M184 122H224" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <path d="M350 122H390" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <text x="664" y="118" font-size="14" fill="#40587f">两层扁平：</text>
+    <text x="664" y="138" font-size="14" fill="#40587f">不向子 agent 继承</text>
+
+    <rect x="30" y="192" width="780" height="108" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <text x="48" y="216" font-size="15" fill="#40587f">配置堆叠 · 定义"我是谁"的层序</text>
+    <rect x="56" y="232" width="120" height="48" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <text x="72" y="261" font-size="16" font-weight="700">profile</text>
+    <rect x="218" y="232" width="120" height="48" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <text x="234" y="261" font-size="16" font-weight="700">bundle</text>
+    <rect x="380" y="232" width="210" height="48" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="396" y="261" font-size="16">patch · cordis.patch</text>
+    <path d="M176 256H216" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <path d="M338 256H378" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <rect x="630" y="232" width="162" height="48" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="646" y="252" font-size="14">启动铁律 · 品牌类型</text>
+    <text x="646" y="272" font-size="14">格式版本 · 相邻迁移</text>
+    <path d="M590 256H628" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <rect x="30" y="316" width="780" height="108" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <text x="48" y="340" font-size="15" fill="#40587f">时间与事件 · 谁在数谁</text>
+    <rect x="56" y="356" width="110" height="48" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <text x="72" y="385" font-size="16" font-weight="700">step</text>
+    <rect x="208" y="356" width="110" height="48" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <text x="224" y="385" font-size="16" font-weight="700">turn</text>
+    <rect x="360" y="356" width="170" height="48" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="376" y="378" font-size="16">round · goal</text>
+    <text x="376" y="398" font-size="14">Ralph 循环 · 交接</text>
+    <path d="M166 380H206" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <path d="M318 380H358" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <rect x="570" y="356" width="222" height="48" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="586" y="376" font-size="14">session event · agent/*</text>
+    <text x="586" y="396" font-size="14">projection · inbox · 快照测试</text>
+    <path d="M530 380H568" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <rect x="30" y="440" width="780" height="64" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <text x="48" y="464" font-size="15" fill="#40587f">评测口径 · 评什么、怎么比</text>
+    <text x="56" y="490" font-size="15">outcome ≠ transcript → grader 评谁 → pass@k / pass^k → 能力评测饱和后毕业成回归评测</text>
+  </g>
+</svg>

@@ -45,6 +45,14 @@
 
 验证：`python3.11 -m unittest discover -s tests` 31 项通过；`python3.11 scripts/check_content.py` 的残留报错全部来自 `.enrich/pkgreadme.md` 的外部链接，干净树基线同样失败，与本次改动无关；`node --check` 两个 JS 文件通过；浏览器冒烟（Playwright 与内置 browser 工具）本环境均不可用，已用解析器对生成章节做标签配平、小节、引用与残留检查代替视觉验收。
 
+同日补两处：证明技术一轮循环的四条专用指令（§3.2 六条中展示 get-axiom/apply-rule/set-switchprog/check；定理只能经专用指令进入 proof，不等同"四条指令写 proof"）；02 章新增 `fig-godel-switch.svg` 机制图。
+
+## 全站配图 · 2026-09-20
+
+45 个导航章节各配至少一张手绘 SVG 机制图（`assets/figures/`，840 宽、统一色板、`<title>/<desc>` 无障碍标注）。来源章节直接插入 `<figure class="fig">`；仍在 index.html 内的 21 个旧章节经规格文件统一插入，其中 intro/cordis/loop 三张图初版落进 tbody/ul/card 等非法父级，已移至容器外并把锚点扩到完整闭合边界。
+
+`.chapter figure.fig` 样式并入 main.css（eval 章的 `.eval-figure` 约定不动）。`scripts/check_figures.py` 固化 45 章覆盖集合，`scripts/lint_figures.py` 校验 XML 结构、色板、禁项与文本量；两项已加入 CI。本环境无 CJK 字体且无 Playwright，文字渲染依赖浏览器端字体栈，视觉验收仍未执行。
+
 ## 第 04 章评测重写 · 2026-09-20
 
 以退款任务串起输入、环境终态、轨迹、硬约束与质量评分，删去重复口号、无条件经验结论及混合归因的跑分数字。工业实践分别标注 Claude Code 的官方披露、Anthropic 对 Bolt / Descript 的转述、SWE-bench 的公开验收实现，以及 LangSmith 官方平台工作流；不把本站任务设计写成企业内部方案。

@@ -1,0 +1,66 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" width="840" height="470" viewBox="0 0 840 470" role="img" aria-labelledby="title desc">
+  <ns0:title id="title">追加式日志是真相源：一切读到的东西都是投影</ns0:title>
+  <ns0:desc id="desc">左侧追加式 SessionEvent 日志经中间投影层折叠出 deriveMessages 模型历史、inbox 与 session.surface，右侧 fork、resume、导出、遥测全部派生；底部 SessionPersistence seam 保证单写者、append 尽力持久、flush 才是崩溃屏障，已发布代际永不改写。</ns0:desc>
+  <ns0:defs>
+    <ns0:marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><ns0:path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5" /></ns0:marker>
+  </ns0:defs>
+  <ns0:rect width="840" height="470" fill="#faf9f6" />
+  <ns0:g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <ns0:text x="30" y="35" font-size="16" fill="#5e625f">模型上下文不单独存储：从追加式日志投影而来，fork / resume / 导出 / 遥测同源</ns0:text>
+
+    <ns0:rect x="30" y="62" width="220" height="272" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <ns0:text x="46" y="87" font-size="15" fill="#40587f">追加式 SessionEvent 日志</ns0:text>
+    <ns0:rect x="50" y="104" width="180" height="30" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="64" y="124" font-size="14">system/message</ns0:text>
+    <ns0:rect x="50" y="142" width="180" height="30" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="64" y="162" font-size="14">user/message</ns0:text>
+    <ns0:rect x="50" y="180" width="180" height="30" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="64" y="200" font-size="14">message · attempt</ns0:text>
+    <ns0:rect x="50" y="218" width="180" height="30" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="64" y="238" font-size="14">tool/call · tool/result</ns0:text>
+    <ns0:rect x="50" y="256" width="180" height="30" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="64" y="276" font-size="14">turn/* · request/* …</ns0:text>
+    <ns0:text x="50" y="314" font-size="14" fill="#5e625f">{ type, seq, time, data }</ns0:text>
+    <ns0:text x="50" y="332" font-size="14" fill="#5e625f">seq 单调连续</ns0:text>
+
+    <ns0:path d="M250 198H296" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <ns0:rect x="300" y="62" width="240" height="272" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <ns0:text x="316" y="87" font-size="15" fill="#40587f">投影：已提交事件 → 状态</ns0:text>
+    <ns0:rect x="318" y="104" width="204" height="56" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <ns0:text x="332" y="127" font-size="15" font-weight="700">deriveMessages()</ns0:text>
+    <ns0:text x="332" y="148" font-size="14" fill="#5e625f">模型可见历史</ns0:text>
+    <ns0:rect x="318" y="176" width="204" height="56" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="332" y="199" font-size="15" font-weight="700">inbox · turnBoundary</ns0:text>
+    <ns0:text x="332" y="220" font-size="14" fill="#5e625f">无存活 Agent 也能冷读待办</ns0:text>
+    <ns0:rect x="318" y="248" width="204" height="56" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="332" y="271" font-size="15" font-weight="700">session.surface</ns0:text>
+    <ns0:text x="332" y="292" font-size="14" fill="#5e625f">foldSurface() 复算同折叠</ns0:text>
+    <ns0:text x="316" y="324" font-size="13" fill="#5e625f">@messageProjection 改显示不改账</ns0:text>
+
+    <ns0:path d="M540 198H586" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <ns0:rect x="590" y="62" width="214.0" height="272" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <ns0:text x="606" y="87" font-size="15" fill="#40587f">派生消费方</ns0:text>
+    <ns0:rect x="608" y="104" width="184" height="56" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="622" y="127" font-size="15" font-weight="700">fork / resume</ns0:text>
+    <ns0:text x="622" y="148" font-size="14" fill="#5e625f">继承前缀长度随正文存储</ns0:text>
+    <ns0:rect x="608" y="176" width="196.0" height="56" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="622" y="199" font-size="15" font-weight="700">导出 · 遥测 · 标题</ns0:text>
+    <ns0:text x="622" y="220" font-size="14" fill="#5e625f">全部由同一日志派生</ns0:text>
+    <ns0:rect x="608" y="248" width="196.0" height="56" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="622" y="271" font-size="15" font-weight="700">约 29 个监听包</ns0:text>
+    <ns0:text x="622" y="292" font-size="14" fill="#5e625f">挂 session/event 广播</ns0:text>
+
+    <ns0:rect x="30" y="356" width="774.0" height="96" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <ns0:text x="46" y="380" font-size="15" fill="#40587f">ctx.sessionPersistence 存储 seam · 每会话 SessionHandle（read / append / flush / close）</ns0:text>
+    <ns0:rect x="50" y="394" width="238" height="44" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="62" y="421" font-size="14">open(id,'write') 原子抢占单写者</ns0:text>
+    <ns0:rect x="300" y="394" width="238" height="44" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="312" y="412" font-size="14">append = 尽力持久</ns0:text>
+    <ns0:text x="312" y="430" font-size="14">resolve 的 flush 才承诺扛崩溃</ns0:text>
+    <ns0:rect x="550" y="394" width="246" height="44" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="562" y="412" font-size="14">已发布代际 session.vN.jsonl</ns0:text>
+    <ns0:text x="562" y="430" font-size="14">永不改写；升级在旁边发新一代</ns0:text>
+  </ns0:g>
+</ns0:svg>

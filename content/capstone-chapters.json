@@ -2,108 +2,108 @@
   {
     "id": "capstone",
     "num": "P0",
-    "title": "RepoOps Lab：从工单到实验",
+    "title": "三个项目，一条可检查的改进链",
     "short": "项目介绍",
-    "blurb": "运行示例、任务范围与 16 周安排。",
+    "blurb": "RepoOps实验及知识助手、仓库修复与评测平台。",
     "icon": "book",
     "module": "capstone"
   },
   {
     "id": "capstone-data",
     "num": "P1",
-    "title": "任务数据与评分字段",
+    "title": "任务数据的独立性、可回答性与权限",
     "short": "任务数据",
-    "blurb": "工单、参考答案、家族拆分与断点续跑。",
+    "blurb": "可回答性、家族拆分、权限与反馈污染。",
     "icon": "book",
     "module": "capstone"
   },
   {
     "id": "capstone-agent",
     "num": "P2",
-    "title": "Agent 循环与工具协议",
+    "title": "模型提出动作，程序决定是否接受",
     "short": "Agent 循环",
-    "blurb": "工具协议、终止状态、模型适配与预算。",
+    "blurb": "逐步轨迹、终态优先级、预算和未知成本。",
     "icon": "book",
     "module": "capstone"
   },
   {
     "id": "capstone-retrieval",
     "num": "P3",
-    "title": "检索、上下文与记忆",
+    "title": "检索证据在排序与上下文中的流失",
     "short": "检索记忆",
-    "blurb": "从词法基线到混合检索，检索与生成分别归因。",
+    "blurb": "用oracle与故障实验定位证据在哪一层丢失。",
     "icon": "book",
     "module": "capstone"
   },
   {
     "id": "capstone-grading",
     "num": "P4",
-    "title": "评分规则与误判检查",
+    "title": "评分器的证据规则与误判边界",
     "short": "可信评分",
-    "blurb": "校准、反例、拒答、证据与污染测试。",
+    "blurb": "规则手算、替代证据、judge校准与反例审计。",
     "icon": "book",
     "module": "capstone"
   },
   {
     "id": "capstone-platform",
     "num": "P5",
-    "title": "队列、租约与故障恢复",
+    "title": "租约、重试与外部费用的一致性边界",
     "short": "调度与恢复",
-    "blurb": "Go 控制面、租约、fencing、幂等与恢复。",
+    "blurb": "租约故障实跑、幂等范围、取消与独立费用。",
     "icon": "book",
     "module": "capstone"
   },
   {
     "id": "capstone-observability",
     "num": "P6",
-    "title": "轨迹、成本与故障定位",
+    "title": "从评测回归到故障定位",
     "short": "可观测性",
-    "blurb": "trace、失败分层、尾延迟、成本账本与事故演练。",
+    "blurb": "竞争假设、同轨迹重评分、干预与成本分账。",
     "icon": "book",
     "module": "capstone"
   },
   {
     "id": "capstone-experiments",
     "num": "P7",
-    "title": "固定预算下比较两个版本",
+    "title": "固定预算下的版本比较与 Harness 消融",
     "short": "实验判断",
-    "blurb": "配对、聚类、预算、确认集与三态决策。",
+    "blurb": "唯一变量、配对、任务家族与停止规则。",
     "icon": "book",
     "module": "capstone"
   },
   {
     "id": "capstone-sandbox",
     "num": "P8",
-    "title": "在 Harbor 中运行仓库修复",
+    "title": "仓库修复的沙箱与独立验收",
     "short": "隔离执行",
-    "blurb": "Harbor 任务、mini-SWE-agent 基线与独立 verifier。",
+    "blurb": "冻结patch、可信验证入口与环境权限边界。",
     "icon": "book",
     "module": "capstone"
   },
   {
     "id": "capstone-improve",
     "num": "P9",
-    "title": "用轨迹反馈优化候选",
+    "title": "失败反馈驱动的策略搜索",
     "short": "反思优化",
-    "blurb": "GEPA 接口、失败轨迹、搜索账本与消融。",
+    "blurb": "同预算无反馈基线、诊断消融与完整搜索账本。",
     "icon": "book",
     "module": "capstone"
   },
   {
     "id": "capstone-meta",
     "num": "P10",
-    "title": "更新改进器的对照实验",
+    "title": "改进器更新的迁移实验",
     "short": "递归研究",
-    "blurb": "冻结改进器对照、全搜索重复与元收益。",
+    "blurb": "共同起点、冻结改进器、迁移与元成本摊销。",
     "icon": "book",
     "module": "capstone"
   },
   {
     "id": "capstone-career",
     "num": "P11",
-    "title": "项目展示与面试准备",
-    "short": "面试准备",
-    "blurb": "岗位样本、简历示例、模拟面试与投递记录。",
+    "title": "项目面试中的系统分析与证据",
+    "short": "项目面试",
+    "blurb": "项目面试中的技术讨论、约束变化与评价依据。",
     "icon": "book",
     "module": "capstone"
   }

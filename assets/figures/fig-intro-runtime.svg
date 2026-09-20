@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="440" viewBox="0 0 840 440" role="img" aria-labelledby="title desc">
+  <title id="title">Harness 设计：模型提出动作，运行时拥有执行责任</title>
+  <desc id="desc">通用设计示意，不对应 DSH 的具体实现。模型提出候选动作；Harness 负责上下文编译、工具可见性、预算调度、执行授权、事实持久化和取消恢复。工具可见不等于获准执行，日志重放不等于重发动作，完成由独立验收判定。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5" /></marker>
+  </defs>
+  <rect width="840" height="440" fill="#faf9f6" />
+  <g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <text x="30" y="35" font-size="16" fill="#5e625f">模型提出动作；运行时决定能否执行、如何停止、怎样查证结果</text>
+
+    <rect x="30" y="95" width="185" height="130" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="46" y="125" font-size="19" font-weight="700">模型</text>
+    <text x="46" y="151" font-size="15">策略 / 模型适配器</text>
+    <text x="46" y="176" font-size="14" fill="#5e625f">生成回答与候选动作</text>
+    <text x="46" y="197" font-size="14" fill="#5e625f">不能自行扩大权限</text>
+    <path d="M215 160H263" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <rect x="265" y="60" width="545" height="330" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <text x="283" y="86" font-size="15" fill="#40587f">Harness · 可放在同一进程，责任仍须分清</text>
+
+    <text x="283" y="129" font-size="15">组装提示词</text>
+    <path d="M378 123H426" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <rect x="430" y="105" width="365" height="36" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="446" y="129" font-size="15">信任分层 · 证据来源 · 上下文预算</text>
+
+    <text x="283" y="174" font-size="15">暴露工具</text>
+    <path d="M378 168H426" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <rect x="430" y="150" width="365" height="36" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="446" y="174" font-size="15">按作用域暴露；执行时仍须重新授权</text>
+
+    <text x="283" y="219" font-size="15">驱动循环</text>
+    <path d="M378 213H426" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <rect x="430" y="195" width="365" height="36" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="446" y="219" font-size="15">调度 · 总预算 · deadline · 停止条件</text>
+
+    <text x="283" y="264" font-size="15">执行工具调用</text>
+    <path d="M392 258H426" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <rect x="430" y="240" width="365" height="36" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="446" y="264" font-size="15">参数校验 → 授权 / 审批 → 受限执行</text>
+
+    <text x="283" y="309" font-size="15">持久化会话</text>
+    <path d="M378 303H426" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <rect x="430" y="285" width="365" height="36" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="446" y="309" font-size="15">记录事实与未决状态；重放不重发动作</text><text x="283" y="354" font-size="15">取消 / 重试 / 恢复</text>
+    <path d="M408 348H426" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <rect x="430" y="330" width="365" height="36" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="446" y="354" font-size="15">停止准入 · 收尾 · 查证外部副作用</text>
+
+    <text x="30" y="425" font-size="15" fill="#5e625f">独立验收判定完成；可替换实现不等于可以改变权限、预算和持久化契约。</text>
+  </g>
+</svg>

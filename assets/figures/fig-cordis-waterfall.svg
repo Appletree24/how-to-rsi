@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="410" viewBox="0 0 840 410" role="img" aria-labelledby="title desc">
+  <title id="title">waterfall 环绕式中间件：next() 委托与短路</title>
+  <desc id="desc">dispatch 调用穿过监听器 1、监听器 2 到达内建行为，每个监听器拿到 (...args, next)；结果沿 next() 返回值逐层回传，最外层监听器的返回值就是 dispatch 的返回值；不调 next() 即短路否决。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5"/></marker>
+  </defs>
+  <rect width="840" height="410" fill="#faf9f6"/>
+  <g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <text x="30" y="35" font-size="16" fill="#5e625f">ctx.waterfall：每个监听器收到 (…args, next)，决定是否委托给下一层</text>
+
+    <rect x="30" y="100" width="150" height="100" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="46" y="131" font-size="17" font-weight="700">dispatch</text>
+    <text x="46" y="155" font-size="14">发起方拿到的是</text>
+    <text x="46" y="176" font-size="14">最外层的返回值</text>
+
+    <rect x="230" y="100" width="160" height="100" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5"/>
+    <text x="246" y="131" font-size="17" font-weight="700">监听器 1 · 最外层</text>
+    <text x="246" y="155" font-size="14">改共享决策对象</text>
+    <text x="246" y="176" font-size="14">或整体替换结果</text>
+    <text x="246" y="223" font-size="14" fill="#5e625f">prepend: true 先于常规注册运行</text>
+
+    <rect x="440" y="100" width="160" height="100" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="456" y="131" font-size="17" font-weight="700">监听器 2</text>
+    <text x="456" y="155" font-size="14">只见上游替换后的值</text>
+    <text x="456" y="176" font-size="14">注释后必须委托</text>
+
+    <rect x="650" y="100" width="160" height="100" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="666" y="131" font-size="17" font-weight="700">内建行为</text>
+    <text x="666" y="155" font-size="14">链尾默认实现</text>
+    <text x="666" y="176" font-size="14">结果从此回传</text>
+
+    <path d="M180 150H228" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M390 150H438" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M600 150H648" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="190" y="138" font-size="14" fill="#2b5bd7">next()</text>
+    <text x="400" y="138" font-size="14" fill="#2b5bd7">next()</text>
+    <text x="610" y="138" font-size="14" fill="#2b5bd7">next()</text>
+
+    <path d="M730 200V262H105V202" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="330" y="282" font-size="15" fill="#40587f">返回值逐层经 next() 回传：最外层监听器的返回 = dispatch 的返回</text>
+
+    <text x="30" y="330" font-size="15">不调 next() = 短路 / 否决：拥有决定权的监听器直接返回（如 tools/pre-execute 返回 { kind: 'deny' }）</text>
+    <text x="30" y="358" font-size="15" fill="#5e625f">只做注释 / 观察的监听器必须委托——下游看不见未委托的调用</text>
+    <text x="30" y="392" font-size="14" fill="#5e625f">单决策事件的短路是设计本意；合作型监听器修改共享请求后 return next() 放行</text>
+  </g>
+</svg>

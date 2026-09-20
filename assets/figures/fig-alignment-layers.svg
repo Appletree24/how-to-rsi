@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="450" viewBox="0 0 840 450" role="img" aria-labelledby="title desc">
+  <title id="title">外层对齐与内层对齐：意图到行为的两条缝</title>
+  <desc id="desc">人类意图先经外层对齐近似成奖励与评测信号，再经内层对齐被模型内化为学到的目标。外层缝里长 reward hacking，内层缝里长 deceptive alignment；学到的目标只在分布内与训练目标重合。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5" /></marker>
+  </defs>
+  <rect width="840" height="450" fill="#faf9f6" />
+  <g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <text x="30" y="35" font-size="16" fill="#5e625f">意图到行为经过两次翻译，各留一条缝（Hubinger et al. 2019 的外层/内层之分）</text>
+
+    <rect x="30" y="58" width="370" height="176" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <text x="48" y="84" font-size="15" fill="#40587f">外层对齐 · 意图 → 奖励 的近似</text>
+    <rect x="55" y="102" width="140" height="72" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="71" y="130" font-size="16" font-weight="700">人类意图</text>
+    <text x="71" y="155" font-size="14">"写一篇好文章"</text>
+    <path d="M195 138H233" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <rect x="235" y="102" width="140" height="72" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="251" y="130" font-size="16" font-weight="700">奖励 / 评测</text>
+    <text x="251" y="155" font-size="14">RLHF 偏好近似</text>
+    <text x="55" y="212" font-size="15" fill="#40587f">缝①：近似≠意图 → reward hacking 在缝里生长</text>
+
+    <rect x="440" y="58" width="370" height="176" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <text x="458" y="84" font-size="15" fill="#40587f">内层对齐 · 奖励 → 学到的目标 的翻译</text>
+    <rect x="465" y="102" width="140" height="72" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="481" y="130" font-size="16" font-weight="700">训练目标</text>
+    <text x="481" y="155" font-size="14">被优化的信号</text>
+    <path d="M605 138H643" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <rect x="645" y="102" width="140" height="72" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <text x="661" y="130" font-size="16" font-weight="700">学到的目标</text>
+    <text x="661" y="155" font-size="14">mesa-optimizer</text>
+    <text x="465" y="206" font-size="15" fill="#40587f">缝②：分布内才重合 →</text>
+    <text x="465" y="228" font-size="14" fill="#40587f">deceptive alignment</text>
+
+    <path d="M375 138H463" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <path d="M715 174V246" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <rect x="605" y="248" width="205" height="86" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="621" y="277" font-size="16" font-weight="700">观察到的行为</text>
+    <text x="621" y="303" font-size="14">分布内看似对齐</text>
+    <text x="621" y="325" font-size="14" fill="#5e625f">分布外两条目标可分叉</text>
+
+    <rect x="30" y="262" width="480" height="72" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="46" y="290" font-size="15" font-weight="700">"学会表现得对齐" ≠ "对齐"</text>
+    <text x="46" y="316" font-size="14" fill="#5e625f">alignment faking 实测：装服从以保住内部倾向（2412.14093）</text>
+
+    <text x="30" y="382" font-size="15" fill="#5e625f">第 04 章"评什么"是在补外层缝——评测越准缝越小，但只要不完美定义，缝永远在。</text>
+    <text x="30" y="414" font-size="15" fill="#5e625f">RSI 让两条缝都被放大：奖励缝可被自改主动利用；内层跑偏的模型会被请去改进自己。</text>
+  </g>
+</svg>

@@ -1,0 +1,66 @@
+<section class="chapter" id="ch-workflow">
+    <span class="ch-kicker">工程 / 21 · 开发工作流</span>
+    <h1>变更发布：<span class="grad">从评审到停写与恢复</span></h1>
+    <p class="lead">候选插件在回放中修复了更多任务，上线后却开始写入新格式会话，后台还留着测试进程。回退代码无法同时恢复这些状态：旧进程可能继续写入，新数据可能不被旧版本识别，已提交的外部动作也不会随 Git 倒退。本章沿一次并行测试插件的变更，讨论评审、制品验证、发布和恢复之间的衔接。</p>
+    <div class="callout info"><span class="t">历史索引与发布案例</span>下方 DSH 命令表、文档地图与运行要求未绑定上游 commit，具体脚本以目标仓库的 package.json、锁文件与文档为准。发布协议是设计案例，未作为 DSH 部署功能实现或运行。这些 pnpm 命令也不属于本站的构建流程。</div>
+
+    <h2>界定变更与比较条件</h2>
+    <p>设候选 <code>candidate-B</code> 为仓库修复助手加入并行测试执行，基线为 <code>base-A</code>。并行可能减少等待，也会增加进程、改变结果顺序，并引入新的持久完成事件。性能比较需要固定测试集和资源预算，并保留失败与遗漏结果，否则少跑测试也会表现为耗时下降。</p>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>评审维度</th><th>并行执行变更的具体内容</th></tr></thead><tbody>
+      <tr><td>需求与不可变约束</td><td>只改变任务执行调度；相同测试集、资源总额和评分器下比较，不允许少跑测试换速度</td></tr>
+      <tr><td>修改面与权限差异</td><td>新增哪些包、工具、事件、配置、进程与网络能力；是否触及循环或独立评测器</td></tr>
+      <tr><td>替代方案</td><td>为何不用串行执行加缓存；缓存是否会引入旧结果污染，并行是否争用 CPU 或端口</td></tr>
+      <tr><td>行为及失败证据</td><td>同一候选和固定任务的结果、延迟与成本；超时、取消、退出码和遗漏结果分别呈现</td></tr>
+      <tr><td>兼容与撤回条件</td><td>新日志能否被旧读者理解；何时禁止再写；恢复数据会丢哪些已经确认的写入</td></tr>
+    </tbody></table></div>
+    <p>在 RSI 系统中，提出改进的 agent 与验收规则还需要分开。候选、评测器、任务集和批准权分别固定，候选的自评结果不能直接授予发布许可；评分器修改应作为另一项变更独立审查。固定回放上的功能与性能结果支持当前任务集内的比较，对新任务的泛化仍需另外评估。</p>
+
+    <h2>从变更范围定位文档与实现</h2>
+    <p>目标版本的 <code>docs/architecture.md</code> 用于定位行为的拥有者。已有扩展点能承载的行为通常无需修改主循环；接口契约发生变化时，则需要显式修改接口和消费者。对应的 <code>docs/subsystems/&lt;name&gt;.md</code> 说明服务与事件，<code>docs/glossary.md</code> 统一术语，<code>docs/cookbook/</code> 提供实现配方，<code>docs/postmortem/</code> 记录事故。旧 Agent Note 可以解释当时的选择，现行契约仍以当前定义为准。</p>
+    <div class="grid cols3" id="docmapGrid"></div>
+    <p>例如，并行结果从提交序改为完成序，会影响依赖旧顺序的消费者，也可能改变持久回放。顺序契约需要在实现前确定，测试才能据此选择断言，调用方、记录和展示层也才能一起迁移。如果只按最终代码补文档，偶然的实现顺序可能被误写成规范。</p>
+
+    <h2>从源码到可运行制品</h2>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>历史命令</th><th>历史用途，目标版本需复核</th><th>类别</th></tr></thead>
+        <tbody id="cmdTable"></tbody>
+      </table>
+    </div>
+    <p>安装和 typecheck 分别检查依赖环境与静态契约；包内测试检查局部行为，真实 profile 检查装配，快照对照固定轨迹。build 产出的制品还需要通过实际入口启动：tsconfig paths 指向 src 时，测试通过也可能掩盖 lib 导出错误。安装脚本本身会执行代码，因此锁文件与安装行为审查应先于受控环境中的安装。</p>
+    <div class="codeblock"><div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> DSH 历史命令示意：仅在核对后的目标 DSH 仓库运行</div><pre data-lang="bash">pnpm install
+pnpm run typecheck
+pnpm run test
+pnpm run test:snapshot
+pnpm run test:e2e
+pnpm run build
+pnpm run hygiene
+pnpm run doc-sync</pre></div>
+    <p>历史表中的 test:e2e 包含需密钥场景，缺密钥造成的跳过与通过需要分别记录。test:snapshot:record 会重录预期，失败原因未经分析就录制，可能覆盖真正的回归。clean 会移除构建产物，录制与真实 API 运行还可能产生费用或外部副作用，因此这组命令不能作为无条件批处理。完整质量、覆盖率和文档门禁以目标版本 CI 为准。</p>
+
+    <h2>发布的状态转移</h2>
+    <p>candidate-B 的发布设计需要同时描述正常推进和停止路径。制品摘要、配置、profile、数据格式与评测记录共同标识一个发布；仅有源代码 commit 无法唯一确定运行行为，配置或模型服务变化也可能改变结果。</p>
+    <div class="codeblock"><div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> candidate-B 的发布时序</div><pre data-lang="text">prepare：冻结 candidate-B 制品 / 依赖 / profile / 评测器版本
+verify ：一次性环境验证装配、并发限额、取消、结果完整性
+approve：独立审阅行为差异、权限变化、读写兼容矩阵与恢复点
+canary ：只给有限的新任务；保留基线对照，不共享候选可写评分资产
+observe：同时看成功质量、p95 延迟、成本、无效结果、残留进程
+stop   ：触发预设停止条件 → 拒绝新任务 → 排空或取消在途任务
+recover：确认静止 → 按兼容矩阵回退制品 / 处理数据 → 再开放任务</pre></div>
+    <p>灰度比较需要让基线与候选面对可比任务，并使用同一资源口径。真实负载存在时段与任务难度偏差，原始任务结果、分组和不确定性比单一平均延迟更能解释差异。对于会产生外部动作的工具，不能为对照把同一真实写入执行两遍；可用隔离副本、只读影子流量，或单独设计受控线上分流。</p>
+
+    <h2>新格式写入后的恢复路线</h2>
+    <p>假设旧版本只认识 <code>verification/result</code>，新版本已写入 <code>verification/completed</code>，并且有任务仍在运行。直接切换到旧二进制，可能既读不了新日志，又留下进程继续写入。恢复首先需要<strong>阻止新增工作并确认写入者静止</strong>，再选择数据与制品的组合；关闭页面并不会自动排空后台任务。</p>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>已发生的变化</th><th>可用恢复路线</th><th>不能承诺的事</th></tr></thead><tbody>
+      <tr><td>只有代码变化，数据仍兼容</td><td>排空后切回已验证制品，做启动与历史读取检查</td><td>切回流量瞬间所有在途进程都停止</td></tr>
+      <tr><td>新数据旧读者不认识</td><td>保留能读新数据的修复版本；或经审查的无损降级；或恢复明确的数据恢复点</td><td>存在 v1 → v2 迁移，就一定存在 v2 → v1 无损迁移</td></tr>
+      <tr><td>通知、远程写入等外部动作已提交</td><td>核对操作账本，支持时执行幂等补偿；不可逆项升级人工处理</td><td>回退代码或数据库备份会自动撤销外部动作</td></tr>
+    </tbody></table></div>
+    <p>恢复备份会丢失恢复点之后的有效写入，需要列出受影响任务并决定重放或补偿，避免再次执行已提交动作。如果数据没有可行的恢复路线，发布就需要限制新格式的写入范围，或采用能保留兼容性的设计；代码可回退不足以保证整个系统可恢复。</p>
+<figure class="fig">
+  <div class="fig-scroll" tabindex="0" role="region" aria-label="图：历史文档与开发命令路由，可横向滚动"><img src="assets/figures/fig-workflow-route.svg" alt="文档路由指向架构、子系统、术语、配方和复盘，命令按环境、运行、测试、质量和文档分组；该图是开发入口地图，不是完整发布或回滚协议。" loading="lazy" decoding="async" width="840" height="480"></div>
+  <figcaption>图 · 保留历史文档与命令索引。完整工作流还要覆盖制品身份、独立批准、停止新任务、在途清理与数据恢复，不能把命令执行完等同于安全上线。</figcaption>
+</figure>
+    <h2>受控撤回实验</h2>
+    <p>实验使用一次性工作区、少量固定任务和本地受控进程，无需访问生产。发布 candidate-B 后，在一个任务执行中触发停止，检查是否拒绝新任务，以及所有写入者是否退出。随后按选定路线恢复，读取已确认的会话并重新启动基线。实验记录包含前后制品摘要、格式版本、任务状态、残留资源与无法自动补偿的项目。再注入旧读者不认识的新事件，检查是否明确拒绝读取，而非静默丢弃。正常启动与中途撤回覆盖不同路径，两者都关系到发布的可恢复性。</p>
+  </section>

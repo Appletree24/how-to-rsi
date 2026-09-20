@@ -1,0 +1,53 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" width="840" height="480" viewBox="0 0 840 480" role="img" aria-labelledby="title desc">
+  <ns0:title id="title">三层验证在真实调用路径上的覆盖边界</ns0:title>
+  <ns0:desc id="desc">顶部是调用真实经过的路径段：包内逻辑、unwrapExports、inject 拓扑、isolate realm、disabled 表达式。单元测试只覆盖包内段；快照回放覆盖已录制序列的全程；无密钥 e2e 对任意改动走完整真实路径。postmortem 0001 的 bug 在 unwrapExports 段，单测全绿也看不见。</ns0:desc>
+  <ns0:defs>
+    <ns0:marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><ns0:path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5" /></ns0:marker>
+  </ns0:defs>
+  <ns0:rect width="840" height="480" fill="#faf9f6" />
+  <ns0:g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <ns0:text x="30" y="35" font-size="16" fill="#5e625f">一条调用真正走过的路径 vs 每层验证实际能走多远</ns0:text>
+
+    <ns0:rect x="60" y="58" width="220" height="40" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="76" y="83" font-size="15" font-weight="700">包内服务面与事件</ns0:text>
+    <ns0:rect x="280" y="58" width="130" height="40" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="292" y="83" font-size="14">unwrapExports</ns0:text>
+    <ns0:rect x="410" y="58" width="130" height="40" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="426" y="83" font-size="14">inject 拓扑</ns0:text>
+    <ns0:rect x="540" y="58" width="130" height="40" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="556" y="83" font-size="14">isolate realm</ns0:text>
+    <ns0:rect x="670" y="58" width="130" height="40" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="686" y="83" font-size="14">disabled 表达式</ns0:text>
+    <ns0:path d="M342 98V112" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:text x="358" y="122" font-size="14" fill="#5e625f">postmortem 0001：一行 export default 崩在这段</ns0:text>
+
+    <ns0:text x="60" y="160" font-size="16" font-weight="700">单元测试 vitest</ns0:text>
+    <ns0:text x="240" y="160" font-size="14" fill="#5e625f">手工 ctx.plugin() 挂载，绕过真实 Loader</ns0:text>
+    <ns0:rect x="60" y="170" width="220" height="26" rx="3" fill="#f1f4fb" stroke="#2b5bd7" stroke-width="1.5" />
+    <ns0:rect x="280" y="170" width="520" height="26" rx="3" fill="none" stroke="#bfc3c9" stroke-dasharray="4 4" />
+    <ns0:text x="292" y="188" font-size="14" fill="#5e625f">Loader 段不在场</ns0:text>
+
+    <ns0:text x="60" y="232" font-size="16" font-weight="700">快照回放 snapshots/</ns0:text>
+    <ns0:text x="270" y="232" font-size="14" fill="#5e625f">无密钥回放已录制的真实序列</ns0:text>
+    <ns0:rect x="60" y="242" width="740" height="26" rx="3" fill="#f1f4fb" stroke="#2b5bd7" stroke-width="1.5" />
+    <ns0:text x="76" y="260" font-size="14">覆盖录制范围内全路径；静态门禁拒 UNKNOWN_TOOL 作预期（postmortem 0002）</ns0:text>
+
+    <ns0:text x="60" y="304" font-size="16" font-weight="700">无密钥 e2e</ns0:text>
+    <ns0:text x="200" y="304" font-size="14" fill="#5e625f">真实 Loader 起子进程跑 session/new</ns0:text>
+    <ns0:rect x="60" y="314" width="740" height="26" rx="3" fill="#f1f4fb" stroke="#2b5bd7" stroke-width="1.5" />
+    <ns0:text x="76" y="332" font-size="14">任意新改动走全套真路径；无 DEEPSEEK_API_KEY 跳过模型部分，Loader 验证不需要密钥</ns0:text>
+
+    <ns0:rect x="30" y="362" width="780" height="80" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <ns0:text x="48" y="388" font-size="15" fill="#40587f">静态门禁与生成器：在运行测试之外检查结构约束</ns0:text>
+    <ns0:rect x="48" y="400" width="180" height="30" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="58" y="420" font-size="12">verify-application-</ns0:text>
+    <ns0:rect x="240" y="400" width="170" height="30" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="252" y="420" font-size="13">verify-cordis-config</ns0:text>
+    <ns0:rect x="422" y="400" width="170" height="30" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="434" y="420" font-size="13">gen-doc-graphs</ns0:text>
+    <ns0:rect x="604" y="400" width="186" height="30" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="616" y="420" font-size="13">benchmarks（PR 必过）</ns0:text>
+
+    <ns0:text x="30" y="466" font-size="15" fill="#5e625f">手工挂载绕过了 Loader；依赖加载路径的故障，需要经过真实 Loader 的测试覆盖。</ns0:text>
+  <ns0:text x="58" y="438.0" font-size="12">entrypoints</ns0:text></ns0:g>
+</ns0:svg>

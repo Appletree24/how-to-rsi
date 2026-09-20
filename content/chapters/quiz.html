@@ -1,0 +1,32 @@
+<section class="chapter" id="ch-quiz">
+    <span class="ch-kicker">练习 / 23 · 场景自测</span>
+    <h1>场景自测：<span class="grad"><span data-count="quiz">16</span> 道机制与边界题</span></h1>
+    <p class="lead">这组练习覆盖自改定义、检索、运行时、评测和安全。每道题给出一组约束，解析说明方案成立的前提及其他选项的失效原因。错题可按主题回到对应章节，再用条件变更或实验区分相近的概念。</p>
+    <h2>租约过期后的提交权</h2>
+    <p>以 worker 迟到为例：A 的租约到期后仍返回成功，平台是否接受，取决于逻辑任务的权威状态、fencing token 和提交协议。结果内容正确，并不自动赋予旧执行提交权。</p>
+    <p>如果 B 已重领，A 的旧 token 不应覆盖 B。若没有其他 worker 重领，规则仍需一致：规定过期即失权的协议要求 A 重新获得授权；允许其他语义的协议，也需用同一个原子规则处理取消、重领与提交之间的竞态。无论采用哪种方案，A 已发生的外部费用都保留在账本中。</p>
+    <p>这里有两个不同的问题：平台接受哪个结果，以及外部调用实际发生了几次。结果去重只处理前者。<a href="#/capstone-platform">P5</a> 的租约实验给出了迟到与重复提交的具体时序。</p>
+<figure class="fig">
+  <div class="fig-scroll" tabindex="0" role="region" aria-label="图：自测反馈闭环，可横向滚动"><img src="assets/figures/fig-quiz-loop.svg" alt="场景题逐题作答并显示解析；根据错题主题回到对应章节，或运行实验构造反例，再将机制、取舍和实验结果用于项目面试。" loading="lazy" decoding="async" width="840" height="430"></div>
+  <figcaption>图 · 逐题解析 → 按错题主题回章节或做反例 → 项目面试。复习路径由具体错因决定。</figcaption>
+</figure>
+    <h2>作答与解析</h2>
+    <p>每题点选后锁定答案并显示解析，答完可重测。分数反映这组题目的作答结果；重复作答会受题目熟悉度影响，题间也并非独立抽样，因此不宜将它换算为真实任务成功率。</p>
+
+    <div class="quiz-box" id="quizBox"></div>
+
+    <h2>条件变更下的判断</h2>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>判断主题</th><th>变更条件</th><th>机制与观测</th></tr></thead><tbody>
+      <tr><td>检索证据与上下文预算</td><td>正确规则已召回，但预算只能放两段；第一段是旧版。</td><td>候选集与最终上下文分别记录，定位召回、排序、版本过滤或消费故障；见 <a href="#/capstone-retrieval">P3</a>。</td></tr>
+      <tr><td>测试通过与发布条件</td><td>候选同时修改了测试，或发生一次严重越权。</td><td>候选外的 verifier、允许修改范围与独立约束门；见 <a href="#/evaluator-integrity">R4</a>、<a href="#/capstone-sandbox">P8</a>。</td></tr>
+      <tr><td>重复运行与独立样本</td><td>三次都来自同一仓库、同一任务模板。</td><td>任务内平均、任务/家族的独立性假设与完整重复记录；见 <a href="#/evaluation-design">R3</a>。</td></tr>
+      <tr><td>改进器的效果比较</td><td>它的后代更好，但搜索花费更多且起点不同。</td><td>共同起点、冻结对照、全搜索重复及训练加应用成本；见 <a href="#/capstone-meta">P10</a>。</td></tr>
+      <tr><td>工具返回与执行终态</td><td>返回的只是异步 starting，之后激活失败。</td><td>请求、实际执行、终态与外部 outcome 分开；见 <a href="#/practice">载体练习</a>。</td></tr>
+    </tbody></table></div>
+    <h2>反例实验：退出成功，裁决仍为证据不足</h2>
+    <p><code>tie</code> 场景区分了进程退出状态与候选裁决：比较命令可以成功完成，同时在 JSON 中返回 <code>decision=inconclusive</code>。运行以下命令后，分别查看终端退出状态与结果文件，就能观察这两个层级。</p>
+    <div class="codeblock"><div class="cb-head">错因复查 · 合成观测实验</div><pre data-lang="bash">python labs/eval_lab.py demo --output lab-output
+python labs/eval_lab.py compare lab-output/tie.input.json</pre></div>
+    <p>其他主题也有对应实验：<a href="#/capstone-retrieval">检索故障实验</a>拆分召回与证据消费，<a href="#/capstone-platform">租约故障实验</a>检查并发恢复，<a href="#/rsi">01 的有限解析器</a>与 <a href="#/research-contract">R1 的成本对照</a>区分改进器替换与递归收益。定义可查<a href="#/glossary">术语表</a>。</p>
+    <p><a href="#/capstone-career">P11 项目面试</a>继续讨论如何围绕具体项目说明机制、取舍与反例。自测中的判断及实验结果可作为素材；文字解释需另存到实验记录中，页面不自动保存。</p>
+  </section>

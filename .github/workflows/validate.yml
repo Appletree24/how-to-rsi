@@ -21,6 +21,8 @@ jobs:
         run: npm ci
       - name: Verify generated content and local links
         run: python3 scripts/check_content.py
+      - name: Verify chapter figure coverage and SVG rules
+        run: python3 scripts/check_figures.py && python3 scripts/lint_figures.py
       - name: Typecheck and build production site
         run: npm run build
       - name: Install browser for production smoke checks

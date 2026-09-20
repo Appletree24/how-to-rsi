@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="500" viewBox="0 0 840 500" role="img" aria-labelledby="title desc">
+  <title id="title">轨迹 → 指标 → 故障定位链路</title>
+  <desc id="desc">experiment→trial→attempt→span 的父子轨迹聚成四类视图与用量账本；故障定位沿三条判别实验走：重评分区分 grader，oracle 证据区分检索，失败时间分布区分基础设施。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5"/></marker>
+  </defs>
+  <rect width="840" height="500" fill="#faf9f6"/>
+  <g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <text x="30" y="35" font-size="16" fill="#5e625f">汇总指标必须能钻回逐题轨迹：每个异常数字定位到失败 trial</text>
+
+    <rect x="30" y="60" width="250" height="190" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="46" y="88" font-size="19" font-weight="700">轨迹树</text>
+    <text x="46" y="116" font-size="15">experiment → trial</text>
+    <text x="46" y="140" font-size="15">→ attempt → span</text>
+    <text x="46" y="168" font-size="15">kind: model|tool|</text>
+    <text x="62" y="190" font-size="15">environment|grader</text>
+    <text x="46" y="218" font-size="14" fill="#5e625f">重试不复用 attempt_id</text>
+    <text x="46" y="240" font-size="14" fill="#5e625f">trace_id 跨进程传递</text>
+    <path d="M280 155H318" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <rect x="320" y="60" width="240" height="190" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="336" y="88" font-size="19" font-weight="700">四类视图</text>
+    <text x="336" y="116" font-size="15">按状态计数</text>
+    <text x="336" y="140" font-size="15">按任务家族成功率</text>
+    <text x="336" y="164" font-size="15">延迟分布（排队/准备/</text>
+    <text x="352" y="186" font-size="15">模型/工具/验证）</text>
+    <text x="336" y="214" font-size="15">资源消耗</text>
+    <text x="336" y="240" font-size="14" fill="#5e625f">macro_success：题内先均</text>
+    <path d="M560 155H598" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <rect x="600" y="60" width="210" height="190" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="616" y="88" font-size="19" font-weight="700">用量账本</text>
+    <text x="616" y="116" font-size="15">每次已发请求有记录</text>
+    <text x="616" y="140" font-size="15">provider 返回/估计分列</text>
+    <text x="616" y="164" font-size="15">重试费用单列</text>
+    <text x="616" y="192" font-size="15">价格表带日期/版本</text>
+    <text x="616" y="222" font-size="14" fill="#5e625f">model_calls 是次数非美元</text>
+
+    <rect x="30" y="300" width="780" height="130" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5"/>
+    <text x="46" y="327" font-size="15" fill="#40587f">故障定位：dashboard + 匿名版本变更 → 先列两个可区分假设 → 最小验证实验</text>
+    <text x="46" y="360" font-size="16" font-weight="700">重跑轨迹重新评分：回归消失 → 查 grader</text>
+    <text x="46" y="388" font-size="16" font-weight="700">同模型喂 oracle 证据：恢复 → 查检索</text>
+    <text x="46" y="416" font-size="16" font-weight="700">失败时间分布 × provider 状态：判定基础设施</text>
+
+    <rect x="560" y="300" width="0" height="0"/>
+    <text x="560" y="327" font-size="0"></text>
+
+    <text x="30" y="475" font-size="15" fill="#5e625f">分母纪律：端到端完成率含服务超时；成功任务成本含失败/重试/评分成本，成功为零时成本未定义。</text>
+  </g>
+</svg>

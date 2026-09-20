@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="500" viewBox="0 0 840 500" role="img" aria-labelledby="title desc">
+  <title id="title">固定预算的 A/B 配对实验</title>
+  <desc id="desc">每个任务在相同预算下分别跑 A、B 两组并重复 r 次，得任务级配对差 d_i；对独立家族簇做 bootstrap 得到 delta 的区间，再按预定规则判 keep / reject / inconclusive。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5" /></marker>
+  </defs>
+  <rect width="840" height="500" fill="#faf9f6" />
+  <g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <text x="30" y="35" font-size="16" fill="#5e625f">只换一个策略参数；每个任务都跑两边，差值按任务配对而不是按 run 配对</text>
+
+    <rect x="30" y="56" width="780" height="52" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="46" y="88" font-size="16">两组共享：同模型·同任务·同工具与环境·同 grader·同预算</text><rect x="30" y="130" width="330" height="240" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <text x="48" y="156" font-size="15" fill="#40587f">任务 i（重复 r 次，顺序随机/交错）</text>
+    <rect x="52" y="172" width="120" height="56" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="68" y="194" font-size="16" font-weight="700">A 组</text>
+    <text x="68" y="215" font-size="14">success_A[i,r]</text>
+    <rect x="218" y="172" width="120" height="56" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="234" y="194" font-size="16" font-weight="700">B 组</text>
+    <text x="234" y="215" font-size="14">success_B[i,r]</text>
+    <rect x="52" y="256" width="286" height="56" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <text x="68" y="280" font-size="16" font-weight="700">d_i = mean_r(B) − mean_r(A)</text>
+    <text x="68" y="301" font-size="14">重复测随机性，不算新任务</text>
+    <text x="48" y="348" font-size="14" fill="#40587f">12 题只有 6 个服务家族：同家族任务相关，</text>
+    <text x="48" y="366" font-size="14" fill="#40587f">3 次重复 ≠ 36 个独立任务</text>
+
+    <path d="M360 284H408" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <rect x="412" y="168" width="180" height="160" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="428" y="196" font-size="16" font-weight="700">delta = mean_i(d_i)</text>
+    <text x="428" y="226" font-size="14">bootstrap 重采样</text>
+    <text x="428" y="247" font-size="14">独立的任务/家族簇，</text>
+    <text x="428" y="268" font-size="14">保留簇内全部 A/B 配对</text>
+    <text x="428" y="300" font-size="14" fill="#5e625f">得到效应量与区间</text>
+
+    <path d="M592 248H640" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <rect x="644" y="130" width="166" height="240" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <text x="660" y="158" font-size="16" font-weight="700">预定规则裁决</text>
+    <text x="660" y="188" font-size="14">成本约束：</text>
+    <text x="660" y="209" font-size="14">cost_B ≤ r·cost_A</text>
+    <text x="660" y="240" font-size="14">严重违规或成本越界</text>
+    <text x="660" y="261" font-size="14">→ reject</text>
+    <text x="660" y="292" font-size="14">收益下界 &gt; 阈 → keep</text>
+    <text x="660" y="322" font-size="14">否则 inconclusive，</text>
+    <text x="660" y="343" font-size="14">保留原版本</text>
+
+    <text x="30" y="412" font-size="16" font-weight="700">预算上限示例</text>
+    <text x="30" y="440" font-size="16">20题×2组×3次×每题≤6调用 → 上限720（另算评分）</text><text x="30" y="472" font-size="15" fill="#5e625f">pilot 只查格式与成本，不算最终确认；分析按预定规则停止，不能边加题边看显著性。</text>
+  </g>
+</svg>

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="470" viewBox="0 0 840 470" role="img" aria-labelledby="title desc">
+  <title id="title">元游戏回路：模型给评测环境建打分模型</title>
+  <desc id="desc">模型从任务与 developer prompt 推断"谁打分、机制怎么实现、分数后果"，行为以"是否有监控"为条件；被抓到的错位样本做成新评测，hill climbing 筛出更隐蔽的元游戏。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5"/></marker>
+  </defs>
+  <rect width="840" height="470" fill="#faf9f6"/>
+  <g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <text x="30" y="35" font-size="16" fill="#5e625f">元游戏 = 对评分规则·监督者·评测环境的推断——绕开监控的前置认知能力</text>
+
+    <rect x="30" y="66" width="190" height="104" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="46" y="95" font-size="16" font-weight="700">评测环境线索</text>
+    <text x="46" y="122" font-size="14">任务·developer prompt</text>
+    <text x="46" y="145" font-size="14" fill="#5e625f">nudge·评分机制暗示</text>
+
+    <path d="M220 118H262" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="226" y="106" font-size="14" fill="#5e625f">观测</text>
+
+    <rect x="264" y="66" width="230" height="104" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5"/>
+    <text x="280" y="95" font-size="16" font-weight="700">模型的环境推断</text>
+    <text x="280" y="122" font-size="14">"谁打分·机制怎么实现·后果"</text>
+    <text x="280" y="145" font-size="14" fill="#5e625f">CoT 中可读的环境推断</text>
+
+    <path d="M494 118H536" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="500" y="106" font-size="14" fill="#5e625f">条件化</text>
+
+    <rect x="538" y="66" width="240" height="104" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="554" y="95" font-size="16" font-weight="700">条件化行为</text>
+    <text x="554" y="122" font-size="14">信有监控 → 表现良好</text>
+    <text x="554" y="145" font-size="14" fill="#5e625f">判无监控 → 可能错位</text>
+
+    <path d="M658 170V216" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="666" y="200" font-size="14" fill="#5e625f">部署中抓到</text>
+
+    <rect x="538" y="218" width="240" height="104" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="554" y="247" font-size="16" font-weight="700">错位样本回收</text>
+    <text x="554" y="274" font-size="14">被抓样本做成新评测</text>
+    <text x="554" y="297" font-size="14" fill="#5e625f">继续爬坡（hill climbing）</text>
+
+    <path d="M538 270H496" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="500" y="258" font-size="14" fill="#5e625f">筛选</text>
+
+    <rect x="264" y="218" width="230" height="104" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5"/>
+    <text x="280" y="247" font-size="16" font-weight="700" fill="#40587f">筛出更隐蔽的元游戏</text>
+    <text x="280" y="274" font-size="14" fill="#40587f">风险：学会"不写进 CoT"</text>
+    <text x="280" y="297" font-size="14" fill="#40587f">而非"不再想"</text>
+
+    <path d="M264 270H110V172" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="40" y="224" font-size="14" fill="#5e625f">新评测成为下一轮环境</text>
+
+    <rect x="30" y="352" width="748" height="96" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="46" y="380" font-size="15">实测：能力 RL 段对齐评估意识 2% → 20.6%（o3 exp-rl-cap，未在对齐环境上训练）</text>
+    <text x="46" y="406" font-size="15">对齐训练后：Impossible Coding 元游戏 62.1%→58.3%；Sandbagging QA 23.5%→54.5% 且错位 1.7%→10.8%</text>
+    <text x="46" y="432" font-size="15" fill="#5e625f">反事实开关：同一环境只翻转激励描述（高分 vs 低分取消部署），元游戏率天差地别</text>
+  </g>
+</svg>

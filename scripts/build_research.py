@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Embed maintained research chapters into the offline single-page site."""
+"""Embed maintained chapter sources into the offline single-page site."""
 import argparse
 import html
 import json
@@ -10,9 +10,6 @@ import runpy
 ROOT = Path(__file__).resolve().parents[1]
 START = '<!-- BEGIN GENERATED RESEARCH -->'
 END = '<!-- END GENERATED RESEARCH -->'
-TOC_START = '<!-- BEGIN RESEARCH NOSCRIPT TOC -->'
-TOC_END = '<!-- END RESEARCH NOSCRIPT TOC -->'
-FOUNDATIONS = ('rsi', 'godel', 'capmap', 'eval')
 
 
 def improver_results():
@@ -36,6 +33,7 @@ def improver_results():
 def render():
     chapters = json.loads((ROOT / 'content/research-chapters.json').read_text())
     capstone = json.loads((ROOT / 'content/capstone-chapters.json').read_text())
+    base = json.loads((ROOT / 'content/site-data.json').read_text())['chapters']
     sources = json.loads((ROOT / 'content/sources.json').read_text())
     source_map = {s['id']: s for s in sources}
     if len(source_map) != len(sources):
@@ -62,23 +60,27 @@ def render():
     bodies = [chapter_body(c['id']) for c in chapters + capstone]
     generated = START + '\n' + '\n\n'.join(bodies) + '\n' + END
     page = (ROOT / 'index.html').read_text()
-    for chapter_id in FOUNDATIONS:
+    for chapter_id in [c['id'] for c in base] + ['lc']:
         body = chapter_body(chapter_id)
-        page, count = re.subn(r'<section class="chapter" id="ch-' + chapter_id + r'">.*?</section>',
+        page, count = re.subn(r'<section class="chapter(?: active)?" id="ch-' + chapter_id + r'">.*?</section>',
                              lambda _: body, page, flags=re.S)
         if count != 1:
-            raise ValueError('expected one foundation section: ' + chapter_id)
+            raise ValueError('expected one chapter section: ' + chapter_id)
     if START in page:
         page, n = re.subn(re.escape(START) + '.*?' + re.escape(END), lambda _: generated, page, flags=re.S)
         if n != 1:
             raise ValueError('expected one research block')
     else:
         page = page.replace('  </main>', generated + '\n\n  </main>', 1)
-    toc = TOC_START + '\n' + '\n'.join('<li><a href="#ch-' + c['id'] + '">' + html.escape(c['num'] + ' ' + c['title']) + '</a></li>' for c in chapters + capstone) + '\n' + TOC_END
-    if TOC_START in page:
-        page = re.sub(re.escape(TOC_START) + '.*?' + re.escape(TOC_END), lambda _: toc, page, flags=re.S)
-    else:
-        page = page.replace('    </ol>\n  </noscript>', toc + '\n    </ol>\n  </noscript>', 1)
+    navigation = list(base)
+    after = next(i for i, chapter in enumerate(navigation) if chapter['id'] == 'carriers') + 1
+    navigation[after:after] = chapters + capstone
+    toc = '<ol class="noscript-toc">\n' + '\n'.join(
+        '<li><a href="#ch-' + c['id'] + '">' + html.escape(c['num'] + ' ' + c['title']) + '</a></li>'
+        for c in navigation) + '\n    </ol>'
+    page, count = re.subn(r'<ol class="noscript-toc">.*?</ol>', lambda _: toc, page, flags=re.S)
+    if count != 1:
+        raise ValueError('expected one noscript chapter directory')
     return {ROOT / 'index.html': page}
 
 

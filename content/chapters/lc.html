@@ -1,0 +1,83 @@
+<section class="chapter" id="ch-lc">
+    <span class="ch-kicker">本地记录 · 不进入公共导航</span>
+    <h1>算法与实验笔记</h1>
+    <p class="lead">本页提供题目记录、搜索、加密导入导出与锁定功能，通过 <code>#/lc</code> 直链访问。笔记按思路、代码和备注组织，可保存算法推导，也可关联实验命令与结果；代码运行和实验执行在页面之外完成。</p>
+    <h2>记录算法的不变量与边界条件</h2>
+    <p>两数之和要求从数组中返回和为目标值的两个不同下标。哈希表解法维护的不变量是：处理下标 i 前，表内只含更早位置。先查 <code>target−a[i]</code>，命中后得到两个不同下标，再插入当前元素。如果先插入再查，输入 <code>[3,3]</code>、目标 6 时可能重复使用当前下标。这个反例解释了查找与插入的顺序为何重要。</p>
+    <p>复杂度同样依赖问题条件。哈希查找通常按期望 O(1) 分析；若数组已排序且要求 O(1) 额外空间，双指针更合适；若返回所有下标对，输出规模本身可能达到二次，原来只找一对时的 O(n) 总时间结论就不再适用。笔记中的“思路”适合记录这些条件，“代码”保存对应实现，“备注”关联实际输入、输出和运行环境。</p>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>字段</th><th>算法题记录</th><th>实验记录</th></tr></thead><tbody>
+      <tr><td>题名 / 标签</td><td>问题与关键约束，如“不同下标、重复值”。</td><td>问题与假设，如“退出状态与候选裁决”。</td></tr>
+      <tr><td>思路</td><td>不变量、关键步骤与方案取舍。</td><td>机制、对照条件与可能推翻判断的观测。</td></tr>
+      <tr><td>代码 / 链接</td><td>实现版本及题目出处。</td><td>实际命令、源文件与报告路径；本页不会执行或抓取链接。</td></tr>
+      <tr><td>备注</td><td>边界输入、实际结果、复杂度与失效条件。</td><td>输入/结果摘要、失败原因、成本和未验证范围；不记录密钥。</td></tr>
+    </tbody></table></div>
+    <h2>记录实验预测与实际结果</h2>
+    <p><code>tie</code> 合成观测案例中，比较程序可以成功退出，而候选裁决仍为证据不足。在仓库根目录运行以下命令后，分别记录进程退出状态与 JSON 的 <code>decision</code>，即可保留预测和观测之间的对应关系。这个实验检查裁决语义，不测量真实模型质量。</p>
+    <div class="codeblock"><div class="cb-head">在终端执行，不在本页执行 · Python 3.10+ 标准库</div><pre data-lang="bash">python labs/eval_lab.py demo --output lab-output
+python labs/eval_lab.py compare lab-output/tie.input.json</pre></div>
+    <p><code>python labs/improver_lab.py</code> 适合记录策略效果比较：<a href="#/rsi">01</a> 与 <a href="#/research-contract">R1</a> 对照冻结改进器、更新改进器和穷举，并讨论训练成本与分布变化后的失败。并发状态可用 <a href="#/capstone-platform">P5 租约实验</a>记录，设计时序与实际执行日志分别保存。</p>
+    <h2>加密存储与备份</h2>
+    <p>实现使用 PBKDF2 从口令派生 AES-GCM 密钥，将密文存入本浏览器 localStorage；导出文件也是密文包。保护范围主要是静态存储和导出内容，强度依赖口令。已解锁页面、恶意扩展、同源脚本或被控制的设备仍可能读取明文。隐藏导航不构成访问控制，锁定也不保证安全擦除浏览器内存。</p>
+    <p>口令丢失无法恢复原内容。localStorage 可能被浏览器清理，也受配额和设备变化影响；“导出”用于保存备份，可在安全的测试环境中确认原口令能够解锁副本，唯一副本不宜用于导入试验。本页没有服务端同步、访问审计、版本签名或自动实验附件校验，记录的修改历史需另行管理。</p>
+
+    <!-- 口令门:首次设口令 / 之后解锁,同一区块两种形态 -->
+    <div id="lcGate">
+      <div class="callout warn" id="lcGateInfo"><span class="t">首次使用：设一个口令</span>口令用于派生加密密钥，不落盘、不上传；丢失无法找回原数据。记录存于本浏览器 localStorage，换浏览器或设备需导出密文并保留原口令。安全边界与备份限制见上文。</div>
+      <div class="lc-gate-row">
+        <input id="lcPass" type="password" placeholder="口令(≥10 位)" autocomplete="off" aria-label="口令">
+        <input id="lcPass2" type="password" placeholder="再输一遍" autocomplete="off" aria-label="确认口令">
+        <button class="btn small primary" id="lcUnlock">解锁</button>
+      </div>
+      <p class="muted small" id="lcGateMsg"></p>
+    </div>
+
+    <!-- 笔记区(解锁后可见) -->
+    <div id="lcMain" hidden>
+      <div class="lc-toolbar">
+        <input id="lcSearch" type="search" placeholder="搜索题号/题名/标签/思路…" autocomplete="off" aria-label="搜索题目">
+        <button class="btn small" id="lcExport">导出</button>
+        <button class="btn small" id="lcImport">导入</button>
+        <input id="lcImportFile" type="file" accept=".json,application/json" hidden>
+        <button class="btn small" id="lcLock">锁定</button>
+      </div>
+
+      <div class="lc-grid">
+        <!-- 左:题目列表 -->
+        <div class="lc-listcol">
+          <div class="lc-listhead">
+            <span id="lcCount" class="muted small"></span>
+            <button class="btn small primary" id="lcNew">+ 新题</button>
+          </div>
+          <div id="lcList"></div>
+        </div>
+        <!-- 右:编辑/查看 -->
+        <div class="lc-detail" id="lcDetail">
+          <p class="muted" id="lcEmpty">左侧选一题,或点「+ 新题」开记。</p>
+          <div id="lcEditor" hidden>
+            <div class="lc-row">
+              <input id="lcNum" type="text" placeholder="题号" aria-label="题号" inputmode="numeric">
+              <input id="lcTitle" type="text" placeholder="题名,如 两数之和" aria-label="题名">
+            </div>
+            <div class="lc-row">
+              <select id="lcDiff" class="sel-input" aria-label="难度">
+                <option value="Easy">Easy</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="Hard">Hard</option>
+              </select>
+              <input id="lcTags" type="text" placeholder="标签,逗号分隔:数组, 双指针" aria-label="标签">
+            </div>
+            <input id="lcLink" type="url" placeholder="题目链接(可选)" aria-label="题目链接">
+            <textarea id="lcIdea" rows="7" placeholder="思路:怎么想到的、关键观察、为什么这么做对…" aria-label="思路"></textarea>
+            <textarea id="lcCode" rows="9" placeholder="代码(可选)" aria-label="代码" spellcheck="false"></textarea>
+            <textarea id="lcNote" rows="3" placeholder="备注:复杂度、踩的坑、变式、要重刷的点…(可选)" aria-label="备注"></textarea>
+            <div class="lc-row lc-actions">
+              <button class="btn small primary" id="lcSave">保存</button>
+              <button class="btn small danger" id="lcDel">删除</button>
+              <span class="muted small" id="lcSavedHint"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p>公开分享时，可将不含敏感信息的输入、命令和实际结果整理为独立报告。<a href="#/capstone-career">P11 的项目材料</a>介绍了这类记录的组织方式；加密备份用于迁移和恢复笔记，不适合直接作为公开报告。</p>
+  </section>

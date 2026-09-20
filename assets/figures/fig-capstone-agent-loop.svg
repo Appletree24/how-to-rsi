@@ -1,0 +1,47 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" width="840" height="480" viewBox="0 0 840 480" role="img" aria-labelledby="title desc">
+  <ns0:title id="title">Agent 循环与严格工具协议</ns0:title>
+  <ns0:desc id="desc">循环先检查剩余预算再调用 policy；decode_action 只接受 search/query、read/id、finish/answer/citations 三种严格字段，非法输出即终止为 invalid_output；search 与 read 追加观察后进入下一步。</ns0:desc>
+  <ns0:defs>
+    <ns0:marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><ns0:path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5" /></ns0:marker>
+  </ns0:defs>
+  <ns0:rect width="840" height="480" fill="#faf9f6" />
+  <ns0:g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <ns0:text x="30" y="35" font-size="16" fill="#5e625f">模型层只回文本和 usage；动作层校验字段；环境层只有只读文档</ns0:text>
+
+    <ns0:rect x="30" y="70" width="160" height="120" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="46" y="100" font-size="19" font-weight="700">policy</ns0:text>
+    <ns0:text x="46" y="130" font-size="16">rule / ollama</ns0:text>
+    <ns0:text x="46" y="158" font-size="16">文本 + usage</ns0:text>
+    <ns0:path d="M190 130H238" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <ns0:rect x="240" y="70" width="200" height="120" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="256" y="100" font-size="19" font-weight="700">decode_action</ns0:text>
+    <ns0:text x="256" y="130" font-size="15">search/query · read/id</ns0:text>
+    <ns0:text x="256" y="154" font-size="15">finish/answer/citations</ns0:text>
+    <ns0:text x="256" y="178" font-size="14" fill="#5e625f">其余字段 → 直接终止</ns0:text>
+
+    <ns0:rect x="240" y="240" width="200" height="110" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="256" y="270" font-size="19" font-weight="700">环境层 Corpus</ns0:text>
+    <ns0:text x="256" y="300" font-size="15">search → ≤5 个标题</ns0:text>
+    <ns0:text x="256" y="324" font-size="15">read → 文档正文</ns0:text>
+    <ns0:text x="256" y="342" font-size="14" fill="#5e625f">无 shell/写文件/网络</ns0:text>
+
+    <ns0:path d="M340 190V238" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:text x="348" y="212" font-size="14" fill="#40587f">search / read</ns0:text>
+    <ns0:path d="M240 292C160 292 120 292 110 240V192" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:text x="80" y="222" font-size="14" fill="#40587f">观察追加进消息 → 下一步</ns0:text>
+
+    <ns0:rect x="560" y="150" width="250" height="140" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <ns0:text x="576" y="180" font-size="19" font-weight="700">终止 → 交给评分器</ns0:text>
+    <ns0:text x="576" y="212" font-size="15">finish → status=ok</ns0:text>
+    <ns0:text x="576" y="236" font-size="15">invalid_output / timeout /</ns0:text>
+    <ns0:text x="576" y="260" font-size="15">budget_exhausted</ns0:text><ns0:path d="M440 140H500V180H558" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:text x="452" y="122" font-size="14" fill="#40587f">finish / 非法 / 异常 / 预算尽</ns0:text>
+
+    <ns0:rect x="30" y="370" width="540" height="80" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <ns0:text x="46" y="398" font-size="15" fill="#40587f">预算语义</ns0:text>
+    <ns0:text x="46" y="426" font-size="15">每步先查剩余预算再调用；失败调用也计成本。修复重试消耗同一个总预算。</ns0:text>
+
+    <ns0:text x="600" y="430" font-size="14" fill="#5e625f">--max-steps 默认 6</ns0:text>
+  <ns0:text x="576" y="280.0" font-size="15">provider_error</ns0:text></ns0:g>
+</ns0:svg>

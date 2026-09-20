@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="480" viewBox="0 0 840 480" role="img" aria-labelledby="title desc">
+  <title id="title">把逻辑边界落实为权限边界</title>
+  <desc id="desc">候选控制范围与外部控制域由不同执行身份隔开：评分器、确认数据、预算、发布指针、日志都在候选够不到的一侧。候选版本经一次性环境评测与确认门才提升；代码回退不等于副作用恢复，各层控制可能共享同一失效原因。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5"/></marker>
+  </defs>
+  <rect width="840" height="480" fill="#faf9f6"/>
+  <g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <text x="30" y="35" font-size="16" fill="#5e625f">审批·沙箱·日志·评估·回滚是不同控制措施——但可能共享同一失效原因</text>
+
+    <rect x="30" y="60" width="240" height="230" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5"/>
+    <text x="48" y="86" font-size="15" fill="#40587f">候选控制范围</text>
+    <rect x="52" y="104" width="196" height="92" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="68" y="132" font-size="16" font-weight="700">候选产物</text>
+    <text x="68" y="158" font-size="14">代码·提示词·包</text>
+    <text x="68" y="180" font-size="14" fill="#5e625f">packageId / git commit</text>
+    <text x="52" y="228" font-size="14" fill="#40587f">最小权限 ≠ 工具清单：</text>
+    <text x="52" y="252" font-size="14" fill="#40587f">按实际可读·可写·可调用限制</text>
+    <text x="52" y="276" font-size="14" fill="#40587f">同进程插件并非独立安全域</text>
+
+    <rect x="310" y="84" width="220" height="80" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="326" y="112" font-size="16" font-weight="700">① 一次性环境评测</text>
+    <text x="326" y="140" font-size="14" fill="#5e625f">隔离副本，快照可核验</text>
+    <rect x="310" y="190" width="220" height="80" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5"/>
+    <text x="326" y="218" font-size="16" font-weight="700">② 确认门</text>
+    <text x="326" y="244" font-size="14" fill="#5e625f">统计·成本·约束门共同裁决</text>
+    <text x="326" y="264" font-size="14" fill="#5e625f">证据不足则保持现状</text>
+
+    <path d="M270 150H294V124H308" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M420 164V188" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M530 230H560" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="534" y="218" font-size="14" fill="#5e625f">提升</text>
+
+    <rect x="570" y="60" width="240" height="230" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5"/>
+    <text x="588" y="86" font-size="15" fill="#40587f">外部控制域 · 独立执行身份</text>
+    <rect x="592" y="104" width="196" height="162" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="608" y="132" font-size="15" font-weight="700">候选够不到的一侧</text>
+    <text x="608" y="158" font-size="14">评分器 · 确认数据</text>
+    <text x="608" y="182" font-size="14">预算 · 发布指针</text>
+    <text x="608" y="206" font-size="14">日志：记录全部 trial</text>
+    <text x="608" y="230" font-size="14" fill="#5e625f">含失败与超时</text>
+
+    <rect x="30" y="316" width="380" height="110" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="46" y="344" font-size="15" font-weight="700">代码回退 ≠ 副作用恢复</text>
+    <text x="46" y="370" font-size="14" fill="#5e625f">恢复 commit / packageId 不撤回已发消息、</text>
+    <text x="46" y="392" font-size="14" fill="#5e625f">不还原泄露凭据与外部数据库</text>
+    <text x="46" y="414" font-size="14" fill="#5e625f">→ 外部副作用单独记录，区分可补偿与不可逆</text>
+
+    <rect x="430" y="316" width="380" height="110" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="446" y="344" font-size="15" font-weight="700">未检出 ≠ 没有发生</text>
+    <text x="446" y="370" font-size="14" fill="#5e625f">日志只覆盖被观测通道；CoT 可能不完整</text>
+    <text x="446" y="392" font-size="14" fill="#5e625f">审批也会因信息不全而失败</text>
+    <text x="446" y="414" font-size="14" fill="#5e625f">→ 完成检查后仍需记录残余风险</text>
+
+    <text x="30" y="460" font-size="15" fill="#5e625f">共享执行身份可能导致多层同时失效；纵深防御需分析各层失效是否相互独立。</text>
+  </g>
+</svg>

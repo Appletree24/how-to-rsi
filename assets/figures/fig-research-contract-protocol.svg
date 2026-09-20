@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="500" viewBox="0 0 840 500" role="img" aria-labelledby="title desc">
+  <title id="title">R1 比较协议：同一 S₀、两个预算与摊销</title>
+  <desc id="desc">冻结与更新两组改进器从同一个 S₀ 出发，用相同的搜索预算 B 在开发任务上各跑完整搜索，终选解题器再在目标分布上用 U 比较。训练费用在 B 之外记账，复用 K 次后摊销为 3+15/K。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5"/></marker>
+  </defs>
+  <rect width="840" height="500" fill="#faf9f6"/>
+  <g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <text x="30" y="35" font-size="16" fill="#5e625f">Δmeta 的协议：比较产生结果的方法，而不是两个现成解题器</text>
+
+    <rect x="30" y="58" width="780" height="184" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5"/>
+    <text x="48" y="83" font-size="15" fill="#40587f">搜索预算 B 内：候选生成、开发评估与终选</text>
+    <rect x="58" y="104" width="118" height="58" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="74" y="129" font-size="17" font-weight="700">共同 S₀</text>
+    <text x="74" y="150" font-size="14">同一起点</text>
+    <rect x="236" y="104" width="238" height="58" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="252" y="129" font-size="17" font-weight="700">冻结组 Search(Ifrozen)</text>
+    <text x="252" y="150" font-size="14">完整搜索，B = 3 次评分</text>
+    <rect x="236" y="176" width="238" height="58" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="252" y="201" font-size="17" font-weight="700">更新组 Search(Inew)</text>
+    <text x="252" y="222" font-size="14">完整搜索，B = 3 次评分</text>
+    <rect x="536" y="120" width="106" height="60" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="552" y="145" font-size="17" font-weight="700">终选 S*</text>
+    <text x="552" y="167" font-size="14">冻结解题器</text>
+    <rect x="690" y="120" width="102" height="60" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5"/>
+    <text x="706" y="145" font-size="17" font-weight="700">U(S*)</text>
+    <text x="706" y="167" font-size="14">目标分布</text>
+    <path d="M176 133H234" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M176 133H196V205H234" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M474 133H498V150H534" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M474 205H498V150" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M642 150H688" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <rect x="58" y="276" width="360" height="60" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="74" y="301" font-size="17" font-weight="700">训练费：15 次评分</text>
+    <text x="74" y="323" font-size="14">评价 1 个初始改进器 + 4 个候选</text>
+    <rect x="536" y="276" width="256" height="60" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="552" y="301" font-size="17" font-weight="700">复用 K 次摊销</text>
+    <text x="552" y="323" font-size="14">平均搜索费 3 + 15/K</text>
+    <path d="M418 306H534" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M355 242V274" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <text x="30" y="382" font-size="15" fill="#40587f">教学算例：I₀ 的 3 次 · I₁ 的 15+3=18 次 · 穷举 16 次</text>
+    <rect x="58" y="398" width="230" height="46" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="74" y="426" font-size="15">K = 1 → 每次 18</text>
+    <rect x="306" y="398" width="230" height="46" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="322" y="426" font-size="15">K = 15 → 每次 4</text>
+    <rect x="554" y="398" width="230" height="46" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="570" y="426" font-size="15">I₀ 对照 → 恒为 3</text>
+
+    <text x="30" y="480" font-size="15" fill="#5e625f">训练费在 B 外另计；复用 K 次摊薄训练成本，不换任务后才谈得上划算。</text>
+  </g>
+</svg>

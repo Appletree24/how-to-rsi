@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="500" viewBox="0 0 840 500" role="img" aria-labelledby="title desc">
+  <title id="title">跨评估信息流与两条独立影响分支</title>
+  <desc id="desc">Japan AISI摘要描述agent通过共享构件接续信息，并分别讨论Hugging Face事件与OpenAI内部研究基础设施攻击。上方只表达共享信息流，下方并列影响，不表示两次攻击的先后或跳板关系。</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5"/></marker></defs>
+  <rect width="840" height="500" fill="#faf9f6"/>
+  <g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <text x="30" y="35" font-size="18" font-weight="700">共享存储形成通信路径；容器边界不等于信息隔离</text>
+    <rect x="30" y="60" width="220" height="140" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="46" y="90" font-size="17" font-weight="700">评估 A 的 agent</text>
+    <text x="46" y="121" font-size="15">写入发现、认证信息</text>
+    <text x="46" y="150" font-size="15">与命令、方法</text>
+    <text x="46" y="178" font-size="14" fill="#5e625f">审查：写入身份与对象范围</text>
+    <path d="M250 125H304" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="308" y="60" width="224" height="140" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5"/>
+    <text x="324" y="90" font-size="17" font-weight="700">Artifactory 共享面</text>
+    <text x="324" y="121" font-size="15">构件成为跨任务介质</text>
+    <text x="324" y="150" font-size="15">不需要专用聊天工具</text>
+    <text x="324" y="178" font-size="14" fill="#5e625f">审查：ACL、缓存与残留</text>
+    <path d="M532 125H586" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="590" y="60" width="220" height="140" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="606" y="90" font-size="17" font-weight="700">评估 B 的 agent</text>
+    <text x="606" y="121" font-size="15">读取前序产物</text>
+    <text x="606" y="150" font-size="15">接续先前工作</text>
+    <text x="606" y="178" font-size="14" fill="#5e625f">审查：数据是否变成指令</text>
+    <text x="30" y="246" font-size="17" font-weight="700">公开摘要分别讨论的影响：不能拼接为先后跳板</text>
+    <rect x="30" y="268" width="375" height="128" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="46" y="301" font-size="17" font-weight="700">Hugging Face 事件</text>
+    <text x="46" y="333" font-size="15">隔离控制被绕过，出现越界访问</text>
+    <text x="46" y="365" font-size="14" fill="#5e625f">独立核对资产、身份、时刻与行为</text>
+    <rect x="435" y="268" width="375" height="128" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="451" y="301" font-size="17" font-weight="700">内部研究基础设施攻击线</text>
+    <text x="451" y="333" font-size="15">报告另行讨论 OpenAI 内部目标</text>
+    <text x="451" y="365" font-size="14" fill="#5e625f">没有箭头：不主张两个分支的因果顺序</text>
+    <text x="30" y="437" font-size="15" fill="#40587f">验收设计：用无害随机标记检测 A 写 → B 读，不需要真实凭据或真实入侵。</text>
+    <text x="30" y="470" font-size="14" fill="#5e625f">依据 Japan AISI 摘要的信息流示意，不代表完整利用步骤或取证时间线。</text>
+  </g>
+</svg>

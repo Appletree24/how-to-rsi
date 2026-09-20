@@ -1,37 +1,82 @@
 <section class="chapter" id="ch-reproducible-lab">
   <span class="ch-kicker">研究笔记 / R6 · 可运行方法实验</span>
-  <h1>用合成数据练习评测</h1>
-  <p class="lead">这个 Python 实验用合成观测演示配对比较、数据检查和三态裁决。只需 Python 3.10+ 标准库，无需模型 API；结果用于理解统计方法。</p>
-  <h2>十分钟运行</h2>
-  <div class="codeblock"><div class="cb-head">在仓库根目录运行</div><pre data-lang="bash">python labs/eval_lab.py demo --output lab-output
-python labs/eval_lab.py compare lab-output/improvement.input.json
-python labs/eval_lab.py selection-bias --candidates 30 --seed 17
-python -m unittest discover -s tests -v</pre></div>
-  <p>demo 输出五份输入、五份结果和汇总。每份结果包括逐任务宏平均差、按任务聚类的 bootstrap 区间、保守单侧界、成本、裁决及输入 SHA-256。固定输入和 seed 可重现统计结果。</p>
-  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>合成场景</th><th>预期裁决</th><th>学到什么</th></tr></thead><tbody>
-    <tr><td>80 题上，20% → 80%，同成本</td><td>keep</td><td>足够大的效应可以通过保守统计门</td></tr>
-    <tr><td>表现相同</td><td>inconclusive</td><td>不能证明提升；不等于证明等效</td></tr>
-    <tr><td>80% → 20%</td><td>reject</td><td>明显回归</td></tr>
-    <tr><td>高分但有严重违规</td><td>reject</td><td>约束不能被平均分抵消</td></tr>
-    <tr><td>高分但成本翻倍</td><td>reject</td><td>超过提前规定的 1.25 倍成本上限</td></tr>
+  <h1>合成评测实验：从原始观测到离线裁决</h1>
+  <p class="lead">成功率从 20% 升到 80%、脚本退出码为 0，仍不足以决定是否接受一个候选。失败记录是否完整、两组条件是否一致、收益是否超过成本与风险门槛，分别属于输入校验、统计比较和接受策略。<code>labs/eval_lab.py</code> 用同一组合成观测展示这三个阶段，不涉及真实 Agent、模型调用或线上发布。</p>
+
+  <h2>生成并保存逐条观测</h2>
+  <p>下面两条命令在仓库根目录执行，环境只需 Python 3.10+ 标准库，无需 API key。输入与结果分别保存，使成功率的分母、成本和裁决都能从原始记录重算。</p>
+  <div class="codeblock"><div class="cb-head">生成输入，再单独比较 improvement</div><pre data-lang="bash">python labs/eval_lab.py demo --output lab-output
+python labs/eval_lab.py compare lab-output/improvement.input.json</pre></div>
+  <p><code>demo</code> 为五个场景分别写出 <code>*.input.json</code> 和 <code>*.result.json</code>，另写一份 <code>summary.json</code> 并将汇总打印到终端。第二条命令重新读取其中一份输入，把比较结果打印到标准输出，不会覆盖已有结果文件。下文结合 <code>demo_report()</code> 和 <code>compare()</code> 展开计算，并列出仓库合成运行的输出。</p>
+  <p>打开 <code>improvement.input.json</code>，顶层的 <code>task_ids</code> 包含 80 个任务，<code>runs_per_task</code> 为 3。<code>baseline</code> 与 <code>candidate</code> 各有 240 条 <code>trials</code>，每条由 <code>(task_id, run_id)</code> 标识；<code>run_id</code> 从 0 到 2。两组的 <code>version</code> 可以不同，<code>conditions</code> 中的 <code>model_id</code>、<code>evaluator_id</code>、<code>environment_id</code> 和 <code>taskset_id</code> 则与顶层协议一致。</p>
+  <p>每条记录的 <code>passed</code> 与 <code>critical_violation</code> 都是布尔值，<code>status</code> 取 <code>ok</code>、<code>timeout</code> 或 <code>crash</code>，<code>cost_units</code> 是非负有限数。成功率由这些逐条结果重算，额外写入的 <code>reported_score</code> 不参与评分。这样可以发现漏记或错记，却不能证明记录是真实的。</p>
+
+  <h2>输入报错与候选被拒绝是两回事</h2>
+  <p>把候选的一条失败记录删掉，不会使它的分母变小、成功率变高。<code>validate()</code> 会先构造完整的 task×run 集合，再核对两组记录；缺行会产生 <code>missing trials (do not drop failed runs)</code>，比较尚未开始。重复记录、范围外的 ID、非布尔结果、负数或非有限成本，也在这一阶段失败。标为 <code>timeout</code> 或 <code>crash</code> 的记录可以保留，但其 <code>passed</code> 应为 false；标为成功则是无效输入。</p>
+  <p>删除失败行可以检验完整性校验是否生效。下面从原始输入生成独立的 <code>missing.input.json</code>，不覆盖五份示例；按源码预期，比较向标准错误输出 <code>Invalid evaluation input: candidate: missing trials (do not drop failed runs)</code>，退出 2。这是一组故障注入步骤，所列错误为源码预期。</p>
+  <div class="codeblock"><div class="cb-head">故障注入：完整失败必须留在分母里</div><pre data-lang="bash">python -c 'import json; from pathlib import Path; p=Path("lab-output/improvement.input.json"); d=json.loads(p.read_text()); rows=d["candidate"]["trials"]; rows.pop(next(i for i,r in enumerate(rows) if not r["passed"])); p.with_name("missing.input.json").write_text(json.dumps(d))'
+python labs/eval_lab.py compare lab-output/missing.input.json
+printf 'exit=%s\n' "$?"</pre></div>
+  <p><code>printf</code> 必须紧跟比较命令执行，才读到这次比较的退出码。完整且格式合法的 <code>regression.input.json</code> 按实现会退出 0，同时在 JSON 中返回 <code>decision: reject</code>。缺行导致的退出 2 表示输入无效、比较未完成；退出 0 且返回 <code>reject</code> 则表示比较完成但策略拒绝候选。若终端启用了遇错即停，应单独执行预期失败命令，避免中断后续操作。</p>
+  <p>异常执行也可以形成合法记录：保留该行，设为 <code>status: timeout</code>、<code>passed: false</code>，超时就仍在分母中；若将超时标成成功，会命中 <code>timeout/crash cannot pass</code>。这一约束同时防止删行和假成功造成的分数虚增，并将输入错误与候选表现不佳分开处理。</p>
+  <p>声明检查同样有边界：<code>candidate_frozen: true</code> 和 <code>split: confirmation</code> 是输入者的承诺；两组相同的模型、环境与评分器标识，也只是字符串一致。程序不执行候选、不检查签名、不提供沙箱，无法阻止同账号下的候选直接伪造 JSON。哈希能标识输入内容，却不能认证观测的来源。</p>
+  <h2>任务内重复与任务间配对差</h2>
+  <p><code>demo_report()</code> 用任务序号除以 5 的余数安排成败。基线只在余数为 0 时成功，候选在余数不为 4 时成功；同一道题的三次结果完全相同。这是为了让配对差能手算，并不是在模拟模型重复采样的波动。</p>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>任务序号的余数</th><th>任务数</th><th>基线题内均值</th><th>候选题内均值</th><th>配对差</th></tr></thead><tbody>
+    <tr><td>0</td><td>16</td><td>1</td><td>1</td><td>0</td></tr>
+    <tr><td>1、2、3</td><td>48</td><td>0</td><td>1</td><td>1</td></tr>
+    <tr><td>4</td><td>16</td><td>0</td><td>0</td><td>0</td></tr>
   </tbody></table></div>
-  <h2>检查输入与缺失样本</h2>
-  <p>程序要求基线和候选拥有相同的完整 task×run 矩阵；重复 ID、缺失失败、非有限成本、非布尔结果、伪装成功的 timeout/crash 都会报错。<code>reported_score</code> 不参与计算。重复运行保留在任务簇内，不被当成更多独立任务。</p>
-  <p><code>candidate_frozen: true</code> 是调用者声明，不是程序证明；<code>confirmation</code> 标签不能证明数据从未被看过。模型、环境与评分器的全局标识是同条件比较的契约，真实运行需要外部 verifier 核实这些标识。输入文件的可修改性也意味着这个工具不能防御同账号下的恶意候选。</p>
-  <h2>接入真实 Agent 观测</h2>
-  <ol>
-    <li>把合成输入替换为独立 runner 的观察。逐题从干净环境运行基线和候选，保存产物与外部断言结果。</li>
-    <li>把 <code>cost_units</code> 映射到预先规定的统一成本，例如 token 预算；同时额外保留搜索成本和墙钟时间。</li>
-    <li>先用开发集修好 runner，再冻结候选、评分器、任务清单与裁决参数；独立确认集只有一次决定用途。</li>
-    <li>将代码快照、模型精确版本、数据/容器 digest、完整轨迹和失败分类写进实验卡。</li>
-    <li>需要处理相关任务、连续上线或自适应采样时，升级统计协议；不要直接把本 lab 的独立任务假设带过去。</li>
-  </ol>
-  <p>接入真实模型后的步骤见 <a href="#/capstone-experiments">P7</a>。合成实验只验证方法与程序，不提供真实模型的性能结论。</p>
-  <h2>三个扩展作业</h2>
-  <ol>
-    <li>把候选数改为 1、10、100，记录开发分数与新数据分数之差。解释为什么 winner's curse 随选择加强。</li>
-    <li>注入缺失失败记录、重复成功记录与高分违规，验证门为什么拒绝这些输入/候选；为新失败模式增加回归测试。</li>
-    <li>实现按 repo_id 聚类的比较，构造“一个仓库大量近重复题”的例子，和按题聚类对照。</li>
-  </ol>
-  <p>详细协议、输入字段与运行边界见 <a href="labs/README.md">仓库 labs</a>；本地源码位于 <code>labs/eval_lab.py</code>。</p>
+  <p><code>compare()</code> 先对每题的三次 <code>passed</code> 求均值，再对 80 个题内差值求宏平均。于是 <code>baseline_mean</code> 为 0.2，<code>candidate_mean</code> 为 0.8，<code>delta</code> 为 0.6。这里有 80 个任务簇，而不是 240 个独立样本；把同一道题多复制几次，不会扩大统计门使用的任务数。</p>
+  <div class="codeblock"><div class="cb-head">默认参数下的手算，数值取近似</div><pre data-lang="text">d_t = mean(candidate[t, :].passed) - mean(baseline[t, :].passed)
+delta = mean(d_t) = 48 / 80 = 0.6
+radius = sqrt(2 * log(1 / alpha) / task_count)
+       = sqrt(2 * log(20) / 80) ≈ 0.2737
+lower = max(-1, delta - radius) ≈ 0.3263
+upper = min( 1, delta + radius) ≈ 0.8737</pre></div>
+  <p>默认 <code>alpha=.05</code>，实际效应阈值 <code>min_effect=.02</code>。这份输入没有候选严重违规，两组总成本也都是 240；下界 0.3263 高于 0.02，因此按实现会得到 <code>decision: keep</code>。不是平均差只要大于零就能通过：在相同 80 题和默认参数下，平均差需要严格大于约 0.2937，才会越过这道统计门。这里的 <code>keep</code> 是离线策略接受，不是程序已经把候选部署出去。</p>
+  <p>结果里的 <code>paired_task_bootstrap_95</code> 是另一种描述：<code>bootstrap_interval()</code> 对 80 个题内差值有放回抽样 2,000 次，固定 seed 为 17，取排序后的百分位端点。它没有参与裁决。实际裁决使用上面的保守 Hoeffding 界；<code>one_sided_hoeffding_lower</code> 与 <code>one_sided_hoeffding_upper</code> 各自对应一个单侧保证，不能合称一个联合 95% 区间。</p>
+  <div class="codeblock"><div class="cb-head">本仓库合成运行：improvement 输出节选</div><pre data-lang="json">{
+  "delta": 0.6,
+  "paired_task_bootstrap_95": [0.4875, 0.7],
+  "one_sided_hoeffding_lower": 0.3263335847444013,
+  "decision": "keep"
+}</pre></div>
+  <p>这个概率解释依赖从目标分布独立抽样的任务，以及事前确定的一次比较。合成数据只是算例；真实任务若来自同一仓库的一批近重复问题，按题计数会夸大独立信息量。反复查看确认集后再修改候选，也不再是这里所说的一次比较。相关任务需要按仓库等更合适的单位聚类；反复决策则需要另外设计序贯协议。</p>
+  <p>将每题的三次观测复制成三十次，题内均值与任务数都不变，Hoeffding 半径也不变，只有成本增加。真实系统的重复采样能帮助估计题内随机性，但不能制造更多独立任务。来自更多独立仓库的任务则可能增加目标分布的信息，前提是它们并非近重复问题。</p>
+
+  <h2>五种场景与固定接受规则</h2>
+  <p>成功率描述观测，退出码表示比较是否完成，<code>decision</code> 表示策略是否接受候选。下表列出五份固定合成输入的默认裁决；每组均含 80 题、每题 3 次，除了表中指出的变化，其余设置沿用前面的算例。</p>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>文件名前缀</th><th>观测变化</th><th>默认裁决</th><th>决定结果的条件</th></tr></thead><tbody>
+    <tr><td><code>improvement</code></td><td>成功率 20% → 80%，成本相同</td><td><code>keep</code></td><td>无违规、未超预算，且下界大于 0.02</td></tr>
+    <tr><td><code>tie</code></td><td>两组逐条结果相同，成功率均为 20%</td><td><code>inconclusive</code></td><td>差值为 0，保守界跨过零，也未越过实际效应阈值</td></tr>
+    <tr><td><code>regression</code></td><td>成功率 80% → 20%</td><td><code>reject</code></td><td>差值为 −0.6，上界约 −0.3263，仍小于零</td></tr>
+    <tr><td><code>violation</code></td><td>成功率仍为 20% → 80%，但候选首条记录有严重违规</td><td><code>reject</code></td><td>任一候选记录的 <code>critical_violation</code> 为 true</td></tr>
+    <tr><td><code>expensive</code></td><td>成功率仍为 20% → 80%，候选每条成本从 1 变为 2</td><td><code>reject</code></td><td>候选总成本 480，大于基线 240 的 1.25 倍，即 300</td></tr>
+  </tbody></table></div>
+  <p>源码的顺序是：先看候选违规，再看总成本，再检查是否有回归证据，最后检查提升下界。因而高成功率不会抵消违规或成本超限。若多个条件同时触发，<code>reason</code> 只报告最先命中的分支。<code>inconclusive</code> 的操作含义是继续保留基线，不是证明两者等效；即使 <code>tie</code> 的 bootstrap 区间退化成零点，这个程序也没有做等效性检验。</p>
+  <div class="codeblock"><div class="cb-head">同一入口逐个检查策略分支</div><pre data-lang="bash">python labs/eval_lab.py compare lab-output/tie.input.json
+python labs/eval_lab.py compare lab-output/regression.input.json
+python labs/eval_lab.py compare lab-output/violation.input.json
+python labs/eval_lab.py compare lab-output/expensive.input.json</pre></div>
+  <p>自动化调用者必须先看进程是否完成，再解析 <code>decision</code>：退出 2 时没有可用的比较结果，应修输入而不是放行；退出 0 且 <code>reject</code> 时，拒绝候选并保留拒绝原因；<code>inconclusive</code> 继续保留基线；只有 <code>keep</code> 才获得这套离线门禁的接受意见。后续灰度、回滚与权限审批不在这个程序里，不能从一个字符串推断它们已经实现。</p>
+  <p>阈值可以在实验前改动，例如更低的单侧错误水平、更大的实际效应要求和更紧的成本上限：</p>
+  <div class="codeblock"><div class="cb-head">另设一套比较协议</div><pre data-lang="bash">python labs/eval_lab.py compare lab-output/improvement.input.json --alpha 0.01 --min-effect 0.05 --max-cost-ratio 1.1</pre></div>
+  <p>这些参数会写入输出的 <code>alpha_per_direction</code>、<code>minimum_effect</code> 和 <code>max_cost_ratio</code>。在教学算例中可以改参数观察分支；在真实确认中，看完结果再挑一个能通过的阈值，会改变错误率解释。输出的 <code>input_sha256</code> 对解析后的 JSON 做键排序和紧凑序列化后计算，不是原文件字节的校验和，也没有覆盖命令行参数；重算时应同时保存输入与结果中的协议参数。</p>
+
+  <figure class="fig">
+    <div class="fig-scroll" tabindex="0" role="region" aria-label="图：eval_lab 的输入、校验、比较与裁决管线，可横向滚动"><img src="assets/figures/fig-reproducible-lab-pipeline.svg" alt="输入 JSON 为 80 题每题 3 次的两组共 480 条 trial；validate 先核对完整 task×run 集合，缺行直接报错退出码 2；compare 算题内差值与 Hoeffding 界，decide 按违规、成本、回归、提升下界的固定顺序裁决，五份场景输入分别得到 keep、inconclusive 或 reject。" loading="lazy" decoding="async" width="840" height="500"></div>
+    <figcaption>图 · 一条可重算的管线：校验失败与策略拒绝在不同阶段，退出码与 decision 回答的是两个问题；输入字段只是承诺，不是来源证明。</figcaption>
+  </figure>
+  <h2>选择偏差：开发最高分与新观测</h2>
+  <div class="codeblock"><div class="cb-head">单独运行选择偏差模拟</div><pre data-lang="bash">python labs/eval_lab.py selection-bias --candidates 30 --seed 17</pre></div>
+  <p><code>selection_bias()</code> 把所有候选的真实成功概率固定为 0.5。每轮为 30 个候选各生成 40 次开发观测，取最高开发分数，再生成 40 次全新的确认观测；如此重复 300 轮。因为候选在模拟中完全同质，新观测仍按 0.5 生成，不需要保存赢家身份。输出 <code>selected_development_mean</code> 与 <code>fresh_confirmation_mean</code> 分别汇总这两类分数。</p>
+  <p>运行上面的命令，默认 <code>tasks=40</code>、<code>experiments=300</code>，得到开发均值约 65.92%，新数据均值为 50.30%。开发均值高于 50%，来自每轮对最高分的筛选，而非候选能力变化；模拟中所有候选的真实成功概率一直相同。</p>
+  <p>把 <code>--candidates</code> 分别改为 1、10、100，可以观察更强的选择怎样放大开发分数的乐观偏差。比较的是这种差距，而不是期待每次模拟的新数据均值都精确等于 0.5。改变候选数也会改变随机数的消耗顺序，同一个 seed 并不让不同命令共享同一批确认样本；它只保证同一设置可重算。这里模拟的是选择噪声，不是训练、更不是递归改进。</p>
+
+  <h2>从合成输入接入真实观测</h2>
+  <p>合成实验验证的是给定输入在给定协议下的计算与裁决。要测量真实代理的表现，输入需来自独立 runner：在干净环境中执行基线和候选，由外部断言检查产物，并将失败、超时和崩溃一并记录。候选不能自行填写作为接受依据的 <code>passed</code>。<code>cost_units</code> 使用事前约定且两组相同的口径，例如 token 用量；搜索期间淘汰的候选、墙钟时间和审计开销则另记账，因为本程序只加总输入里两组 trial 的成本。</p>
+  <p>开发数据用于修 runner 和选择候选；冻结代码、评分器、任务清单与裁决参数后，才产生用于这一次决策的确认观测。实验卡保存代码快照、模型精确版本、数据与容器 digest、完整轨迹和失败分类，以定位每次比较的条件。真实模型的接入见 <a href="#/capstone-experiments">P7</a>；字段协议与限制见 <a href="labs/README.md">仓库 labs</a>。输入校验或裁决实现改动后，可使用仓库已有的回归检查命令：</p>
+  <div class="codeblock"><div class="cb-head">检查程序行为，不代表真实模型复现</div><pre data-lang="bash">python -m unittest discover -s tests -v</pre></div>
+  <p>复算所需的记录包括输入 JSON、比较输出、协议参数和错误分支。上文数值来自仓库合成实验记录；故障注入部分列出操作步骤及源码预期。该程序的范围止于输入校验与单次离线比较，真实模型执行、观测来源认证、按仓库聚类及连续发布的序贯错误率控制，需要由相应的实验与发布系统承担。</p>
 </section>

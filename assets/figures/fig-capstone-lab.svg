@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="460" viewBox="0 0 840 460" role="img" aria-labelledby="title desc">
+  <title id="title">RepoOps Lab：从工单到实验报告</title>
+  <desc id="desc">tasks.json 中的 prompt 与 documents 进入 Agent 循环产出 trial；expected_answer 与 required_citations 只进入评分器 grade，结果写入 trials 表并由 report 汇总为 macro_success。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5"/></marker>
+  </defs>
+  <rect width="840" height="460" fill="#faf9f6"/>
+  <g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <text x="30" y="35" font-size="16" fill="#5e625f">一条工单：从数据文件到实验报告</text>
+
+    <rect x="30" y="60" width="200" height="230" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="46" y="90" font-size="19" font-weight="700">tasks.json</text>
+    <text x="46" y="120" font-size="17">id · family · split</text>
+    <text x="46" y="150" font-size="17">prompt</text>
+    <text x="46" y="180" font-size="17">documents</text>
+    <text x="46" y="210" font-size="17">expected_answer</text>
+    <text x="46" y="240" font-size="17">required_citations</text>
+    <text x="46" y="272" font-size="14" fill="#5e625f">12 张公开教学工单</text>
+
+    <path d="M230 120H298" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="238" y="100" font-size="14" fill="#40587f">prompt + documents</text>
+    <path d="M230 230V300H298" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="238" y="252" font-size="14" fill="#40587f">expected_answer +</text>
+    <text x="238" y="272" font-size="14" fill="#40587f">required 不进 Agent</text>
+
+    <rect x="300" y="80" width="240" height="120" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="316" y="110" font-size="19" font-weight="700">Agent 循环（≤6 步）</text>
+    <text x="316" y="140" font-size="17">search / read / finish</text>
+    <text x="316" y="170" font-size="16">trial：status · answer ·</text>
+    <text x="336" y="192" font-size="16">citations · read_ids</text>
+    <path d="M420 200V238" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <rect x="300" y="240" width="240" height="120" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5"/>
+    <text x="316" y="270" font-size="19" font-weight="700">grade(task, result)</text>
+    <text x="316" y="298" font-size="15">status=ok ∧ answer 正确 ∧</text>
+    <text x="316" y="322" font-size="15">引用存在且读过 ∧ 覆盖</text>
+    <text x="316" y="346" font-size="15">required → passed</text>
+
+    <path d="M540 300H650V282" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="600" y="120" width="210" height="160" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="616" y="150" font-size="19" font-weight="700">trials 表 → report</text>
+    <text x="616" y="180" font-size="15">(run_id, task_id, repeat)</text>
+    <text x="616" y="210" font-size="17">report RUN_ID</text>
+    <text x="616" y="238" font-size="17">macro_success</text>
+    <text x="616" y="266" font-size="14" fill="#5e625f">已落库 trial 自动续跑</text>
+
+    <text x="30" y="425" font-size="15" fill="#5e625f">开发集 6 张工单 / 3 个服务家族；demo 严格通过率 naive=0、evidence=1（规则对照，不代表模型能力）。</text>
+  </g>
+</svg>

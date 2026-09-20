@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="510" viewBox="0 0 840 510" role="img" aria-labelledby="title desc">
+  <title id="title">从逐题差值到三态裁决：80 题算例的完整路径</title>
+  <desc id="desc">基线与候选在同样 80 题上各跑 3 次，先算题内均值差再做 80 题宏平均；Hoeffding 单侧界给出上下界；数据分离切断确认反馈，最后按违规、成本、下界与上界落入 keep、reject 或 inconclusive。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5"/></marker>
+  </defs>
+  <rect width="840" height="510" fill="#faf9f6"/>
+  <g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <text x="30" y="35" font-size="16" fill="#5e625f">本章算例：80 题 × 3 次，Δ̂ = 1/30 ≈ 3.33 个百分点</text>
+
+    <rect x="30" y="62" width="170" height="66" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="46" y="88" font-size="15" font-weight="700">逐题配对 d_i</text>
+    <text x="46" y="110" font-size="13">同题 3 次取均值差</text>
+    <rect x="236" y="62" width="150" height="66" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="252" y="88" font-size="15" font-weight="700">宏平均 Δ̂</text>
+    <text x="252" y="110" font-size="13">80 个差值取均值</text>
+    <rect x="422" y="62" width="180" height="66" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="438" y="86" font-size="15" font-weight="700">Hoeffding 单侧界</text>
+    <text x="438" y="108" font-size="13">半径 ≈ 0.274（N=80）</text>
+    <rect x="638" y="62" width="172" height="66" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5"/>
+    <text x="654" y="88" font-size="15" font-weight="700">[−0.240, 0.307]</text>
+    <text x="654" y="110" font-size="13">还容许明显退步</text>
+    <path d="M200 95H234" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M386 95H420" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M602 95H636" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <rect x="30" y="160" width="780" height="72" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5"/>
+    <text x="48" y="185" font-size="15" fill="#40587f">数据分离：切断评分反馈这条路径</text>
+    <text x="48" y="212" font-size="15">开发集 D_dev 诊断修改 → 选择集 D_select 冻结后选版本 → 确认集 D_confirm 一次预先约定的比较</text>
+
+    <text x="30" y="272" font-size="15" fill="#40587f">固定裁决顺序（δ_min = 0.02，成本上限 = 基线 × 1.25）</text>
+    <rect x="58" y="290" width="240" height="58" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="74" y="313" font-size="15" font-weight="700">严重违规或成本超限</text>
+    <text x="74" y="334" font-size="14">→ reject</text>
+    <rect x="322" y="290" width="200" height="58" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="338" y="313" font-size="15" font-weight="700">upper &lt; 0</text>
+    <text x="338" y="334" font-size="14">→ reject（退步证据）</text>
+    <rect x="546" y="290" width="236" height="58" rx="3" fill="#fff" stroke="#bfc3c9"/>
+    <text x="562" y="313" font-size="15" font-weight="700">lower &gt; δ_min</text>
+    <text x="562" y="334" font-size="14">→ keep</text>
+    <rect x="322" y="370" width="240" height="58" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5"/>
+    <text x="338" y="393" font-size="15" font-weight="700">其余 → inconclusive</text>
+    <text x="338" y="414" font-size="14">保留基线，非证明等效</text>
+    <path d="M298 319H320" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M522 319H544" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M442 348V368" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <text x="30" y="480" font-size="15" fill="#5e625f">本例落入 inconclusive：−0.240 未过 0.02，0.307 未低于 0；N=80 时要过门需差值 &gt; 0.294。</text>
+  </g>
+</svg>

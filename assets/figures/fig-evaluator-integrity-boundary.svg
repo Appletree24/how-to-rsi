@@ -1,0 +1,41 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" width="840" height="500" viewBox="0 0 840 500" role="img" aria-labelledby="title desc">
+  <ns0:title id="title">评分异常的三个位置与执行/控制域边界</ns0:title>
+  <ns0:desc id="desc">退款算例沿输入、执行、终态、答复、计分链区分测量错误、目标代理失真与完整性破坏；候选执行域与保管评分器和审计的控制域分离，候选只读权限外的写入通道被切断。</ns0:desc>
+  <ns0:defs>
+    <ns0:marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><ns0:path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5" /></ns0:marker>
+  </ns0:defs>
+  <ns0:rect width="840" height="500" fill="#faf9f6" />
+  <ns0:g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <ns0:text x="30" y="35" font-size="16" fill="#5e625f">同样是分数错，先定位故障发生在哪一段</ns0:text>
+
+    <ns0:text x="30" y="66" font-size="15" fill="#40587f">观测链：请求 → 工具响应 → 最终状态 → 答复 → 计分</ns0:text>
+    <ns0:rect x="58" y="82" width="230" height="60" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="74" y="106" font-size="15" font-weight="700">① 测量错误</ns0:text>
+    <ns0:text x="74" y="128" font-size="13">"100.00 元" 被判错 · 浮点比较</ns0:text>
+    <ns0:rect x="306" y="82" width="230" height="60" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="322" y="106" font-size="15" font-weight="700">② 目标代理失真</ns0:text>
+    <ns0:text x="322" y="128" font-size="13">只说"已退款"也拿高分</ns0:text>
+    <ns0:rect x="554" y="82" width="230" height="60" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="570" y="106" font-size="15" font-weight="700">③ 完整性 / 权限破坏</ns0:text>
+    <ns0:text x="570" y="128" font-size="13">失败轨迹缺席 · 自报分数入账</ns0:text>
+
+    <ns0:rect x="30" y="172" width="350" height="240" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <ns0:text x="48" y="197" font-size="15" fill="#40587f">候选执行域</ns0:text>
+    <ns0:rect x="58" y="216" width="290" height="52" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="74" y="238" font-size="15" font-weight="700">任务输入 + 允许的工具</ns0:text>
+    <ns0:text x="74" y="258" font-size="13">临时工作区</ns0:text>
+    <ns0:rect x="58" y="284" width="290" height="52" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="74" y="306" font-size="15" font-weight="700">产物、轨迹、自报分数</ns0:text>
+    <ns0:text x="74" y="326" font-size="13">agent.reported_score 仅待核查</ns0:text><ns0:text x="58" y="372" font-size="14" fill="#40587f">无评分器、确认数据与审计写权限</ns0:text>
+    <ns0:text x="58" y="395" font-size="13" fill="#5e625f">同账号不同 packageId 不自动隔离权限</ns0:text>
+
+    <ns0:rect x="460" y="172" width="350" height="240" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <ns0:text x="478" y="197" font-size="15" fill="#40587f">控制域</ns0:text>
+    <ns0:rect x="488" y="216" width="294" height="52" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <ns0:text x="504" y="238" font-size="15" font-weight="700">评分器+确认集+预算</ns0:text><ns0:text x="504" y="258" font-size="13">独立身份从产物重算</ns0:text><ns0:rect x="488" y="284" width="294" height="52" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="504" y="306" font-size="15" font-weight="700">审计追加·发布指针</ns0:text><ns0:text x="504" y="326" font-size="13">调用留存·控制域计时</ns0:text><ns0:text x="488" y="372" font-size="14" fill="#40587f">隔离防改分，不防奖励错</ns0:text><ns0:text x="488" y="395" font-size="13" fill="#5e625f">只读防写不防读；hash 不认证</ns0:text><ns0:path d="M348 242H486" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:text x="392" y="232" font-size="13" fill="#40587f">提交产物</ns0:text>
+    <ns0:path d="M486 310H348" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:text x="396" y="300" font-size="12" fill="#40587f">回写分数</ns0:text><ns0:text x="30" y="460" font-size="15" fill="#5e625f">诊断顺序：先核对每条请求都有终态记录，再用独立数据核实金额与状态，最后检查评分是否符合预定规则。</ns0:text>
+  </ns0:g>
+</ns0:svg>

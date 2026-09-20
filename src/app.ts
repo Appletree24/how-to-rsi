@@ -189,7 +189,7 @@ function route() {
   currentId = id;
   $$('.chapter').forEach(function (s) { s.classList.toggle('active', s.id === 'ch-' + id); });
   var lc = DSH.chapters.find(function (c) { return c.id === id; });
-  document.title = (id === 'home' ? 'How to RSI · 递归自我改进的原理与实验' : (lc ? lc.title : '刷题笔记') + ' · How to RSI');
+  document.title = (id === 'home' ? 'How to RSI · Agent、Harness 与递归自我改进' : (lc ? lc.title : '本地笔记') + ' · How to RSI');
   window.scrollTo(0, 0);
   closeSidebar();
   refreshNav();
@@ -1032,7 +1032,7 @@ function buildQuiz() {
     });
     var ex = el('div', 'quiz-explain', (right ? '<b style="color:var(--green)">回答正确。</b>' : '<b style="color:var(--rose)">不对。</b>正确答案是 ' + ['A', 'B', 'C', 'D'][q.a] + '。') + ' ' + esc(q.e));
     host.appendChild(ex);
-    var nx = el('button', 'btn primary', i < DSH.quiz.length - 1 ? '下一题 →' : '查看成绩 🏁');
+    var nx = el('button', 'btn primary', i < DSH.quiz.length - 1 ? '下一题 →' : '查看结果');
     nx.style.marginTop = '16px';
     nx.addEventListener('click', function () {
       var dot = $$('.qp-dot')[i];
@@ -1043,21 +1043,17 @@ function buildQuiz() {
   }
   function renderFinal() {
     var pct = Math.round(score / DSH.quiz.length * 100);
-    var msg =
-      score >= 11 ? '完美！你已经把 DSH 的骨架摸透了 —— 去读源码吧。' :
-      score >= 9 ? '很棒！核心概念已经牢固,查漏补缺即可。' :
-      score >= 6 ? '有模有样。建议回看《Agent Loop》与《会话与持久化》两章。' :
-      '万丈高楼平地起 —— 从《Cordis 核心》重新开始,边玩模拟器边记。';
+    var msg = '每题解析对应相关概念与适用条件。术语表和项目面试章节提供进一步讨论。';
     if (store.best < score) { store.best = score; }
     store.done.quiz = true;
     save(); refreshNav();
     host.innerHTML = '<div class="quiz-final">' +
       '<div class="score">' + score + ' / ' + DSH.quiz.length + '</div>' +
-      '<p class="lead" style="margin:6px 0 4px">正确率 ' + pct + '% · 历史最佳 ' + store.best + ' 题</p>' +
+      '<p class="lead" style="margin:6px 0 4px">本轮场景判断正确率 ' + pct + '%</p>' +
       '<p class="muted">' + msg + '</p>' +
       '<div style="display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap">' +
       '<button class="btn primary" id="quizRetry">再来一次</button>' +
-      '<a class="btn" href="#/glossary">回顾术语表</a></div></div>';
+      '<a class="btn" href="#/capstone-career">项目面试</a><a class="btn" href="#/glossary">术语表</a></div></div>';
     required('#quizRetry').addEventListener('click', function () { i = 0; score = 0; results = []; renderQ(); });
   }
   renderQ();
@@ -1154,7 +1150,7 @@ function lcGateMode(setup: boolean): void {
   required<HTMLInputElement>('#lcPass2').style.display = setup ? '' : 'none';
   required<HTMLButtonElement>('#lcUnlock').textContent = setup ? '设口令并解锁' : '解锁';
   required('#lcGateInfo').innerHTML = setup
-    ? '<span class="t">首次使用:设一个口令</span>口令只存在你脑子里——不落盘、不上传,丢失无法找回。它是加密密钥的源头。数据存本浏览器 localStorage;换浏览器/设备用「导出」搬密文,口令不变即可解开。'
+    ? '<span class="t">首次使用：设置口令</span>口令用于派生加密密钥，不保存、不上传，丢失后无法恢复笔记。数据以密文存储在当前浏览器的 localStorage 中，可导出后在其他浏览器导入，并用原口令解锁。'
     : '<span class="t">已加密</span>输入口令解锁。内容是 AES-GCM 密文,口令经 PBKDF2 派生密钥。';
 }
 function renderLcList() {

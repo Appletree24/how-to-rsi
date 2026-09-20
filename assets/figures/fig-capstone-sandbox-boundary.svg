@@ -1,0 +1,57 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" width="840" height="500" viewBox="0 0 840 500" role="img" aria-labelledby="title desc">
+  <ns0:title id="title">Harbor 任务的执行与独立判分边界</ns0:title>
+  <ns0:desc id="desc">任务目录的五类文件定义契约；Agent 环境只允许改配置且资源受限；启用 environment_mode="separate" 后 verifier 在独立环境运行，只接收声明传递的 patch/配置产物，结果记入实验账本。</ns0:desc>
+  <ns0:defs>
+    <ns0:marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><ns0:path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5" /></ns0:marker>
+  </ns0:defs>
+  <ns0:rect width="840" height="500" fill="#faf9f6" />
+  <ns0:g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <ns0:text x="30" y="35" font-size="16" fill="#5e625f">默认 verifier 与 Agent 同容器；environment_mode="separate" 才给出独立判分环境</ns0:text>
+
+    <ns0:rect x="30" y="56" width="216" height="300" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="46" y="84" font-size="16" font-weight="700">task 目录</ns0:text>
+    <ns0:text x="46" y="114" font-size="14">instruction.md　验收行为</ns0:text>
+    <ns0:text x="46" y="140" font-size="14">environment/ 被测服务</ns0:text>
+    <ns0:text x="46" y="166" font-size="14">solution/solve.sh oracle</ns0:text>
+    <ns0:text x="46" y="192" font-size="14">tests/　外部行为验证</ns0:text>
+    <ns0:text x="46" y="218" font-size="14">task.toml 时限/隔离</ns0:text>
+    <ns0:line x1="46" y1="238" x2="230" y2="238" stroke="#bfc3c9" />
+    <ns0:text x="46" y="264" font-size="14" fill="#5e625f">先用 oracle 跑通，再用空提交</ns0:text>
+    <ns0:text x="46" y="286" font-size="14" fill="#5e625f">错误配置令 verifier 失败</ns0:text>
+    <ns0:text x="46" y="318" font-size="14" fill="#5e625f">镜像 digest 与依赖版本锁定</ns0:text>
+
+    <ns0:path d="M246 206H288" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <ns0:rect x="290" y="56" width="250" height="300" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <ns0:text x="308" y="84" font-size="15" fill="#40587f">Agent 执行环境（专用）</ns0:text>
+    <ns0:rect x="310" y="100" width="280.0" height="88" rx="3" fill="#fff" stroke="#2b5bd7" />
+    <ns0:text x="326" y="128" font-size="16" font-weight="700">Agent 修改配置</ns0:text>
+    <ns0:text x="326" y="150" font-size="14">只允许落在配置文件</ns0:text>
+    <ns0:text x="326" y="171" font-size="14">目标：并发下连接池不耗尽</ns0:text>
+    <ns0:text x="308" y="218" font-size="14" fill="#40587f">边界：无凭据 · 无宿主敏感挂载</ns0:text>
+    <ns0:text x="308" y="240" font-size="14" fill="#40587f">受限网络与资源（task.toml）</ns0:text>
+    <ns0:text x="308" y="272" font-size="14" fill="#5e625f">共享宿主内核 ≠ 任意隔离：</ns0:text>
+    <ns0:text x="308" y="294" font-size="14" fill="#5e625f">“用了 Docker”不是沙箱证明</ns0:text>
+    <ns0:text x="308" y="330" font-size="14" fill="#5e625f">mini-SWE-agent 作基线，读取轨迹</ns0:text>
+
+    <ns0:path d="M540 178H590" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:text x="544" y="150" font-size="12" fill="#40587f">产物：</ns0:text><ns0:text x="544" y="166" font-size="12" fill="#40587f">patch</ns0:text><ns0:rect x="592" y="56" width="212.0" height="300" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <ns0:text x="610" y="84" font-size="15" fill="#40587f">verifier 独立环境</ns0:text>
+    <ns0:rect x="612" y="100" width="192.0" height="88" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <ns0:text x="628" y="128" font-size="16" font-weight="700">tests/ 外部验证</ns0:text>
+    <ns0:text x="628" y="150" font-size="14">覆盖边界负载，不只看</ns0:text>
+    <ns0:text x="628" y="171" font-size="14">配置等于固定数字</ns0:text>
+    <ns0:text x="610" y="218" font-size="14" fill="#40587f">不继承 Agent 的文件修改；</ns0:text>
+    <ns0:text x="610" y="240" font-size="14" fill="#40587f">不得复制整个被改环境给裁判</ns0:text>
+    <ns0:rect x="612" y="262" width="192.0" height="66" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="628" y="288" font-size="15" font-weight="700">trial 结果</ns0:text>
+    <ns0:text x="628" y="310" font-size="14">status·reward·错误</ns0:text>
+
+    <ns0:path d="M700 356V400H300" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:rect x="120" y="404" width="560" height="56" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="136" y="428" font-size="15" font-weight="700">适配进 RepoOps 实验账本</ns0:text>
+    <ns0:text x="136" y="450" font-size="14">保留原始 status/reward/artifact；未知字段或缺失 reward 不得默认成功</ns0:text>
+
+    <ns0:text x="30" y="487" font-size="15" fill="#5e625f">四次检查：oracle 通过 · 错误实现失败 · 改可见 grader 文件不影响独立评分 · 超时任务在预算内终止。</ns0:text>
+  </ns0:g>
+</ns0:svg>

@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="500" viewBox="0 0 840 500" role="img" aria-labelledby="title desc">
+  <title id="title">STOP、DGM 与 HGM：修改者、起点与评估预算放在哪</title>
+  <desc id="desc">STOP 冻结底层模型，让改进器 I 以自身为待改程序并用元效用 M 评分。DGM 从档案选父代、父代修改自身代码，修改者也可冻结成对照。HGM 把展开新节点与给已有节点补测分成两类调度决策。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5" /></marker>
+  </defs>
+  <rect width="840" height="500" fill="#faf9f6" />
+  <g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <text x="30" y="35" font-size="16" fill="#5e625f">同一问题，三个答案：下一轮谁改、改谁、预算花在哪</text>
+
+    <rect x="30" y="58" width="250" height="250" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <text x="48" y="83" font-size="15" fill="#40587f">STOP · 自应用</text>
+    <rect x="56" y="102" width="194" height="50" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="72" y="123" font-size="16" font-weight="700">I_next = I(M, I, L)</text>
+    <text x="72" y="143" font-size="13">I 以自身为待改程序</text>
+    <rect x="56" y="166" width="90" height="40" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="72" y="191" font-size="15">u 任务分</text>
+    <rect x="160" y="166" width="90" height="40" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="176" y="191" font-size="15">M 元效用</text>
+    <rect x="56" y="220" width="194" height="52" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <text x="72" y="242" font-size="15" font-weight="700">L 冻结 · I_next 接管</text>
+    <text x="72" y="262" font-size="13">权重不变，改的是调用程序</text>
+
+    <rect x="295" y="58" width="250" height="250" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <text x="313" y="83" font-size="15" fill="#40587f">DGM · 档案 + 自修改</text>
+    <rect x="321" y="102" width="198" height="46" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="337" y="123" font-size="15" font-weight="700">档案 select 选父代</text>
+    <text x="337" y="141" font-size="13">外部选择过程不改写</text>
+    <rect x="321" y="162" width="198" height="50" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="337" y="183" font-size="14" font-weight="700">child = modify(p, p)</text>
+    <text x="337" y="201" font-size="13">修改者与被改者同一节点</text>
+    <rect x="321" y="226" width="198" height="46" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="337" y="247" font-size="14">对照：modifier 冻结</text>
+    <text x="337" y="265" font-size="13">只换动手者，不动 target</text>
+
+    <rect x="560" y="58" width="250" height="250" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <text x="578" y="83" font-size="15" fill="#40587f">HGM · 调度评估资源</text>
+    <rect x="586" y="102" width="198" height="46" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="602" y="131" font-size="16" font-weight="700">树策略（每步二选一）</text>
+    <rect x="586" y="162" width="198" height="46" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="602" y="183" font-size="15" font-weight="700">展开 · 生成新代理</text>
+    <text x="602" y="201" font-size="13">扩大候选集合</text>
+    <rect x="586" y="222" width="198" height="46" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <text x="602" y="243" font-size="15" font-weight="700">评估 · 给已有节点补测</text>
+    <text x="602" y="261" font-size="13">每节点测试次数不再固定</text>
+
+    <text x="30" y="356" font-size="15" fill="#40587f">同一批产物，三种读法（公式算例：A 支系 9/10、1/10；B 支系 6/10、6/10）</text>
+    <rect x="58" y="372" width="230" height="52" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="74" y="394" font-size="15">合并通过率：B 60% &gt; A 50%</text>
+    <text x="74" y="414" font-size="13">两种统计都不是理论 CMP</text>
+    <rect x="306" y="372" width="230" height="52" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="322" y="394" font-size="15">当前最佳后代：A 90% &gt; B 60%</text>
+    <text x="322" y="414" font-size="13">A 90%，B 60%，排序反转</text>
+    <rect x="554" y="372" width="230" height="52" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <text x="570" y="394" font-size="15">给 A 强后代补测 10 次</text>
+    <text x="570" y="414" font-size="13">合并 63.3%：权重变了，能力没变</text>
+
+    <text x="30" y="470" font-size="15" fill="#5e625f">区分收益来自修改者、起点选择还是测量资源，要分开记 modifier_id、target_id 与每节点测试次数。</text>
+  </g>
+</svg>

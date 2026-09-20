@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="840" height="520" viewBox="0 0 840 520" role="img" aria-labelledby="title desc">
   <title id="title">开发反馈与独立确认的边界</title>
-  <desc id="desc">生产失败整理为开发任务，用于选择候选。冻结候选后在独立确认集上评估，再决定发布或保留旧版。上线观测产生下一轮开发任务，确认结果不回流到同轮选择。这是教学流程，不是企业内部架构。</desc>
+  <desc id="desc">生产失败整理为开发任务，用于选择候选。冻结候选后在独立确认集上评估，再决定发布或保留旧版。上线观测产生下一轮开发任务，确认结果不回流到同轮选择。此概念流程不对应特定企业内部架构。</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5"/></marker>
   </defs>
@@ -44,6 +44,6 @@
     <path d="M140 416V462H281" fill="none" stroke="#2b5bd7" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
     <text x="296" y="458" font-size="17">新的失败，进入下一轮开发。</text>
     <text x="296" y="482" font-size="16" fill="#5e625f">同一轮中，不用确认结果继续挑选候选。</text>
-    <text x="30" y="502" font-size="13" fill="#5e625f">本站教学流程，非企业内部架构。</text>
+    <text x="30" y="502" font-size="13" fill="#5e625f">概念流程，不对应特定企业内部架构。</text>
   </g>
 </svg>

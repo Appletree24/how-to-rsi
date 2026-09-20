@@ -1,0 +1,63 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" width="840" height="520" viewBox="0 0 840 520" role="img" aria-labelledby="title desc">
+  <ns0:title id="title">一个回合：持久事件链与进程内 waterfall 决策点</ns0:title>
+  <ns0:desc id="desc">左侧是写入会话日志的事件序列：turn/start、step/start、system/message reconcile、user/message（仅首次尝试）、assistant/message 或 attempt、tool/call、tool/result、turn/end；右侧是进程内 waterfall：pre-step、agent/request、request-error、tools/* 流水线、turn-stopping，重放不可见。</ns0:desc>
+  <ns0:defs>
+    <ns0:marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><ns0:path d="M1 1 9 5 1 9" fill="none" stroke="#2b5bd7" stroke-width="1.5" /></ns0:marker>
+  </ns0:defs>
+  <ns0:rect width="840" height="520" fill="#faf9f6" />
+  <ns0:g font-family="Arial, 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#22252a">
+    <ns0:text x="30" y="35" font-size="16" fill="#5e625f">左：写入会话日志的持久事实　右：进程内扩展点（重放不可见）</ns0:text>
+
+    <ns0:rect x="430" y="58" width="380" height="426" rx="3" fill="#f1f4fb" stroke="#8c9cbd" stroke-dasharray="5 5" />
+    <ns0:text x="448" y="83" font-size="15" fill="#40587f">进程内 waterfall / serial 决策点</ns0:text>
+
+    <ns0:rect x="60" y="68" width="330" height="36" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="76" y="91" font-size="15"><ns0:tspan font-weight="700">turn/start</ns0:tspan> · 领取第一份输入前开启</ns0:text>
+    <ns0:rect x="60" y="120" width="330" height="36" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="76" y="143" font-size="15"><ns0:tspan font-weight="700">step/start</ns0:tspan> · 一次模型请求 + 工具执行</ns0:text>
+    <ns0:rect x="60" y="172" width="330" height="36" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="76" y="195" font-size="15"><ns0:tspan font-weight="700">system/message</ns0:tspan> · reconcile 提示词节点</ns0:text>
+    <ns0:rect x="60" y="224" width="330" height="36" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="76" y="247" font-size="15"><ns0:tspan font-weight="700">user/message</ns0:tspan> · 仅首次尝试追加</ns0:text>
+    <ns0:rect x="60" y="276" width="330" height="36" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="76" y="299" font-size="15"><ns0:tspan font-weight="700">request/*</ns0:tspan> · header + context 按需记录</ns0:text>
+    <ns0:rect x="60" y="328" width="330" height="36" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="76" y="351" font-size="15"><ns0:tspan font-weight="700">assistant/message</ns0:tspan> 成功｜attempt 失败</ns0:text>
+    <ns0:rect x="60" y="380" width="330" height="36" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="76" y="403" font-size="15"><ns0:tspan font-weight="700">tool/call → tool/result</ns0:tspan> · 先落账再执行</ns0:text>
+    <ns0:rect x="60" y="432" width="330" height="36" rx="3" fill="#fff" stroke="#bfc3c9" />
+    <ns0:text x="76" y="455" font-size="15">turn/end · aborted / interrupted</ns0:text><ns0:path d="M225 104V118" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:path d="M225 156V170" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:path d="M225 208V222" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:path d="M225 260V274" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:path d="M225 312V326" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:path d="M225 364V378" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+    <ns0:path d="M225 416V430" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <ns0:rect x="452" y="96" width="336" height="44" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <ns0:text x="468" y="115" font-size="15" font-weight="700">agent/pre-step</ns0:text>
+    <ns0:text x="468" y="133" font-size="14" fill="#5e625f">reject 或空 enter ⇒ 无 step 直接关回合</ns0:text>
+    <ns0:path d="M450 130H392" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <ns0:rect x="452" y="176" width="336" height="44" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <ns0:text x="468" y="195" font-size="15" font-weight="700">agent/request + prepareCall()</ns0:text>
+    <ns0:text x="468" y="213" font-size="14" fill="#5e625f">先解析路由；替换返回 = 换调用配置</ns0:text>
+    <ns0:path d="M450 198H392" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <ns0:rect x="452" y="256" width="336" height="44" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <ns0:text x="468" y="275" font-size="15" font-weight="700">agent/request-error</ns0:text>
+    <ns0:text x="468" y="293" font-size="14" fill="#5e625f">返回 { kind:'retry' } 接管恢复（llm-retry）</ns0:text>
+    <ns0:path d="M450 278H392" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <ns0:rect x="452" y="336" width="336" height="58" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <ns0:text x="468" y="355" font-size="15" font-weight="700">tools/* 守卫流水线</ns0:text>
+    <ns0:text x="468" y="373" font-size="14" fill="#5e625f">pre-execute → 守卫 → execute</ns0:text><ns0:path d="M450 358H392" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <ns0:rect x="452" y="416" width="336" height="44" rx="3" fill="#fff" stroke="#2b5bd7" stroke-width="1.5" />
+    <ns0:text x="468" y="435" font-size="15" font-weight="700">agent/turn-stopping（serial）</ns0:text>
+    <ns0:text x="468" y="453" font-size="14" fill="#5e625f">无 next()；反对关闭就 steer() 重读 inbox</ns0:text>
+    <ns0:path d="M450 438H392" fill="none" stroke="#2b5bd7" stroke-width="2" marker-end="url(#arrow)" />
+
+    <ns0:text x="30" y="508" font-size="14" fill="#5e625f">入口：send() 路由到 next-turn / next-step 待办——followup、steer 唤醒，inject 不唤醒；不变量：模型可见 ⟺ 已记录。</ns0:text>
+  <ns0:text x="468" y="390" font-size="14">post-execute → result</ns0:text></ns0:g>
+</ns0:svg>
