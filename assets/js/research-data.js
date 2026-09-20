@@ -4,7 +4,7 @@
   {
     "id": "research-contract",
     "num": "R1",
-    "title": "研究问题与系统边界",
+    "title": "自修改、任务收益与递归收益",
     "short": "问题定义",
     "blurb": "自修改、自改收益、递归收益；固定预算与反事实。",
     "icon": "book",
@@ -13,7 +13,7 @@
   {
     "id": "paper-lab",
     "num": "R2",
-    "title": "STOP / DGM / HGM 精读",
+    "title": "STOP、DGM 与 HGM",
     "short": "机制精读",
     "blurb": "档案、CMP、oracle 假设与元改进消融。",
     "icon": "book",
@@ -31,7 +31,7 @@
   {
     "id": "evaluator-integrity",
     "num": "R4",
-    "title": "评分器与信任边界",
+    "title": "评分器误差与权限隔离",
     "short": "评分器",
     "blurb": "judge 校准、外部验证、CoT 边界与副作用回滚。",
     "icon": "book",
@@ -40,7 +40,7 @@
   {
     "id": "research-map",
     "num": "R5",
-    "title": "研究路线地图",
+    "title": "自我改进的几类研究方法",
     "short": "路线地图",
     "blurb": "自训练、记忆、元学习、程序搜索与开放式环境。",
     "icon": "book",
@@ -49,57 +49,57 @@
   {
     "id": "reproducible-lab",
     "num": "R6",
-    "title": "可运行评测实验",
+    "title": "用合成数据练习评测",
     "short": "运行实验",
-    "blurb": "零 API 成本的合成实验、三态裁决与结果协议。",
+    "blurb": "Python 合成数据实验、输入检查与三态裁决。",
     "icon": "book",
     "module": "research"
   },
   {
     "id": "research-roadmap",
     "num": "R7",
-    "title": "学习里程碑与开放问题",
-    "short": "研究路线",
-    "blurb": "以实验证据为产物的学习路径、作品集与负结果。",
+    "title": "研究练习与开放问题",
+    "short": "研究练习",
+    "blurb": "记忆泛化、搜索效率与评分器过拟合。",
     "icon": "book",
     "module": "research"
   },
   {
     "id": "research-sources",
     "num": "R8",
-    "title": "来源与证据台账",
-    "short": "来源台账",
-    "blurb": "论文版本、核对范围与内容维护规则。",
+    "title": "参考资料与版本",
+    "short": "参考资料",
+    "blurb": "论文、源码与岗位资料的版本和阅读范围。",
     "icon": "book",
     "module": "research"
   }
 ];
-  DSH.modules.splice(2, 0, {id: "research", name: "研究主线 · 深度优先", desc: "定义 → 精读 → 评测 → 实验 → 开放问题", icon: "book"});
+  DSH.modules.splice(2, 0, {id: "research", name: "论文与实验", desc: "自改机制、统计方法与研究练习", icon: "book"});
   var after = DSH.chapters.findIndex(function (c) { return c.id === "carriers"; }) + 1;
   DSH.chapters.splice.apply(DSH.chapters, [after, 0].concat(chapters));
   var capstone = [
   {
     "id": "capstone",
     "num": "P0",
-    "title": "RepoOps Lab：项目总览与岗位地图",
-    "short": "项目总览",
-    "blurb": "16 周构建、三类岗位、源码路线与真实面经证据。",
+    "title": "RepoOps Lab：从工单到实验",
+    "short": "项目介绍",
+    "blurb": "运行示例、任务范围与 16 周安排。",
     "icon": "book",
     "module": "capstone"
   },
   {
     "id": "capstone-data",
     "num": "P1",
-    "title": "P1 任务契约与数据集",
+    "title": "任务数据与评分字段",
     "short": "任务数据",
-    "blurb": "任务、证据、评分与拆分；跑出第一份完整实验。",
+    "blurb": "工单、参考答案、家族拆分与断点续跑。",
     "icon": "book",
     "module": "capstone"
   },
   {
     "id": "capstone-agent",
     "num": "P2",
-    "title": "P2 有边界的 Agent 循环",
+    "title": "Agent 循环与工具协议",
     "short": "Agent 循环",
     "blurb": "工具协议、终止状态、模型适配与预算。",
     "icon": "book",
@@ -108,7 +108,7 @@
   {
     "id": "capstone-retrieval",
     "num": "P3",
-    "title": "P3 检索、上下文与记忆",
+    "title": "检索、上下文与记忆",
     "short": "检索记忆",
     "blurb": "从词法基线到混合检索，检索与生成分别归因。",
     "icon": "book",
@@ -117,7 +117,7 @@
   {
     "id": "capstone-grading",
     "num": "P4",
-    "title": "P4 独立评分与评测质量",
+    "title": "评分规则与误判检查",
     "short": "可信评分",
     "blurb": "校准、反例、拒答、证据与污染测试。",
     "icon": "book",
@@ -126,8 +126,8 @@
   {
     "id": "capstone-platform",
     "num": "P5",
-    "title": "P5 从脚本到可靠调度服务",
-    "short": "可靠调度",
+    "title": "队列、租约与故障恢复",
+    "short": "调度与恢复",
     "blurb": "Go 控制面、租约、fencing、幂等与恢复。",
     "icon": "book",
     "module": "capstone"
@@ -135,7 +135,7 @@
   {
     "id": "capstone-observability",
     "num": "P6",
-    "title": "P6 轨迹、成本与故障定位",
+    "title": "轨迹、成本与故障定位",
     "short": "可观测性",
     "blurb": "trace、失败分层、尾延迟、成本账本与事故演练。",
     "icon": "book",
@@ -144,7 +144,7 @@
   {
     "id": "capstone-experiments",
     "num": "P7",
-    "title": "P7 公平比较与统计判断",
+    "title": "固定预算下比较两个版本",
     "short": "实验判断",
     "blurb": "配对、聚类、预算、确认集与三态决策。",
     "icon": "book",
@@ -153,7 +153,7 @@
   {
     "id": "capstone-sandbox",
     "num": "P8",
-    "title": "P8 迁移到隔离执行与开源基准",
+    "title": "在 Harbor 中运行仓库修复",
     "short": "隔离执行",
     "blurb": "Harbor 任务、mini-SWE-agent 基线与独立 verifier。",
     "icon": "book",
@@ -162,7 +162,7 @@
   {
     "id": "capstone-improve",
     "num": "P9",
-    "title": "P9 固定预算下的反思优化",
+    "title": "用轨迹反馈优化候选",
     "short": "反思优化",
     "blurb": "GEPA 接口、失败轨迹、搜索账本与消融。",
     "icon": "book",
@@ -171,7 +171,7 @@
   {
     "id": "capstone-meta",
     "num": "P10",
-    "title": "P10 检验改进器的改进",
+    "title": "更新改进器的对照实验",
     "short": "递归研究",
     "blurb": "冻结改进器对照、全搜索重复与元收益。",
     "icon": "book",
@@ -180,14 +180,14 @@
   {
     "id": "capstone-career",
     "num": "P11",
-    "title": "P11 从作品证据到求职反馈",
-    "short": "求职闭环",
-    "blurb": "分阶段投递、项目答辩、编码题与作品集。",
+    "title": "项目展示与面试准备",
+    "short": "面试准备",
+    "blurb": "岗位样本、简历示例、模拟面试与投递记录。",
     "icon": "book",
     "module": "capstone"
   }
 ];
-  DSH.modules.splice(3, 0, {id: "capstone", name: "实战主线 · RepoOps Lab", desc: "项目交付 → 工程深度 → 实验研究 → 求职证据", icon: "book"});
+  DSH.modules.splice(3, 0, {id: "capstone", name: "RepoOps Lab", desc: "仓库运维 Agent 与评测系统", icon: "book"});
   DSH.chapters.splice.apply(DSH.chapters, [after + chapters.length, 0].concat(capstone));
   DSH.sources = [
   {

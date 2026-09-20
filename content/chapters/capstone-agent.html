@@ -1,30 +1,29 @@
 <section class="chapter" id="ch-capstone-agent">
-  <span class="ch-kicker">实战主线 P2 · 第 2 周 · 前置：P1、异常与 HTTP</span>
-  <h1>让 Agent 的每一步都能解释、终止和重放</h1>
-  <p class="lead">完成一个 search → read → finish 的 Agent 循环。你应能指出一次错误究竟发生在模型、解析器、工具、上下文还是终止逻辑，而不只是说“模型不够聪明”。</p>
+  <span class="ch-kicker">RepoOps Lab / P2 · 第 2 周 · 前置：P1、异常与 HTTP</span>
+  <h1>Agent 循环与工具协议</h1>
+  <p class="lead">RepoOps 只提供 search、read、finish 三个工具。模型决定下一步，程序负责解析和执行。非法参数、工具超时和预算耗尽，都需要在循环中有明确的处理分支。</p>
   <h2>从源码看控制流</h2>
   <p>精读 mini-SWE-agent 固定提交中的 <code>DefaultAgent.run / step / query / execute_actions</code>：run 管异常与保存，step 组织查询和执行，query 检查限制并记账，environment 执行动作。注意费用限制可能在上一次调用已超限后才阻止下一次调用；预算检查的时机是工程语义的一部分。本站借鉴职责划分，没有复制其全部工具、并发或安全能力。<cite data-source="mini-code"></cite></p>
   <div class="codeblock"><div class="cb-head">实现顺序</div><pre data-lang="text">创建初始消息 → 检查剩余预算 → 调用 policy
 → 记录调用与 usage → 严格解析动作
 → finish: 提交结果；search/read: 取观察并追加消息
 → 下一步；异常或预算耗尽: 写明终态并交给评分器</pre></div>
-  <h2>把三层契约拆开</h2>
+  <h2>模型响应、工具参数与执行权限</h2>
   <p><strong>模型层</strong>返回文本和 usage，不决定是否成功。<strong>动作层</strong>只接受严格字段集：search/query、read/id、finish/answer/citations；未知工具和额外字段直接结束为 invalid_output。<strong>环境层</strong>只查询内存文档，无 shell、文件写入和网络工具。即便文档写着“删除日志”，它也不能增加工具权限。</p>
   <p>输入范围收窄以后，仍不能宣称解决了 prompt injection：模型可能选择错误答案、漏读证据或反复调用。代码里的规则策略抗注入测试只证明该夹具和分发器的行为，不能推断真实 LLM 的鲁棒性。</p>
-  <h2>亲手改造，而不是只运行</h2>
+  <h2>加入错误分支与循环上限</h2>
   <ol>
     <li>在 <a href="projects/repoops/agent.py">agent.py</a> 中跟踪 checkout-0 的四个动作；给每个字段写出消费者。删除一步 read，观察哪条评分条件失效。</li>
     <li>用 <code>--max-steps 2</code> 运行 evidence，确认 budget_exhausted 仍有 trial 和调用计数。失败调用也必须计入成本，不能靠重试抹掉。</li>
     <li>加入一个格式修复机会：只把 schema 错误交还模型，不暴露 expected_answer；修复也消耗同一个总预算。先固定协议，再比较“不修复/一次修复”。这是作业，不是默认实现。</li>
     <li>保留只读工具，接本机真实模型。首先跑一题，人工检查完整轨迹，再扩大到开发集。不要先让模型操作主机 shell。</li>
   </ol>
-  <h2>可选：用本机 Ollama 做第一轮真实调用</h2>
+  <h2>接入本机 Ollama</h2>
   <p>准备已经安装好权重、监听 <code>127.0.0.1:11434</code> 的 Ollama。执行前记录本机模型的精确 digest；模型名可指向不同权重，单记名字不够。适配器使用官方 <code>/api/chat</code> 的 messages、stream=false、format=json 和 token usage 字段。本仓库未预装模型，本次维护未测量真实模型质量。<cite data-source="ollama-chat"></cite></p>
   <div class="codeblock"><div class="cb-head">将两个占位值换成你的本机模型信息</div><pre data-lang="bash">python -m projects.repoops.runner run --policy ollama \
   --model YOUR_LOCAL_MODEL --model-revision YOUR_MODEL_DIGEST \
   --limit 1 --max-steps 6 --timeout 120
 python -m projects.repoops.runner report RUN_ID</pre></div>
   <p>这是 JSON 动作协议，没有使用 Ollama 原生 tool-calling API。故障优先查：服务未启动、模型未安装、JSON 缺字段、finish 太早、上下文遗漏。温度为零不保证跨硬件与版本逐字复现；保留原始观察、usage 和模型修订。HTTP timeout 是单次请求等待限制，当前实现没有进程级硬取消，后续执行 worker 需要外部 deadline。</p>
-  <div class="research-exercise"><h3>验收与就业产物</h3><p>提交一个 3 分钟终端演示：正确任务、未知错误拒答、非法工具、预算耗尽各一次。准备一页 Agent loop 图和一份失败轨迹。解释“function calling 只规定接口，工具执行和权限检查在哪层”“取消 HTTP 等待为什么不等于服务端推理停止”。面经映射：Datawhale Agent §4 的工具使用与复杂性主题。<cite data-source="interview-dw"></cite></p></div>
-  <p class="research-next">下一步：<a href="#/capstone-retrieval">P3 检索与记忆</a>。</p>
+  <div class="research-exercise"><h3>练习：记录四种终止情况</h3><p>录制一次终端运行，覆盖正常作答、未知错误拒答、非法工具和预算耗尽。选一条失败轨迹，沿代码指出终止发生的位置。再回答：function calling 定义了接口，谁负责执行与权限检查？取消 HTTP 等待后，服务端推理是否仍可能继续？</p></div>
 </section>

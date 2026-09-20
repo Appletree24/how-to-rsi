@@ -1,10 +1,10 @@
 <section class="chapter" id="ch-capstone-platform">
-  <span class="ch-kicker">实战主线 P5 · 第 5–6 周 · 前置：事务、HTTP、并发与取消</span>
-  <h1>把本地脚本升级成可靠的评测服务</h1>
-  <p class="lead">本阶段是后端能力的主战场：任务会重复投递，worker 会失联，模型调用可能已经计费但响应丢失。你的系统要知道哪些结果可信、哪些要重试、哪些账单仍然存在。</p>
-  <h2>先明确 starter 的能力上限</h2>
+  <span class="ch-kicker">RepoOps Lab / P5 · 第 5–6 周 · 前置：事务、HTTP、并发与取消</span>
+  <h1>队列、租约与故障恢复</h1>
+  <p class="lead">worker 失联后，任务被重新领取；旧 worker 又在稍后提交结果，哪一份应该生效？从这个问题出发，将本地 runner 扩展为带租约、fencing 和幂等提交的调度服务。</p>
+  <h2>本地 runner 的事务范围</h2>
   <p>现有 runner 在每个 trial 外持有 SQLite 写事务，结果与轨迹一起原子提交；已提交任务以复合主键去重。进程崩溃时未提交事务回滚，下次重跑该任务。它适合单机串行学习，不适合长时间持锁的多 worker 服务；外部调用完成后、本地提交前崩溃会再次调用，因此不具备外部副作用 exactly-once。报告可以缓存，计费不能因结果未保存而假装没发生。</p>
-  <h2>目标架构与边界</h2>
+  <h2>控制面与 worker</h2>
   <p>Go 控制面接收实验规格，数据库持久化 experiment/trial/attempt，Python worker 调用模型和环境，artifact store 保存大轨迹，评分 worker 产生独立评价。MVP 先使用一个关系数据库和轮询队列，等测出数据库争用再引入消息中间件。研究平台岗位强调的是可靠性与可扩展性的取舍，技术栈数量不能替代这一能力。<cite data-source="job-infra"></cite></p>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>接口</th><th>语义</th><th>必须验证</th></tr></thead><tbody>
     <tr><td>POST /experiments</td><td>按 Idempotency-Key 创建实验</td><td>同 key 同规格返回旧 ID；同 key 不同规格返回冲突</td></tr>
@@ -13,7 +13,7 @@
     <tr><td>POST /attempts/{id}/complete</td><td>提交 artifact hash 和结果</td><td>token 与状态一致才接受；重复相同提交幂等</td></tr>
     <tr><td>POST /experiments/{id}/cancel</td><td>停止排队并请求取消运行</td><td>区分取消请求、worker 已终止、费用结算完成</td></tr>
   </tbody></table></div>
-  <h2>一步步做出一个能失败的系统</h2>
+  <h2>领取任务、续租与提交</h2>
   <ol>
     <li>先写 experiment 不可变规格：任务集、候选、模型/采样参数、环境/评分器、每题预算和总预算；保存内容哈希。实验启动后不能原地改参数。</li>
     <li>把 trial 与 attempt 分表：一个 trial 是预定的 task×repeat×arm；一个 attempt 是基础设施重试。模型自身的第二次解题若被当作 pass@k，就不能同时伪装为免费重试。</li>
@@ -30,9 +30,8 @@ WHERE id = :trial_id AND state = 'running'
 -- 更新 0 行：当前 attempt 无权完成，不能重试成无条件覆盖。
 -- 同一个事务写 attempt 终态；幂等重复提交需校验原结果 hash。</pre></div>
   <p>租约解决调度所有权，fencing 解决过期持有者写回；它们不能自动撤回外部 API 的副作用。真实处置动作使用下游幂等键或先查询状态；无法确认结果时进入人工/补偿流程。个人项目先让 Agent 输出 patch，不自动执行运维动作。</p>
-  <h2>故障演练与验收</h2>
+  <h2>重复投递与迟到提交</h2>
   <p>用一个本地假模型服务模拟 429、超时和迟到响应，先用 2 个 worker：领取后终止一个进程；等待租约过期；让另一进程完成；再提交旧 token，必须被拒绝。随后重复提交同一实验 10 次，只应得到一个逻辑实验。对取消后迟到结果、对象上传失败、数据库暂不可用分别写复盘。</p>
-  <p>负载报告记录机器配置、并发、任务时长分布、吞吐、排队时间、数据库争用和失败数。课程建议从 100 个假任务起步，数字只用于你自己的容量分析，不预设“支持百万并发”。验收看不丢任务、不覆盖新结果、失败有账，而不是 QPS 越大越好。</p>
-  <div class="research-exercise"><h3>求职产物</h3><p>交付 OpenAPI 或接口说明、状态表、故障演练日志和一份 ADR：为什么先用数据库队列、什么时候换。现场编码练习：用 Go 写有界 worker pool，保证 context 取消后所有 goroutine 退出；用竞态检测和 goroutine 数量检查验证。此处是课程自拟练习，不能标注为某公司原题。</p></div>
-  <p class="research-next">下一步：<a href="#/capstone-observability">P6 故障定位与成本</a>。</p>
+  <p>负载报告记录机器配置、并发、任务时长分布、吞吐、排队时间、数据库争用和失败数。先用 100 个假任务观察排队和争用，再增加负载。核对有无任务丢失、旧结果覆盖和未记录的失败。</p>
+  <div class="research-exercise"><h3>练习：实现可取消的 worker pool</h3><p>用 Go 写一个有界 worker pool。取消 context 后，检查所有 goroutine 是否退出；使用竞态检测，并记录取消前后的 goroutine 数量。保留接口说明、状态表和故障日志，再写下数据库队列的适用规模与更换条件。</p></div>
 </section>

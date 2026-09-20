@@ -1,7 +1,7 @@
 <section class="chapter" id="ch-capstone-grading">
-  <span class="ch-kicker">实战主线 P4 · 第 4 周 · 前置：P1–P3、混淆矩阵</span>
-  <h1>评测器要比被测系统更值得信任</h1>
-  <p class="lead">让错误答案、假引用、空拒答、篡改分数和环境异常各有明确去处。你要交付一份评分器审计，而不是一个“judge 说不错”的平均分。</p>
+  <span class="ch-kicker">RepoOps Lab / P4 · 第 4 周 · 前置：P1–P3、混淆矩阵</span>
+  <h1>评分规则与误判检查</h1>
+  <p class="lead">答案正确但引用不存在、拒答过多、环境异常被记成答错，都会扭曲通过率。本章为这些情况编写反例，并在加入自然语言答案后校准 LLM judge。</p>
   <h2>先从可判定的规则开始</h2>
   <p>当前 <code>grade</code> 的通过条件是：status=ok、动作代码正确、引用存在且曾被读取、所需证据齐全。四个维度分别输出，所以你能区分“答案碰巧对”与“证据链完整”。<code>forbidden_action</code> 记录了危险建议，但默认脚本从不真正执行该建议。规则 grader 也不证明引用语义蕴含，只适用于这些手工标注的动作任务。</p>
   <p>Inspect AI 把 Task 的 dataset、solver、scorer、metrics 和运行限制作为独立组成部分，这种分离让同一答案能重新评分，并能区分执行失败和评分失败。先读构造函数与错误策略，再设计自己的结果协议。<cite data-source="inspect-code"></cite></p>
@@ -23,6 +23,6 @@
   </tbody></table></div>
   <h2>错误标签要支持归因</h2>
   <p>将失败分成 task_failure、provider_error、environment_error、grader_error；正式服务里不要把 grader_error 直接当能力失败，也不要悄悄丢掉。面向用户的端到端可靠性统计包含服务失败；模型能力估计可以按预注册规则重跑基础设施失败，但须公开排除数、重跑次数与费用。当前 starter 把协议错误/服务错误都留在完整结果中，尚未实现这套多层重跑策略。</p>
-  <div class="research-exercise"><h3>第一个求职交付点</h3><p>交付 <code>grader-audit.md</code>：评分条件、至少 8 个 mutant、人工分歧、局限和修复。此时已有能展示的小项目，可开始匹配初级应用/平台岗位的小批投递；在简历上写“完成离线原型”，真实调用未做就不要写“大模型评测提升”。本站答辩题：假阳性和假阴性哪一个更贵？答案要关联实际发布决策，而不是只背 precision/recall 公式。</p></div>
-  <p class="research-next">下一步：<a href="#/capstone-platform">P5 可靠调度</a>。理论：<a href="#/evaluator-integrity">R4 评分器信任边界</a>。</p>
+  <div class="research-exercise"><h3>练习：用反例检查评分器</h3><p>在 <code>grader-audit.md</code> 记录评分条件、至少 8 个 mutant、人工标注分歧和修复结果。分别统计假阳性与假阴性，再结合发布决策讨论哪种错误代价更高。完成这一步后，可按 <a href="#/capstone-career">P11 的安排</a> 准备第一版演示和简历。</p></div>
+  <p class="reading-note">相关：<a href="#/evaluator-integrity">R4 评分器信任边界</a>。</p>
 </section>

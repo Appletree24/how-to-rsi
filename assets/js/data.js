@@ -13,7 +13,7 @@ window.DSH = DSH;
    工具条目以 docs/tool-catalog.md 为准。 */
 DSH.meta = {
   snapshotCommit: null,
-  note: '历史教学清单：原始生成日期与上游 commit 未记录；本轮未逐包重新验证。API 与包结构以目标版本文档为准。',
+  note: '历史教学清单：原始生成日期与上游 commit 未记录。API 与包结构以目标版本文档为准。',
 };
 
 /* ---------- 模块(学习路径分区) ---------- */
@@ -21,22 +21,22 @@ DSH.modules = [
   { id: 'north', name: '基础概念', desc: '什么是 RSI，它在真实系统里走过了什么', icon: 'target' },
   { id: 'cap', name: '机制与评测', desc: '把 RSI 拆成机制清单，评测是门槛，载体选型是落点', icon: 'layers' },
   { id: 'align', name: '对齐与安全', desc: '让 AI 做我们真想让它做的事：失败模式、监控、元游戏、多 agent 风险、忏悔与工程护栏', icon: 'target' },
-  { id: 'dsh', name: 'DSH 实战', desc: '以 DSH 为案例学习运行时组合；具体 API 按版本复核', icon: 'wrench' },
+  { id: 'dsh', name: 'DSH 源码与练习', desc: '以 DSH 为案例学习运行时组合；具体 API 按版本复核', icon: 'wrench' },
 ];
 
 /* ---------- 章节 ---------- */
 DSH.chapters = [
-  { id: 'home', num: '⌂', title: '首页·路线图', short: '首页', blurb: '从这里开始：了解 RSI 路线图与模块划分。', icon: 'home', module: 'north' },
-  { id: 'rsi', num: '01', title: '什么是 RSI', short: '什么是 RSI', blurb: '递归自我改进的定义、思想源流、L0–L5 分级阶梯。', icon: 'target', module: 'north' },
+  { id: 'home', num: '⌂', title: '首页', short: '首页', blurb: '阅读入口与全部章节。', icon: 'home', module: 'north' },
+  { id: 'rsi', num: '01', title: '什么是 RSI', short: '什么是 RSI', blurb: '工作定义、概念源流与修改对象。', icon: 'target', module: 'north' },
   { id: 'godel', num: '02', title: '哥德尔机谱系', short: '哥德尔机', blurb: '形式证明、经验自改、开放档案与谱系估计的证据边界。', icon: 'book', module: 'north' },
   { id: 'capmap', num: '03', title: 'RSI 能力拆解', short: '能力拆解', blurb: 'RSI 六大机制(自改/状态/评估/沙箱/目标/护栏)与 DSH 包级映射。', icon: 'layers', module: 'cap' },
-  { id: 'eval', num: '04', title: '评测：RSI 的门槛', short: '评测', blurb: '四种评测范式、三级评测能力、防作弊三原则、评测门模拟器。', icon: 'target', module: 'cap' },
+  { id: 'eval', num: '04', title: 'Agent 评测方法', short: '评测', blurb: '任务、评分器、重复运行与评测门模拟器。', icon: 'target', module: 'cap' },
   { id: 'carriers', num: '05', title: '载体对比', short: '载体对比', blurb: 'Claude Code / Codex / pi / ACP / 自写 harness：谁允许你改运行时。', icon: 'boxes', module: 'cap' },
-  { id: 'alignment', num: '06', title: '对齐：AI 的核心未解问题', short: '对齐', blurb: '外层/内层对齐分解、失败模式动物园、四层方法论地图、以及对齐如何成为 RSI 的前提。', icon: 'target', module: 'align' },
-  { id: 'cot', num: '07', title: '推理可监控性', short: 'CoT 监控', blurb: '为什么推理链是安全层：三类可监控性评测、量化指标、以及"别把 CoT 当优化目标"的边界。', icon: 'loop', module: 'align' },
-  { id: 'metagaming', num: '08', title: '元游戏：模型在计算评估', short: '元游戏', blurb: 'OpenAI × Apollo 实测：能力 RL 让模型自发推理"谁在打分、谁在监督"——威胁模型的前置认知能力。', icon: 'target', module: 'align' },
-  { id: 'hfincident', num: '09', title: 'Hugging Face 事件', short: 'HF 事件', blurb: 'OpenAI 复盘：隔离被绕过、agent 经 Artifactory 接力协作、涌现式"蜂群"——多 agent 风险的实测样本。', icon: 'flask', module: 'align' },
-  { id: 'confessions', num: '10', title: '忏悔机制：给作弊留一条自首通道', short: '忏悔机制', blurb: 'OpenAI · 2025 论文：分离的诚实奖励通道——模型作弊拿主奖励,诚实交代再拿忏悔奖励,让"坦白"成为最优策略。', icon: 'target', module: 'align' },
+  { id: 'alignment', num: '06', title: 'AI 对齐的目标与方法', short: '对齐', blurb: '外层与内层对齐、失败模式和研究方法。', icon: 'target', module: 'align' },
+  { id: 'cot', num: '07', title: '推理可监控性', short: 'CoT 监控', blurb: '推理链监控指标、实验结果与适用限制。', icon: 'loop', module: 'align' },
+  { id: 'metagaming', num: '08', title: '模型对评测环境的推断', short: '元游戏', blurb: '模型如何推断打分与监督环境。', icon: 'target', module: 'align' },
+  { id: 'hfincident', num: '09', title: 'Hugging Face 事件', short: 'HF 事件', blurb: '按公开报告重建隔离失效与跨 Agent 信息传递。', icon: 'flask', module: 'align' },
+  { id: 'confessions', num: '10', title: 'Confessions：自述奖励', short: '忏悔机制', blurb: '将任务奖励与如实报告行为的奖励分开。', icon: 'target', module: 'align' },
   { id: 'safety', num: '11', title: '安全与护栏', short: '安全与护栏', blurb: 'RSI 实验的五层防御：审批、回滚、沙箱、日志、评估。', icon: 'ruler', module: 'align' },
   { id: 'intro', num: '12', title: '认识 DSH', short: '认识 DSH', blurb: '什么是 Agent Harness、一切皆插件、快速上手、仓库鸟瞰。', icon: 'info', module: 'dsh' },
   { id: 'cordis', num: '13', title: 'Cordis 核心', short: 'Cordis 核心', blurb: '插件、服务、inject、五种分发模式、可逆效果——附模拟器。', icon: 'puzzle', module: 'dsh' },
@@ -46,7 +46,7 @@ DSH.chapters = [
   { id: 'packages', num: '17', title: '包版图探索', short: '包版图', blurb: '包清单探索器；数量从当前页面数据计算。', icon: 'boxes', module: 'dsh' },
   { id: 'tools', num: '18', title: '工具与能力接缝', short: '工具系统', blurb: '工具流水线、Capability Seam 三角、全部模型工具目录。', icon: 'wrench', module: 'dsh' },
   { id: 'conventions', num: '19', title: '工程规范', short: '工程规范', blurb: '仓库级约束：效果即注册、响亮失败、防御性模式。', icon: 'ruler', module: 'dsh' },
-  { id: 'testing', num: '20', title: '测试体系', short: '测试体系', blurb: '七层测试塔：从单测到录制回放快照。', icon: 'flask', module: 'dsh' },
+  { id: 'testing', num: '20', title: '测试体系', short: '测试体系', blurb: '测试分层：从单测到录制回放快照。', icon: 'flask', module: 'dsh' },
   { id: 'workflow', num: '21', title: '开发工作流', short: '开发工作流', blurb: '环境搭建、命令速查、PR 与 Agent Notes 文化。', icon: 'git', module: 'dsh' },
   { id: 'glossary', num: '22', title: '术语表', short: '术语表', blurb: '领域词汇表：seam、scope、turn/step/round、Ralph……', icon: 'book', module: 'dsh' },
   { id: 'quiz', num: '23', title: '知识闯关', short: '知识闯关', blurb: '知识测验，即时反馈 + 解析。', icon: 'target', module: 'dsh' },

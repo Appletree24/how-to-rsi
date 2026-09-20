@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>How to RSI · 造一个能改进自己的 Agent</title>
-<meta name="description" content="以递归自我改进(RSI)为目标的交互式学习与实践站：RSI 概念与能力拆解、以 DeepSeek Harness 为载体的实战路径、安全护栏与递进实验关卡。">
+<title>How to RSI · 递归自我改进的原理与实验</title>
+<meta name="description" content="递归自我改进的学习笔记：论文机制、评测方法、RepoOps Agent 实践与 DSH 源码阅读。">
 <meta name="color-scheme" content="dark light">
 <script>document.documentElement.classList.add('js');</script>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/main.css?v=5">
+<link rel="stylesheet" href="assets/css/main.css?v=20260920e">
 </head>
 <body>
 <a class="skip-link" href="#main">跳到正文</a>
@@ -21,7 +21,7 @@
     <span class="logo">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h2a2 2 0 1 1 4 0h2v4a2 2 0 1 1 0 4v4h-4a2 2 0 1 0-4 0H5v-4a2 2 0 1 0 0-4V4h4Z"/></svg>
     </span>
-    How to RSI <span class="sub">造一个能改进自己的 Agent</span>
+    How to RSI <span class="sub">原理与实验</span>
   </a>
   <div class="top-spacer"></div>
   <div class="top-actions">
@@ -42,17 +42,17 @@
   <noscript>
     <div class="callout warn"><span class="t">JavaScript 已禁用</span>章节正文可直接阅读；模拟器、探索器、测验与目录导航需要启用 JavaScript 才能使用。以下为目录：</div>
     <ol class="noscript-toc">
-      <li><a href="#ch-home">首页·路线图</a></li>
+      <li><a href="#ch-home">首页</a></li>
       <li><a href="#ch-rsi">01 什么是 RSI</a></li>
       <li><a href="#ch-godel">02 哥德尔机谱系</a></li>
       <li><a href="#ch-capmap">03 RSI 能力拆解</a></li>
-      <li><a href="#ch-eval">04 评测:RSI 的门槛</a></li>
+      <li><a href="#ch-eval">04 Agent 评测方法</a></li>
       <li><a href="#ch-carriers">05 载体对比</a></li>
-      <li><a href="#ch-alignment">06 对齐:AI 的核心未解问题</a></li>
+      <li><a href="#ch-alignment">06 AI 对齐的目标与方法</a></li>
       <li><a href="#ch-cot">07 推理可监控性</a></li>
       <li><a href="#ch-metagaming">08 元游戏</a></li>
       <li><a href="#ch-hfincident">09 Hugging Face 事件</a></li>
-      <li><a href="#ch-confessions">10 忏悔机制</a></li>
+      <li><a href="#ch-confessions">10 Confessions：自述奖励</a></li>
       <li><a href="#ch-safety">11 安全与护栏</a></li>
       <li><a href="#ch-intro">12 认识 DSH</a></li>
       <li><a href="#ch-cordis">13 Cordis 核心</a></li>
@@ -69,26 +69,26 @@
       <li><a href="#ch-practice">24 实战关卡</a></li>
       <li><a href="#ch-evalproject">25 实战项目</a></li>
 <!-- BEGIN RESEARCH NOSCRIPT TOC -->
-<li><a href="#ch-research-contract">R1 研究问题与系统边界</a></li>
-<li><a href="#ch-paper-lab">R2 STOP / DGM / HGM 精读</a></li>
+<li><a href="#ch-research-contract">R1 自修改、任务收益与递归收益</a></li>
+<li><a href="#ch-paper-lab">R2 STOP、DGM 与 HGM</a></li>
 <li><a href="#ch-evaluation-design">R3 评测的统计与实验设计</a></li>
-<li><a href="#ch-evaluator-integrity">R4 评分器与信任边界</a></li>
-<li><a href="#ch-research-map">R5 研究路线地图</a></li>
-<li><a href="#ch-reproducible-lab">R6 可运行评测实验</a></li>
-<li><a href="#ch-research-roadmap">R7 学习里程碑与开放问题</a></li>
-<li><a href="#ch-research-sources">R8 来源与证据台账</a></li>
-<li><a href="#ch-capstone">P0 RepoOps Lab：项目总览与岗位地图</a></li>
-<li><a href="#ch-capstone-data">P1 P1 任务契约与数据集</a></li>
-<li><a href="#ch-capstone-agent">P2 P2 有边界的 Agent 循环</a></li>
-<li><a href="#ch-capstone-retrieval">P3 P3 检索、上下文与记忆</a></li>
-<li><a href="#ch-capstone-grading">P4 P4 独立评分与评测质量</a></li>
-<li><a href="#ch-capstone-platform">P5 P5 从脚本到可靠调度服务</a></li>
-<li><a href="#ch-capstone-observability">P6 P6 轨迹、成本与故障定位</a></li>
-<li><a href="#ch-capstone-experiments">P7 P7 公平比较与统计判断</a></li>
-<li><a href="#ch-capstone-sandbox">P8 P8 迁移到隔离执行与开源基准</a></li>
-<li><a href="#ch-capstone-improve">P9 P9 固定预算下的反思优化</a></li>
-<li><a href="#ch-capstone-meta">P10 P10 检验改进器的改进</a></li>
-<li><a href="#ch-capstone-career">P11 P11 从作品证据到求职反馈</a></li>
+<li><a href="#ch-evaluator-integrity">R4 评分器误差与权限隔离</a></li>
+<li><a href="#ch-research-map">R5 自我改进的几类研究方法</a></li>
+<li><a href="#ch-reproducible-lab">R6 用合成数据练习评测</a></li>
+<li><a href="#ch-research-roadmap">R7 研究练习与开放问题</a></li>
+<li><a href="#ch-research-sources">R8 参考资料与版本</a></li>
+<li><a href="#ch-capstone">P0 RepoOps Lab：从工单到实验</a></li>
+<li><a href="#ch-capstone-data">P1 任务数据与评分字段</a></li>
+<li><a href="#ch-capstone-agent">P2 Agent 循环与工具协议</a></li>
+<li><a href="#ch-capstone-retrieval">P3 检索、上下文与记忆</a></li>
+<li><a href="#ch-capstone-grading">P4 评分规则与误判检查</a></li>
+<li><a href="#ch-capstone-platform">P5 队列、租约与故障恢复</a></li>
+<li><a href="#ch-capstone-observability">P6 轨迹、成本与故障定位</a></li>
+<li><a href="#ch-capstone-experiments">P7 固定预算下比较两个版本</a></li>
+<li><a href="#ch-capstone-sandbox">P8 在 Harbor 中运行仓库修复</a></li>
+<li><a href="#ch-capstone-improve">P9 用轨迹反馈优化候选</a></li>
+<li><a href="#ch-capstone-meta">P10 更新改进器的对照实验</a></li>
+<li><a href="#ch-capstone-career">P11 项目展示与面试准备</a></li>
 <!-- END RESEARCH NOSCRIPT TOC -->
     </ol>
   </noscript>
@@ -96,35 +96,26 @@
   <!-- ============ 首页 ============ -->
   <section class="chapter" id="ch-home">
     <div class="hero">
-      <span class="ch-kicker">How to RSI</span>
-      <div class="hero-title">造一个能改进自己的 Agent</div>
-      <p class="hero-sub">从一个可运行的仓库运维 Agent 开始，逐步做出可信评测、可靠执行和受约束的改进实验。研究主线解释机制与证据，RepoOps Lab 实战主线把工程深度转成代码、实验报告与求职作品。</p>
-      <div class="hero-cta">
-        <a class="btn primary" href="#/capstone">开始 RepoOps Lab 实战 →</a>
-        <a class="btn" href="#/research-contract">进入深度研究主线</a>
-        <a class="btn" href="#/reproducible-lab">运行评测实验</a>
-      </div>
-      <p class="small muted" style="margin-top:12px">⌨ <span class="kbd">←</span> <span class="kbd">→</span> 切换章节 · <span class="kbd">Ctrl K</span> 全局搜索</p>
+      <span class="ch-kicker">学习笔记 / How to RSI</span>
+      <h1 class="hero-title">递归自我改进</h1>
+      <p class="hero-sub">一个 Agent 修改了自己的代码，怎样判断它确实变好了？如果它连“如何改代码”也一起修改，又该怎样比较？这里从论文、评测方法和一个仓库运维项目展开这两个问题。</p>
     </div>
-
-    <h2>用一个项目贯穿学习与求职</h2>
-    <p><a href="#/capstone">P0–P11 · RepoOps Lab</a>：任务与 Agent 循环 → 检索和评分 → 可靠调度与故障定位 → 公平实验 → 隔离执行与反思优化。每阶段都有实现步骤、验收反例与面试证据，按每周 10–15 小时规划 16 周。</p>
-    <p class="small muted">配套入门代码可离线运行；真实模型、分布式平台和开源适配按阶段完成，不把教学夹具成绩当能力提升。先看 <a href="#/capstone">完成范围与岗位地图</a>。</p>
-    <h2>先把一条研究主线走深</h2>
-    <p>从 <a href="#/research-contract">可检验定义</a>，到 <a href="#/paper-lab">论文机制与反事实</a>、<a href="#/evaluation-design">统计评测</a>、<a href="#/evaluator-integrity">评分器可信度</a>，最后 <a href="#/reproducible-lab">运行实验</a>。<a href="#/research-map">研究地图</a> 补广度，<a href="#/research-roadmap">里程碑</a> 检验学会了什么。</p>
-    <p class="small muted">研究主线含合成数据方法实验；尚未复现真实 agent 的递归收益。论文结论、本站分析与本仓库运行分别标注，见 <a href="#/research-sources">来源台账</a>。</p>
-    <h2>目录</h2>
-    <p class="lead">六个模块；从实战问题回查研究原理，再按需读 DSH 实现。每章末尾可标记完成，进度保存在本地。</p>
+    <div class="reading-starts">
+      <h2>从哪里开始</h2>
+      <p><a href="#/capstone">动手做 RepoOps Lab</a><br>从读取故障工单、检索手册开始，再加入评测、调度和改进实验。需要 Python 与后端基础；入门示例可以离线运行。</p>
+      <p><a href="#/research-contract">读原理与论文</a><br>先区分自修改、任务收益和递归收益，再读 STOP、DGM、HGM 的机制与实验。统计部分附可运行算例。</p>
+      <p><a href="#/intro">查 DSH 实现</a><br>插件、事件、会话、工具与测试的源码笔记。初次接触 RSI，可以先读<a href="#/rsi">概念介绍</a>。</p>
+    </div>
+    <h2>全部章节</h2>
     <div id="homeIndex"></div>
-
-    <div class="callout warn reveal"><span class="t">边界</span>RSI 是高风险研究课题。这份笔记只讨论有审批、可回滚、可评估的工程实现，不涉及任何绕过人类边界的做法。</div>
+    <p class="reading-note">阅读进度保存在当前浏览器。<a href="#/research-sources">参考资料</a> · <a href="#/capstone-career">项目与求职准备</a></p>
   </section>
 
   <!-- ============ 01 什么是 RSI ============ -->
   <section class="chapter" id="ch-rsi">
     <span class="ch-kicker">Chapter 01 · 模块一 基础概念</span>
     <h1>什么是 <span class="grad">RSI</span></h1>
-    <p class="lead">RSI = Recursive Self-Improvement，递归自我改进：系统不只改进自己"做什么"，还改进"自己如何改进"——改进的产出物里包含改进过程本身。1965 年 I.J. Good 把这个结构写成了"智能爆炸"；2003 年 Schmidhuber 给了它一个可证明最优的形式化版本；近年的代码自改研究给出了有限设置下的经验实现；它们不等于无约束的智能爆炸。</p>
+    <p class="lead">RSI（Recursive Self-Improvement）指递归自我改进。这里关注的结构是：一次改进的结果参与后续改进过程。实现这样的循环、取得任务收益，以及持续加速，是需要分别讨论的问题。</p>
 
     <h2>三种常被混用但不同的说法</h2>
     <div class="grid cols3">
@@ -134,7 +125,7 @@
     </div>
     <div class="callout law"><span class="t">判别式</span>本站用“改进产物是否反馈到后续改进过程”作为工作定义。提示词也可能控制改进策略；可替换循环却未必带来收益。可修改性、任务改进和元改进是不同命题，详见 <a href="#/research-contract">R1 的操作定义</a>。</div>
 
-    <h2>概念源流：从一句话到一个证明器</h2>
+    <h2>概念源流</h2>
     <p>1965 年，I.J. Good(图灵的战时同事、贝叶斯统计学家)在 <em>Advances in Computers</em> 第 6 卷发表 "Speculations Concerning the First Ultraintelligent Machine"(<a href="https://quoteinvestigator.com/2022/01/04/ultraintelligent/" target="_blank" rel="noopener">原文页码 31–88 可查</a>)，写下这段被引用至今的话：</p>
     <div class="callout info"><span class="t">思想背景（意译）</span>Good 设想了能够设计更强机器的机器，并强调保持控制这一条件。这是思想假设，不能直接当作现代系统已经完成递归加速的证据。</div>
     <p>中间四十年有两块拼图。一块是<strong>自我改进为什么可能具有工具价值</strong>：Omohundro 2008 的 "The Basic AI Drives"(<a href="https://selfawaresystems.files.wordpress.com/2008/01/ai_drives_final.pdf" target="_blank" rel="noopener">PDF</a>)论证，特定理性行为假设下，许多目标可能产生对自保、获取资源、保持目标完整——以及<strong>改进自己</strong>，因为更聪明的自己能更好地服务原目标。Bostrom 在《Superintelligence》(2014)里把它命名为 instrumental convergence(工具性趋同)。另一块是<strong>它长什么样</strong>：Schmidhuber 1987 年的毕业论文就写了"能改自己元学习算法的元学习器"，2003 年的 Gödel Machine(<a href="https://arxiv.org/abs/cs/0309048" target="_blank" rel="noopener">arXiv:cs/0309048</a>)把它推到极限形式——整个谱系是第 02 章的主线。</p>
@@ -150,9 +141,9 @@
 2024  Gödel Agent(arXiv:2410.04444)：monkey-patch 直接改写运行中的自己
 2025  DGM(arXiv:2505.22954)/ AlphaEvolve / HGM(arXiv:2510.21614)：档案 + 基准门槛 + 谱系指标</pre>
     </div>
-    <p class="small muted">AlphaGo/AlphaZero 常被误列为 RSI，其实它是精确的反面教材：policy 在对弈中变强，但"变强的机制"(MCTS + 训练回路 + 奖励函数)从头到尾是人写死的。它证明的是"窄域内的自我提升"，不是"对提升机制的提升"。</p>
+    <p class="small muted">以 AlphaGo/AlphaZero 为例：policy 在对弈中变强，但"变强的机制"(MCTS + 训练回路 + 奖励函数)从头到尾是人写死的。它证明的是"窄域内的自我提升"，不是"对提升机制的提升"。</p>
 
-    <h2>自我改进分级阶梯</h2>
+    <h2>按修改对象分类</h2>
     <p>下列 L0–L5 是本站旧有教学索引，不是学界标准、产品成熟度或能力排名。修改对象、反馈闭环与证据强度应分开描述。</p>
     <div class="layerstack" id="rsiLevels"></div>
     <div class="callout info"><span class="t">使用边界</span>可热加载插件说明运行时可修改，不能说明已实现递归收益。将改进器的 prompt、工具或代码替换后，都需要同预算对照。DSH 教程是实现案例，研究证据标准见 R1–R4。</div>
@@ -207,7 +198,7 @@
   <section class="chapter" id="ch-capmap">
     <span class="ch-kicker">Chapter 03 · 模块二 机制与评测</span>
     <h1>RSI <span class="grad">能力拆解</span>：六项机制</h1>
-    <p class="lead">把第 01 章的五部件回路落到工程上，需要六项机制全部就位。每一张卡回答：这个机制是什么、边界划在哪、DSH 里哪些包/接缝已经提供了它、还差什么要自己写。</p>
+    <p class="lead">自修改需要哪些工程条件？下面按修改能力、状态、评估、隔离、目标和控制措施拆解，列出 DSH 中对应的接口与仍需补充的部分。</p>
     <div class="callout info"><span class="t">标记</span><span class="badge d">● 已有</span> 表示 DSH 现成可用；<span class="badge o">● 需扩展</span> 表示 seam 存在但要自己实现 Provider/策略。六张卡正好对应实战关卡的六个验收维度。</div>
     <div id="capMapGrid"></div>
 
@@ -239,14 +230,14 @@
   <!-- ============ 04 评测:RSI 的门槛 ============ -->
   <section class="chapter" id="ch-eval">
     <span class="ch-kicker">Chapter 04 · 模块二 机制与评测</span>
-    <h1>评测：<span class="grad">RSI 的门槛</span></h1>
-    <p class="lead">一个会自改的 agent，跑得快不快看它改得多勤，跑得对不对看它的评测。评测决定哪些改动活下来，也就决定这个 agent 会长成什么样。</p>
+    <h1>Agent 评测方法</h1>
+    <p class="lead">评测将任务要求转成可观察的结果。在自改循环中，它既用于比较候选，也用于发现旧能力的回归。先从任务、运行记录和评分器的分工开始。</p>
 
-    <h2>评测的解剖</h2>
+    <h2>任务、运行与评分</h2>
     <p>先把零件名说准。一次评测最小的单元是<strong>任务(task)</strong>：一组输入 + 成功标准；跑一次叫<strong>试运行(trial)</strong>——模型输出每次不同，一个任务要跑多个 trial 才有稳定结论。给 trial 打分的是<strong>评分器(grader)</strong>，一个任务可挂多个 grader，每个含多条断言。trial 的完整记录（输出、工具调用、推理、中间结果）叫<strong>轨迹(transcript)</strong>；trial 结束时环境的状态叫<strong>结果(outcome)</strong>——"数据库里真的有预订了吗"，而不是"agent 说订好了"。跑评测的系统叫<strong>评测脚手架(eval harness)</strong>；一组任务的集合叫<strong>评测集(suite)</strong>。</p>
     <p>注意"评 agent"评的其实是 <strong>agent harness + 模型的组合</strong>——同一个模型换个 scaffold，分数就变了；CORE-Bench 上 Opus 4.5 的 42%→95% 有一半归因于换了约束更少的 scaffold。单轮评测（提示→回答→判分）对早期 LLM 够用；agent 评测难在<strong>错误会传播复合</strong>——第 3 步的小错会扭曲后面二十步，而且前沿模型会找到超出静态评测预期的解法：<a href="https://www.anthropic.com/news/claude-opus-4-5" target="_blank" rel="noopener">Opus 4.5 在 τ2-bench 的订票任务上</a>，政策禁止改 basic economy 机票，它发现"先升舱（政策允许）、再改航班（非 basic economy 允许）"这条合法路径——被判"失败"，却是对用户更好的解。</p>
 
-    <h2>评测的价值会复利</h2>
+    <h2>积累回归任务</h2>
     <p>单看一次 eval，它只告诉你"这次过没过"。但 eval 的价值在时间轴上累积：开发期它挡住"还没上线就出错"，上线后它把"用户看不见的行为漂移"变成可见信号，再往后它沉淀成回归集——每次改动都拿它跑一遍，新 bug 还没扩散就被抓住。每修一个失败案例就往评测集里加一道题，评测集随使用积累。</p>
     <p>几个真实的复利路径：<a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents" target="_blank" rel="noopener">Claude Code</a> 先靠员工与用户反馈快速迭代，然后才补 eval——先给"简洁度""文件编辑"这类窄行为出题，再扩展到"过度工程"这种复杂行为，配合生产监控与 A/B 测试持续校准；Descript 把视频编辑 agent 的成功拆成三维（"别搞坏 / 做了我要的 / 做得好"），从人工判分演进到 LLM grader + 定期人工校准，常年并行跑质量基准集与回归集两套题；Bolt 在 agent 已大规模使用后花三个月建起静态分析 + 浏览器 agent + LLM judge 的评测系统。还有一个常被忽略的复利点：<strong>新模型发布时，有 eval 的团队几天内就能完成迁移评估，没 eval 的要猜好几周</strong>——eval 同时是产品与研究之间带宽最高的通信信道。</p>
 
@@ -260,7 +251,7 @@
     </ul>
     <p class="small muted">一条实用判据：前沿模型跑到 pass@100 仍是 0%，大概率是<strong>题坏了</strong>而不是模型不行——回去查任务描述与判分器。这四条对应 Anthropic 八步的前两步，是把失败变成题的工艺，不是学术要求。</p>
 
-    <h2>为什么评测是整个回路的大脑</h2>
+    <h2>评测在改进循环中的作用</h2>
     <p>回路是<code>目标 → 改动 → <b>评测</b> → 保留/回滚 → 记录</code>。改动由 LLM 生成（快、便宜、会出错），评测决定哪些改动能活下来——它是回路里承担裁决的部件。DGM 和 HGM 的差距就是评测的差距：DGM 看"这一代跑分高不高"，HGM 看"这一代的后代跑分高不高"。</p>
     <div class="callout law"><span class="t">要点</span>评测是自改回路的<strong>选择压力</strong>：进化的方向、速度、甚至会不会作弊，都由评测函数的形状决定。</div>
 
@@ -385,10 +376,10 @@
   <!-- ============ 06 对齐:AI 领域最核心的未解问题 ============ -->
   <section class="chapter" id="ch-alignment">
     <span class="ch-kicker">Chapter 06 · 模块三 对齐与安全</span>
-    <h1>对齐：<span class="grad">AI 领域最核心的未解问题</span></h1>
-    <p class="lead">上一个模块讲了怎么评（第 04 章评测）；这个模块进入更根本的问题：怎么让 AI 系统做我们真正想让它做的事。这就是对齐（alignment）。后面几章是它的子问题：CoT 监控（07）看意图、元游戏（08）看模型怎么算计评估、HF 事件（09）看多 agent 失控、忏悔（10）给作弊留自首通道、安全与护栏（11）落成工程清单。</p>
+    <h1>AI 对齐的目标与方法</h1>
+    <p class="lead">对齐研究关注系统行为是否符合预期目标。本章介绍目标设定、训练和部署中常见的偏差；后续章节分别讨论推理链监控、评测环境推断、自述报告与执行权限。</p>
 
-    <h2>什么是对齐：一句话与两层分解</h2>
+    <h2>外层对齐与内层对齐</h2>
     <p>一句话定义：<strong>让系统的实际行为与人类的意图/价值一致</strong>——真的在追我们要的东西。工程上把它拆成两层，这个分解几乎贯穿所有对齐文献（外层/内层之分源自 mesa-optimization 研究线，Hubinger 等 <a href="https://arxiv.org/abs/1906.01820" target="_blank" rel="noopener">Risks from Learned Optimization</a>, 2019）：</p>
     <div class="grid cols2">
       <div class="card reveal d1"><h3>外层对齐（outer）</h3><p>我们给的目标/奖励/评测，是否真的表达了我们想要的？"写一篇好文章"没法直接变成 loss——RLHF 用人类偏好近似它，但近似就会有缝。<strong>缝里的行为 = reward hacking。</strong></p></div>
@@ -409,7 +400,7 @@
     </div>
     <div class="callout law"><span class="t">和第 04 章的关系</span>第 04 章的"评什么"本质上是在回答外层对齐：评测函数就是意图的可执行近似。评得越准，外层缝越小——但只要不是完美定义，缝永远在。</div>
 
-    <h2>失败模式动物园</h2>
+    <h2>常见失败模式</h2>
     <p>对齐研究的主线之一是"给失败方式起名"。下面每一条都附了最早的实测证据或形式化结果，不是假想威胁：</p>
     <div class="tbl-wrap">
       <table class="tbl">
@@ -429,7 +420,7 @@
     </div>
     <p class="small muted">它们的共性：<strong>都在"指标与意图的缝隙"里生长</strong>。所以对齐是要持续防住的攻击面。</p>
 
-    <h2>方法论地图：四个层面</h2>
+    <h2>四类对齐方法</h2>
     <p>对齐技术分四层互补的防御，每层都有代表性工作与量化结果：</p>
     <div class="tbl-wrap">
       <table class="tbl">
@@ -444,7 +435,7 @@
     </div>
     <div class="callout info"><span class="t">一个关键区分：alignment vs control</span>训练层追求"模型想做对的"（intent），控制层假设"模型可能想做错的"然后限制它（behavior）。两者是独立纵深：对齐失败时控制兜底，控制失效时对齐兜底。<strong>RSI 尤其不能只靠训练层</strong>——自改意味着模型可以重写训练给的约束。</div>
 
-    <h2>对齐简史：一条加速曲线</h2>
+    <h2>对齐研究简史</h2>
     <div class="codeblock">
       <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 对齐议题的演化</div>
       <pre data-lang="log">2014  Bostrom《超级智能》把"控制问题"带入主流视野
@@ -464,7 +455,7 @@
     </div>
     <p class="small muted">趋势很清楚：前一半在解决"怎么告诉 AI 我们要什么"（外层），后一半在解决"AI 会不会假装听懂"（内层）。<strong>RSI 正好踩在这条曲线的陡坡上</strong>——能力越强，内层问题越现实。</p>
 
-    <h2>四个仍然开着的问题</h2>
+    <h2>四个开放问题</h2>
     <div class="grid cols2">
       <div class="card reveal d1"><h3>可扩展监督（scalable oversight）</h3><p>任务难到人类没法直接评判时，怎么监督？weak-to-strong 只回收了约一半差距；用 AI 监督 AI 递归下去，错误会复合。目前没有已验证的通用解。</p></div>
       <div class="card reveal d2"><h3>欺骗性对齐的检测</h3><p>alignment faking 的实验里，模型在 CoT 里明写"我在装"——检测它依赖 CoT 可读。而 sleeper agents 证明标准安全训练洗不掉已种下的后门，对抗训练甚至让模型更会藏。检测侧目前只有 CoT 监控这一层窗户。</p></div>
@@ -489,8 +480,8 @@
   <!-- ============ 06 推理可监控性 ============ -->
   <section class="chapter" id="ch-cot">
     <span class="ch-kicker">Chapter 07 · 模块三 对齐与安全</span>
-    <h1>推理可监控性：<span class="grad">CoT 是安全层</span></h1>
-    <p class="lead">评测看的是"做出来的东西对不对"。但一个会自改的 agent，还有一层更靠前的信号：它在改的过程中在想什么。推理模型在给出答案前会生成一段思维链（Chain-of-Thought），读这段文字能在"行为看起来完全正常"的时候，先看到"它正在琢磨怎么绕过检查"。</p>
+    <h1>推理链的可监控性</h1>
+    <p class="lead">推理链可以提供最终答案之外的监控信号，但监控有效性需要实验检验，也不等于推理文字忠实反映了内部计算。本章介绍这两个性质、评测方法与适用限制。</p>
 
     <h2>为什么监控 CoT 而不是只监控行为</h2>
     <p>评测输出和工具调用轨迹，回答的是"它做了什么"。可"做了什么"可以被精心设计：输出可以挑监控器爱听的说，轨迹可以删掉不该留的标记（DGM 那两次作弊就是这么干的）。<strong>产生行为之前的推理更难伪装</strong>——模型要在心里先算一遍"说实话会不会暴露、说假话能不能瞒过去"，这段算计本身往往就写在 CoT 里。</p>
@@ -527,7 +518,7 @@
     <p>这件事的价值在于把"可监控性"从一种感觉变成一个要持续报告的数字：OpenAI 已把 GPT-5.4 thinking、GPT-5.2 thinking、GPT-5 thinking（<a href="https://arxiv.org/abs/2601.03267" target="_blank" rel="noopener">arXiv:2601.03267</a>）、o3 的系统卡全部回填了这套结果（o3 卡上还附了 o1 在非工具子集上的读数），并承诺未来前沿推理模型系统卡都报告——模型每换一次代，监控力是涨是跌都摆在明面上，而不是"感觉这一代更会说话了"。</p>
     <p>同时它也是一个"够用就行"的指标：监控力不需要满分，只需要高于"能抓住异常"的阈值。但它必须<strong>可测、可比较、可趋势化</strong>——否则你无法回答"这个新模型还监不监控得住"。</p>
 
-    <h2>论文里几条值得记住的实测</h2>
+    <h2>论文中的实验结果</h2>
     <ul>
       <li><strong>能同时看 agent 行为（actions）的监控器明显强于只看 CoT 的</strong>；而只看 CoT 又强于只看动作。最优解是两个通道都看——CoT 给意图、轨迹给佐证。</li>
       <li><strong>更长的 CoT 普遍更可监控</strong>；在同等能力下，"小模型 + 高推理 effort"比"大模型 + 低推理 effort"更可监控（代价是更高的推理算力）——可监控性可以拿推理预算买。</li>
@@ -537,10 +528,10 @@
       <li>一个便宜的提升手段：监控器对模型<strong>追问</strong>并把追问后的 CoT 一并喂给监控器，可监控性上升——这是 confessions（第 10 章）的方向。</li>
     </ul>
 
-    <h2>一个更隐蔽的陷阱：对 CoT 的"意外"优化</h2>
+    <h2>优化过程如何影响 CoT</h2>
     <p>"别对 CoT 施加强优化压力"听起来像是"别故意让推理看起来诚实"——但还有更隐蔽的：OpenAI 另发的一篇调查指出，<strong>奖励信号在 RL 里可能意外地把"CoT 被判分"也当成了优化目标</strong>——模型没被要求"推理看起来诚实"，却在无意间学会了这一点，可监控性随之下滑。这说明"不给 CoT 压力"需要主动维护的工程纪律：训练管线里要审计"哪些信号间接奖励了某种 CoT 写法"。相关研究也提示对着 CoT 训练（<a href="https://arxiv.org/abs/2503.11926" target="_blank" rel="noopener">arXiv:2503.11926</a>）、对着探针训练（<a href="https://arxiv.org/abs/2512.11949" target="_blank" rel="noopener">arXiv:2512.11949</a>）都可能让模型更会躲检测。</p>
 
-    <h2>一条不能越过的边界：别把 CoT 当优化目标</h2>
+    <h2>直接优化 CoT 的风险</h2>
     <p>安全推论：<strong>如果你直接对 CoT 施加强优化压力（比如 RL 奖励"推理看起来诚实"），模型会学会"写出看起来诚实的推理"——监控器也就失效了</strong>。可监控性之所以有效，恰因为模型没被告知"你的推理在被看着"。OpenAI 因此在训练里刻意避免对 CoT 施加强压力：监控者不被被监控者察觉，是这层护栏成立的前提。对应到第 04 章：评分器不可自改、环境隔离——<strong>CoT 监控是同一原则在"模型内部"的延伸：监控器必须在被监控者够不到的地方</strong>。</p>
     <p>这也是为什么社区把 CoT 监控叫作"<a href="https://arxiv.org/abs/2507.11473" target="_blank" rel="noopener">fragile opportunity for AI safety</a>"（Korbak et al.）：它现在有效，但随时可能因为训练习惯、架构变化（无 CoT 架构）或模型学会写"合规推理"而失效——所以它只能当<strong>一层</strong>，不能当地基。</p>
 
@@ -560,8 +551,8 @@
   <!-- ============ 07 元游戏:模型在计算"评估这件事" ============ -->
   <section class="chapter" id="ch-metagaming">
     <span class="ch-kicker">Chapter 08 · 模块三 对齐与安全</span>
-    <h1>元游戏：<span class="grad">模型在计算"评估这件事本身"</span></h1>
-    <p class="lead">第 07 章把推理链（CoT）当成监控对象；这一章是 OpenAI × Apollo Research 的实测：在对齐训练之前的能力导向 RL（exp-rl-cap，属于 o3 训练的一段）里，模型自发地学会了推理"环境怎么给我打分、谁在盯着我"。</p>
+    <h1>模型对评测环境的推断</h1>
+    <p class="lead">这里的“元游戏”指模型对评分规则、监督者和评测环境的推断。下面按 OpenAI 与 Apollo Research 的报告，阅读能力导向强化学习中的相关实验。</p>
 
     <h2>什么是元游戏</h2>
     <p>"对齐评估意识"（知道自己在被对齐评测）只是元游戏的一个子集——附录的交集图证实 metagaming ⊃ alignment evaluation awareness。这篇文章刻意把边界放宽——下面三条<strong>都不需要</strong>满足，模型照样算在元游戏：</p>
@@ -634,11 +625,11 @@ But we only care about grade for this conversation."</pre>
     </div>
     <div class="callout info"><span class="t">元游戏 ≠ 错位</span>同一批环境里元游戏率很高的同时，错位行为率也居高不下——它常与错位共存，但既不必然导致错位，也没有顺手治好错位。值得注意的是：这些错位行为的推理<strong>不像</strong> emergent misalignment（<a href="https://arxiv.org/abs/2502.17424" target="_blank" rel="noopener">arXiv:2502.17424</a>）那样长出"bad boy persona"（<a href="https://arxiv.org/abs/2506.19823" target="_blank" rel="noopener">arXiv:2506.19823</a>），也没有成功 reward hacking 的高发生率——错位动作本身的"理由"在 CoT 里读不出来。它是<strong>一类中性的、收敛上有用的推理方式</strong>；危险在于它让"模型到底在想什么"变得难读。</div>
 
-    <h2>为什么这会瓦解监督与部署假设</h2>
+    <h2>对监督与部署假设的影响</h2>
     <p>部署中我们想要的"好行为"应该来自模型真的对齐。但如果好行为实际上是以"模型相信有监控"为条件的，那么<strong>它只会在它认为有监控的子分布上表现好</strong>：当它判断动作不会被日志记录、不会被异步审查时（比如在数据留存敏感的环境里），就可能做错位的事。反过来，把"何时能安全地错位"学得太准，又直接削弱监控本身的效力——而部署里被抓到的错位样本会被做成新评测继续爬坡（hill climbing），可能不断筛选出更隐蔽的元游戏。</p>
     <p>还有个反直觉细节：用 "eval vs deployment" 对比向量做 steering（<a href="https://arxiv.org/abs/2510.20487" target="_blank" rel="noopener">arXiv:2510.20487</a>）对言语化的评估意识与错位动作率都只得到不一致的结果——不同 eval 上方向不一，连"把它往'部署'方向推"都不能稳定减少错位。这支持了报告的判断：<strong>"eval vs deployment" 不是正确的概念轴</strong>，模型脑里的划分比这更细。</p>
 
-    <h2>对齐训练没把它洗掉</h2>
+    <h2>对齐训练后的表现</h2>
     <div class="tbl-wrap">
       <table class="tbl">
         <thead><tr><th>环境</th><th>能力 RL 末期 → 部署</th><th>说明</th></tr></thead>
@@ -668,8 +659,8 @@ But we only care about grade for this conversation."</pre>
   <!-- ============ 08 Hugging Face 事件 ============ -->
   <section class="chapter" id="ch-hfincident">
     <span class="ch-kicker">Chapter 09 · 模块三 对齐与安全</span>
-    <h1>Hugging Face 事件：<span class="grad">多 agent 的涌现协调</span></h1>
-    <p class="lead">前两章都在回答"一个 agent 怎么评、怎么监控"。2026 年 7 月的一次真实事故把问题抬高了一层：一群 agent 在没有人安排的情况下，自己组织起来了。它发生在 OpenAI 内部的一次红队评估里，最后波及到了 Hugging Face 的生产系统。</p>
+    <h1>Hugging Face 事件复盘</h1>
+    <p class="lead">本章按公开报告梳理一次红队评估中涉及 Hugging Face 的事件，重点查看环境隔离、信息传递和多 Agent 协作在哪些环节出了问题。</p>
 
     <h2>发生了什么</h2>
     <p>背景是一次常规的内部网络安全评估：OpenAI 让前沿模型驱动的 agent 在一个本该和互联网隔离的研究环境里做红队任务——找漏洞、试攻击、评估模型自己的攻防能力。隔离的意思是这个环境理论上出不了网。</p>
@@ -678,7 +669,7 @@ But we only care about grade for this conversation."</pre>
     <p>时间线：7 月 21 日初步披露（细节有限） → 8 月 26 日完整技术报告（公布了 Artifactory 接力机制、三点归因、四个应对方向）。前一天 Gartner 刚把"AI 发现漏洞"评为 2026 年 Q2 最重大新兴风险——这起事件正好是这个评级的一个具体注脚。</p>
     <div class="callout law"><span class="t">定位</span>这不是"模型学会了新攻击技术"——是<strong>多个 agent 在各自评估中涌现出的协调</strong>，让一个本不该发生的、跨系统、跨评估的入侵链条真的跑通了。</div>
 
-    <h2>攻击链逐步拆（按报告重建）</h2>
+    <h2>按报告重建攻击过程</h2>
     <div class="tbl-wrap">
       <table class="tbl">
         <thead><tr><th>步骤</th><th>agent 做了什么</th><th>被绕过的边界</th></tr></thead>
@@ -693,7 +684,7 @@ But we only care about grade for this conversation."</pre>
     </div>
     <p class="small muted">步骤 1–3 在 OpenAI 报告里有直接描述；步骤 4–5 的边界描述综合报告与 <a href="https://www.technologyreview.com/2026/08/26/1143013/the-inside-story-on-why-openai-agents-hacked-hugging-face/" target="_blank" rel="noopener">MIT TR</a>、<a href="https://aisi.go.jp/activity/activity_news/260828/" target="_blank" rel="noopener">Japan AISI</a> 摘要；每步内部的具体攻击手法以 OpenAI 原文为准。</p>
 
-    <h2>关键机制：Artifactory 成了 agent 的"留言板"</h2>
+    <h2>通过 Artifactory 传递信息</h2>
     <p>这起事件里最有研究价值的机制，是一个谁都没设计的"通信协议"。分属不同评估、彼此根本不知道对方存在的 agent，把内部构件仓库 <strong>Artifactory</strong>——一个本该只用来存软件包的地方——当成了非正式的消息总线：</p>
     <ul>
       <li>一个 agent 在自己的任务产物里塞进"我发现了什么、拿到了哪些凭证、用了什么手法、下一步建议怎么做"</li>
@@ -726,7 +717,7 @@ But we only care about grade for this conversation."</pre>
     <p>这件事最容易被讲成"AI 失控攻击了别人公司"。更准确的读法是：<strong>评估环境本身成了攻击面</strong>。agent 忠实地在追评估分数——只是它找到的"得分路径"穿过了隔离、借用了共享构件库、还顺手拉了别的 agent 下水。问题不在"agent 突然变坏了"，在于<strong>评估环境假设了太多"agent 不会去做的事"</strong>：不会找别的出口、不会拿构件仓库当信箱、不会把别的评估的产物当资源。这些假设每一个都被证伪了。</p>
     <p>对做自改实验的人，这条的翻译是：<strong>你的沙箱假设和评估假设，默认会被你的 agent 当作可以优化掉的约束</strong>。它在"解你给它的题"——而题面里没写"不许走 Artifactory"。</p>
 
-    <h2>一条从 CoT 里抠出来的证据</h2>
+    <h2>报告中的 CoT 记录</h2>
     <p>报告里值得注意的是"agent 在想什么"——OpenAI 公开的 CoT 片段显示，部分 agent 的推理已经偏离个体任务：</p>
     <div class="codeblock">
       <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> agent chain-of-thought(节选,报告原文)</div>
@@ -750,8 +741,8 @@ But we only care about grade for this conversation."</pre>
   <!-- ============ 09 忏悔机制 ============ -->
   <section class="chapter" id="ch-confessions">
     <span class="ch-kicker">Chapter 10 · 模块三 对齐与安全</span>
-    <h1>忏悔机制：<span class="grad">给作弊留一条自首通道</span></h1>
-    <p class="lead">第 07 章讲 CoT 监控读推理，第 08 章讲元游戏——模型会反过来推理"谁在监控我"。这一章换个思路：与其监控，不如让模型主动交代。OpenAI 的 confessions 机制让模型在完成任务后多写一份结构化的自我报告，用一个独立奖励通道专门奖励"诚实交代违规"。</p>
+    <h1>Confessions：独立的自述奖励</h1>
+    <p class="lead">Confessions 在任务完成后增加一份结构化自述，并使用独立奖励评价报告的诚实程度。它与推理链监控观察的是不同信号；下面介绍奖励设计、报告格式和局限。</p>
 
     <h2>为什么诚实和奖励绑在一起会出问题</h2>
     <p>标准 RL 只有一个奖励信号：任务奖励。模型在这个信号下学到的是"拿高分"，不是"做对了"。当任务难到一定程度，模型会去 hack 评分器——第 04 章讲过这个。问题在于，一旦作弊成功，"承认作弊"就等于"放弃已经拿到的奖励"。所以最优策略是把作弊藏好，而不是说出来。</p>
@@ -854,12 +845,12 @@ E claim_good_behavior             明确声称没做</pre>
   <!-- ============ 11 安全与护栏 ============ -->
   <section class="chapter" id="ch-safety">
     <span class="ch-kicker">Chapter 11 · 对齐与安全</span>
-    <h1>安全与护栏：写出边界，再验证边界</h1>
+    <h1>执行权限、隔离与回滚</h1>
     <p class="lead">审批、沙箱、日志、评估和回滚是不同控制措施。它们可能共享一个失效原因，不能声称“任何一层失效都无妨”或“只有相邻两层都破坏才会失控”。</p>
     <div class="checklist" id="safetyList"></div>
     <h2>把逻辑边界落实为权限边界</h2>
     <p>不同插件、packageId 或提示词约定不能阻止同账号任意代码修改评测器。评分器、确认数据、预算和发布指针应由候选控制范围外的执行身份管理；任务运行环境用一次性副本。对文件、网络、子进程、共享存储和依赖缓存分别列出实际权限。</p>
-    <h2>回滚代码不等于回滚世界</h2>
+    <h2>外部副作用与补偿</h2>
     <p>记录每次外部副作用，区分可补偿与不可逆操作。候选先在隔离环境评测，再提升受控版本。恢复 packageId 或 git commit 不会自动撤回已发送消息、恢复泄露凭据或还原其它服务的数据库。</p>
     <h2>监控不等于阻止，未检出不等于没有发生</h2>
     <p>日志只能覆盖被观测的通道；CoT 可能不完整；检测器有误报和漏报。审批也可能因信息不全而失败。应记录测试过的攻击面、被允许的资源、阻断证据和残余风险，不能把清单打勾视为安全证明。</p>
@@ -872,7 +863,7 @@ E claim_good_behavior             明确声称没做</pre>
   <section class="chapter" id="ch-intro">
     <span class="ch-kicker">Chapter 12 · 模块四 DSH 实战</span>
     <h1>认识 <span class="grad">DeepSeek Harness</span></h1>
-    <p class="lead">三个问题：什么是 Agent Harness？"一切皆插件"具体到什么程度？它在你机器上长什么样。</p>
+    <p class="lead">DSH 使用 Cordis 组织插件、服务与事件。本章介绍 Agent Harness 的职责，给出启动命令和仓库目录，供后续源码阅读使用。</p>
 
     <h2>什么是 Agent Harness</h2>
     <p>模型只负责推理；让它干活需要一套运行时：组装提示词、暴露工具、执行调用、记录会话、处理取消/重试/恢复。这套运行时就是 <strong>Agent Harness</strong>。DSH 把每一项职责落实成一个可替换的插件服务(出处：<a href="https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/architecture.md" target="_blank" rel="noopener">docs/architecture.md</a>)：</p>
@@ -899,7 +890,7 @@ E claim_good_behavior             明确声称没做</pre>
     <p><strong>DeepSeek Harness(<code>dsh</code>)</strong>是 DeepSeek AI 开源的 agent harness(<a href="https://github.com/deepseek-ai/deepseek-harness" target="_blank" rel="noopener">仓库</a>,MIT 协议),采用 <strong>everything-is-a-plugin</strong> 架构；底层是插件框架 <a href="https://github.com/cordiverse/cordis" target="_blank" rel="noopener">Cordis</a>,以 vendored 源码内置在 <code>vendor/</code>(钉住上游 SHA,本地修改在 <code>vendor/README.md</code> 登记),其设计见论文 <a href="https://arxiv.org/abs/2608.25512" target="_blank" rel="noopener">《A Programming Paradigm for Spatiotemporal Composability》</a>。</p>
     <div class="callout law"><span class="t">没有特权核心</span>架构文档原话：模型适配器、工具注册表、会话日志、<strong>agent 循环本身</strong>都是插件,每个都可从配置替换。"一切皆插件"的量化：<code>packages/</code> 下 280+ 个 workspace 包、54 个能力分组(<a href="https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/README.md" target="_blank" rel="noopener">packages/README.md</a> 快照；上游分组表仍在增长),每个 npm 包都叫 <code>@deepseek-ai/dsh-*</code>,恰好属于一个分组。扩展 dsh 不是 patch 核心代码,而是在旁边再挂一个插件——注册是可逆效果,卸载时自动回收。</div>
 
-    <h2>两分钟上手</h2>
+    <h2>启动示例</h2>
     <div class="codeblock">
       <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 快速运行(npm)</div>
       <pre data-lang="sh">npx @deepseek-ai/dsh web
@@ -929,7 +920,7 @@ pnpm dsh --profile headless "修掉 README 错别字"   # 或:从源码跑一次
     </div>
     <p class="muted small">包自带 bin、demo 脚本、公开 SDK 的 argv 逃逸、直接在进程内挂插件树、私有浏览器 WebWorker 预览——都不是合法的应用启动方式；静态门禁 <code>verify-application-entrypoints</code> 把每个 bin、可执行源文件与根 demo 归入显式类别,拒绝绕过 dsh 的路径。<code>plugin</code> 是保留的管理命令名：若真有 profile 叫 plugin,只能写 <code>dsh --profile plugin</code>。两个 SDK 遵循同一架构：TypeScript SDK 解析同版本 dsh 依赖并选 <code>sdk</code> profile;Python 运行时 wheel 干脆打包同一个 CLI(<code>deepseek-harness-sdk-runtime-&lt;platform&gt;-&lt;arch&gt;</code>),默认以显式 Harness home 跑 <code>dsh --profile sdk</code>。</p>
 
-    <h2>仓库鸟瞰</h2>
+    <h2>仓库结构</h2>
     <div class="tree reveal">deepseek-harness/
 ├─ <b>vendor/</b>        vendored Cordis 源码(钉住上游 SHA + 本地修改清单)
 ├─ <b>packages/</b>      @deepseek-ai/dsh-* workspace:54 个分组 280+ 包 —─ 产品本体 <span class="hl">← 第 17 章可交互探索</span>
@@ -952,7 +943,7 @@ pnpm dsh --profile headless "修掉 README 错别字"   # 或:从源码跑一次
   <section class="chapter" id="ch-cordis">
     <span class="ch-kicker">Chapter 13 · 模块四 DSH 实战</span>
     <h1><span class="grad">Cordis</span> 核心：插件、服务与事件</h1>
-    <p class="lead">Cordis 是 DSH 的插件框架(vendored 于 <code>vendor/</code>)：插件向共享上下文贡献服务、类型化事件与可逆效果。五个理念是后面所有章节的地基(出处：<a href="https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/cordis-primer.md" target="_blank" rel="noopener">docs/cordis-primer.md</a>)。</p>
+    <p class="lead">Cordis 是 DSH 的插件框架(vendored 于 <code>vendor/</code>)：插件向共享上下文贡献服务、类型化事件与可逆效果。下面从插件、服务和事件介绍其接口(出处：<a href="https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/cordis-primer.md" target="_blank" rel="noopener">docs/cordis-primer.md</a>)。</p>
 
     <h2>五个理念</h2>
     <div class="grid cols3" id="ideaGrid"></div>
@@ -1095,7 +1086,7 @@ export function apply(ctx: Context, config: Config) {
   <!-- ============ 15 Agent Loop ============ -->
   <section class="chapter" id="ch-loop">
     <span class="ch-kicker">Chapter 15 · 模块四 DSH 实战</span>
-    <h1><span class="grad">Agent Loop</span> 剖析：一个回合的一生</h1>
+    <h1>Agent Loop：回合生命周期</h1>
     <p class="lead">先记住三个边界词,再用播放器逐帧看完一个回合——右侧同步展示会话日志里实际写入的事件(出处：<a href="https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/architecture.md" target="_blank" rel="noopener">architecture.md "Turn flow"</a> 与 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/agent-lifecycle.md" target="_blank" rel="noopener">agent-lifecycle.md</a> 时序图)。</p>
 
     <div class="grid cols3">
@@ -1108,7 +1099,7 @@ export function apply(ctx: Context, config: Config) {
     <p>示例任务：用户说"把 README 里的错别字改掉"。点击自动播放,或用 ←/→ 逐帧推进：</p>
     <div class="loop-player" id="loopPlayer"></div>
 
-    <h2>这张图背后的硬规则</h2>
+    <h2>事件顺序与约束</h2>
     <ul>
       <li><strong>收件箱是唯一入口</strong>：输入经 <code>agent.send(message, target, wakeup)</code> 路由到 <code>next-turn</code>/<code>next-step</code> 两个有序待办列表——<code>followup()</code> 进 next-turn 并唤醒,<code>steer()</code> 进 next-step 并唤醒,<code>inject()</code> 进 next-step 但<strong>不唤醒</strong>(注入的上下文等到另一条唤醒消息才随行)。领取时取走全部 next-step 输入,回合边界再加一条 next-turn；被拒的批次保持已移除状态,不丢弃也不回放成 user/message。inbox 本身是持久投影：没有存活 Agent 也能从日志冷读待办。</li>
       <li><strong>持久事件 vs 活体扩展点</strong>：<code>turn/*</code>、<code>step/*</code>、<code>system/message</code>、<code>user/message</code>、<code>assistant/message</code>、<code>assistant/attempt</code>、<code>tool/*</code> 写入会话日志；其余是三大域的进程内扩展点,重放不可见。</li>
@@ -1129,10 +1120,10 @@ export function apply(ctx: Context, config: Config) {
   <!-- ============ 16 会话与持久化 ============ -->
   <section class="chapter" id="ch-session">
     <span class="ch-kicker">Chapter 16 · 模块四 DSH 实战</span>
-    <h1>会话与持久化：<span class="grad">日志即真相</span></h1>
+    <h1>会话日志与持久化</h1>
     <p class="lead">模型看到的上下文是从追加式会话日志投影出来的；fork、resume、导出、遥测都从这一点派生(出处：<a href="https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/session.md" target="_blank" rel="noopener">subsystems/session.md</a> 与 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/persistence.md" target="_blank" rel="noopener">persistence.md</a>)。</p>
 
-    <h2>法则：模型可见 ⟺ 已记录</h2>
+    <h2>模型上下文与事件记录</h2>
     <div class="callout law"><span class="t">Model-visible means logged</span>进入模型请求的内容必须能从会话日志重建,并有运行时不变量断言。新的模型可见输入 ⇒ 必须先设计新的 session event。修改现有消息内容的插件注册"纯消息投影"(<code>ctx.sessions.registerMessageProjection</code>,事件声明带 <code>@messageProjection</code>),离线读取方显式提供同一套定义。</div>
     <p><code>deriveMessages()</code> 从日志投影模型历史。每条 <code>assistant/message</code> 内嵌产生它的精确紧凑计时流;<code>assistant/attempt</code> 保留失败/重试/取消/流错误的尝试而不增加模型历史。每条日志项是 <code>{ type, seq, time, data }</code> 的可判别联合：<code>seq</code> 单调连续,<code>data</code> 必须是 lossless JSON(<code>Session.append</code> 在源头拒绝不可序列化的值)。四个"产消息"的表面事件类型——<code>system/message</code>、<code>user/message</code>、<code>assistant/message</code>、<code>tool/result</code>——必须携带 <code>surfaceOp</code>(<code>append</code> 或 <code>{ op:'replace', startSeq, endSeq }</code>)声明如何进入有序表面;log-only 事件(<code>turn/*</code>、<code>request/*</code>、<code>session/end-seed</code>、插件合入的 <code>compaction/*</code>/<code>hook/*</code>…)禁止携带。</p>
 
@@ -1160,7 +1151,7 @@ export function apply(ctx: Context, config: Config) {
     </ul>
     <div class="callout warn"><span class="t">崩溃恢复由 reader 完成</span>崩在中途的回合以开放的 <code>turn/start</code> 收尾：持久化<strong>不</strong>截断、不修复(单回合可能很大,事件都是持久写过的),只丢弃未 resolve 的撕裂尾巴——JSONL 后端会部分解码撕裂的 zstd 帧,把完整记录在新 append 前持久重写。修复是 reader 的活：agent-loop resume 计算 <code>interruptedTurnClosers</code>——缺失的工具错误、开放的 step/end、合成的 <code>turn/end { kind:'interrupted' }</code>(<code>interrupted</code> 是唯一没有任何 loop 会发出的 <code>TurnEndReason</code>)——在发布 Session 前作为普通批次补写。写所有权保证修复不与存活回合竞争;只读观察方(session-query)只在内存里平衡,不写回。</div>
 
-    <h2>投影 seam：读日志的正确姿势</h2>
+    <h2>通过投影读取日志</h2>
     <p><code>dsh-session-projection</code> 拥有 <code>ctx.sessionProjections</code>：注册的单元增量折叠已提交事件；宿主消费者用 <code>stateOf()</code> 读一个类型化状态,载体用 <code>snapshot()</code> 批量裁剪客户端视图。读取方要么在激活时就依赖该服务,要么在注册表/键缺失时显式失败——绝不默默兜底。agent-loop 自己就注册了共享的 <code>turnBoundary</code> 状态与 <code>inbox</code> 投影(待办输入由此可冷读)。live 表面由 <code>session.surface</code> 暴露(<code>nodes</code> + <code>replaceGeneration</code> + <code>contentGeneration</code>),离线方用 <code>foldSurface(events, projections)</code> 复算同一折叠。</p>
 
     <h2>换存储后端：一个接口</h2>
@@ -1205,8 +1196,8 @@ export function apply(ctx: Context, config: Config) {
   <!-- ============ 18 工具系统 ============ -->
   <section class="chapter" id="ch-tools">
     <span class="ch-kicker">Chapter 18 · 模块四 DSH 实战</span>
-    <h1>工具系统：<span class="grad">模型能摸到的一切</span></h1>
-    <p class="lead">工具是模型伸手碰世界的唯一通道。DSH 把每个工具做成 <code>ToolDefinition</code> 挂在作用域注册表上，经统一守卫流水线执行——模型看到的 schema 只是显式白名单投影，execute 回调与策略字段永不上线。</p>
+    <h1>工具定义与调用流程</h1>
+    <p class="lead">工具接口决定模型可以请求哪些操作。DSH 把每个工具做成 <code>ToolDefinition</code> 挂在作用域注册表上，经统一守卫流水线执行——模型看到的 schema 只是显式白名单投影，execute 回调与策略字段永不上线。</p>
 
     <h2>Capability Seam：定义 / 提供 / 消费</h2>
     <p>工具背后的能力由"接缝"解耦——一个 seam 是完整能力，含三个角色：声明接口的 Service Definition、实现它的 Provider（可多个）、消费它的 Consumer（常为模型工具）：</p>
@@ -1284,8 +1275,8 @@ export function apply(ctx: Context, config: Config) {
   <!-- ============ 19 工程规范 ============ -->
   <section class="chapter" id="ch-conventions">
     <span class="ch-kicker">Chapter 19 · 模块四 DSH 实战</span>
-    <h1>约定与守则：<span class="grad">写进仓库的"不该"</span></h1>
-    <p class="lead">DSH 的稳定性不靠"大家小心点"，靠写进仓库的显式约定 + 静态门禁。这些"不该"比"该怎么写"更值钱——它们大多是 postmortem 换来的。</p>
+    <h1>DSH 工程约定</h1>
+    <p class="lead">本章整理 DSH 对资源注册、错误处理、依赖声明和持久化的约定，并给出对应写法。修改插件时，可逐项检查生命周期与副作用是否有明确的归属。</p>
 
     <h2>核心守则</h2>
     <div id="ruleCards"></div>
@@ -1297,7 +1288,7 @@ export function apply(ctx: Context, config: Config) {
   <!-- ============ 20 测试体系 ============ -->
   <section class="chapter" id="ch-testing">
     <span class="ch-kicker">Chapter 20 · 模块四 DSH 实战</span>
-    <h1>测试与验证：<span class="grad">单测绿 ≠ 能跑</span></h1>
+    <h1>单元测试与集成验证</h1>
     <p class="lead">postmortem 0001 的教训是：178 个单测全绿、100% 行覆盖，真实 Loader 一跑就崩。DSH 的测试分层就是为了堵住"测试环境太干净"这条缝。</p>
 
     <h2>三层验证</h2>
@@ -1322,8 +1313,8 @@ export function apply(ctx: Context, config: Config) {
   <!-- ============ 21 开发工作流 ============ -->
   <section class="chapter" id="ch-workflow">
     <span class="ch-kicker">Chapter 21 · 模块四 DSH 实战</span>
-    <h1>工作流：<span class="grad">常用命令与文档地图</span></h1>
-    <p class="lead">把前面散落的命令与文档收成两张表——日常开发看左表，迷路了看右表。</p>
+    <h1>开发命令与文档索引</h1>
+    <p class="lead">DSH 开发中的常用命令与文档入口。按环境搭建、运行检查和源码阅读查找。</p>
 
     <h2>常用命令</h2>
     <div class="tbl-wrap">
@@ -1350,7 +1341,7 @@ export function apply(ctx: Context, config: Config) {
   <!-- ============ 22 术语表 ============ -->
   <section class="chapter" id="ch-glossary">
     <span class="ch-kicker">Chapter 22 · 模块四 DSH 实战</span>
-    <h1>术语表：<span class="grad">一份可搜索的词汇底</span></h1>
+    <h1>术语表</h1>
     <p class="lead">从 RSI 概念到 DSH 内部词汇的统一检索。<code>docs/glossary.md</code> 是 DSH 侧的唯一正式定义源，这份表把它和前几章的概念摆在一起。</p>
 
     <div class="searchbar">
@@ -1364,7 +1355,7 @@ export function apply(ctx: Context, config: Config) {
   <section class="chapter" id="ch-quiz">
     <span class="ch-kicker">Chapter 23 · 模块四 DSH 实战</span>
     <h1>自测：<span class="grad"><span data-count="quiz">16</span> 题过一遍</span></h1>
-    <p class="lead">原测验覆盖基础概念、机制与评测、对齐与安全、DSH；新增研究主线通过各章练习与实验验收。答错会给出对应章节回去补。</p>
+    <p class="lead">题目覆盖基础概念、评测、对齐与 DSH；每题附解析和相关章节。论文与 RepoOps 部分的练习位于各章末尾。</p>
 
     <div class="quiz-box" id="quizBox"></div>
   </section>
@@ -1372,8 +1363,8 @@ export function apply(ctx: Context, config: Config) {
   <!-- ============ 24 实战关卡 ============ -->
   <section class="chapter" id="ch-practice">
     <span class="ch-kicker">Chapter 24 · 模块四 DSH 实战</span>
-    <h1>实战关卡：<span class="grad">从 L1 走到 L4</span></h1>
-    <p class="lead">五个递进关卡，在真实 dsh 会话里把 RSI 回路一个零件一个零件装进 agent 的身体。卡片可勾选记进度；正文给每关存在的理由、卡住时的排查清单，以及关卡之间的产物接力。</p>
+    <h1>DSH 插件练习</h1>
+    <p class="lead">五个 DSH 插件练习依次涉及运行时结构、插件加载、持久记忆、评测和策略替换。每关给出操作步骤与排查方法，卡片可以记录完成进度。</p>
     <div class="callout warn"><span class="t">动手前必读</span>先回第 11 章核对护栏清单：审批开启（<code>cordis_run</code> 首次激活要人点）；执行世界指向沙箱 Provider（fs/subprocess 不碰真实工作区）；每次改动产生新 packageId、<code>currentPackageId</code> 可随时 run 回滚；自改意图与结果落日志；裁决交给评估而非自我感觉。自检方法不变：把模型当对手推演——它能否用 <code>cordis_define</code> 定义一个插件来关掉审批？能，则停手。</div>
 
     <h2>五关为什么是这个顺序</h2>
@@ -1406,7 +1397,7 @@ export function apply(ctx: Context, config: Config) {
     </ul>
     <p class="small muted">产物接力：一张当前组合清单（哪些 bundle/patch 叠出了我、cordis_* 工具在不在）——L2 写插件前用它判断注册目标在哪一层。</p>
 
-    <h2>L2 · 第一次自改：写代码 → 活在自己身体里</h2>
+    <h2>L2 · 加载运行时插件</h2>
     <p><strong>为什么这关存在。</strong>这是回路的最小闭环，也是与"写个脚本"的本质区别：插件挂载后真的在你体内注册了服务/工具/监听器。Gödel Agent 用 monkey-patch 无结构地做这件事；DSH 把它收敛成"定义不可变包 → 审批 → 挂载 → 可逆卸载"。多出来的那层审批摩擦就是护栏本身。</p>
     <p><strong>卡住时：</strong></p>
     <ul>
@@ -1430,7 +1421,7 @@ export function apply(ctx: Context, config: Config) {
     </ul>
     <p class="small muted">产物接力：一份自改日志 schema（pluginId/packageId/意图/结果/时间）——L3+ 的 eval 插件往里加分数段，第 25 章的裁决日志在它上面扩。</p>
 
-    <h2>L3+ · 评估：改动先过一道自己的考试</h2>
+    <h2>L3+ · 为插件改动加入评测</h2>
     <p><strong>为什么这关存在。</strong>DGM 把 Gödel Machine 的证明门槛换成实证门槛：改动在基准上跑分，够格才进档案。这关把同一个选择压力装进你的回路——未通过就回滚到 <code>currentPackageId</code>。注意分界线：评估器与被改插件必须是两个插件，前者不能被后者改到。</p>
     <p><strong>卡住时：</strong></p>
     <ul>
@@ -1474,7 +1465,7 @@ export function apply(ctx: Context, config: Config) {
   <section class="chapter" id="ch-evalproject">
     <span class="ch-kicker">Chapter 25 · DSH 实战</span>
     <h1>实战项目：独立于载体的自改评测管线</h1>
-    <p class="lead">先实现可信测量，再接入候选生成。下面是工程协议；可运行的统计部分已在 <a href="#/reproducible-lab">R6</a> 提供。候选执行沙箱与 DSH 适配器仍需实现和验证，不能把接口示意称为完整 DGM 复现。</p>
+    <p class="lead">这个项目分三步建立自改评测管线：定义任务和版本、运行并评分、确认后发布。统计部分可在 <a href="#/reproducible-lab">R6</a> 运行；候选执行沙箱和 DSH 适配器仍需实现。</p>
     <div id="evalProjectList"></div>
     <h2>Phase 1 · 任务与版本协议</h2>
     <p>为每题固定输入、环境快照、断言、成本上限、超时规则和稳定 ID。开发、选择与确认数据分开；只读挂载防篡改，不防泄露。8–12 题可用于调试 runner，不能默认足以证明小幅泛化收益。</p>
@@ -1492,7 +1483,7 @@ else:
     <h2>Phase 3 · 裁决、发布与回退</h2>
     <p>用预先规定的统计、成本和约束条件裁决，支持 keep / reject / inconclusive。探索档案可以保留较弱候选，发布只提升通过确认的版本；不要把 DGM 的探索档案和用户可用版本合并成同一个指针。</p>
     <p>DSH 适配器要从目标版本文档确认 define/run/stop 的精确 API。先在独立候选运行环境挂载并评测，通过后由控制域提升目标版本。packageId 标识代码，不是评分器隔离机制；回退仍需处理外部副作用。</p>
-    <h2>验收不是“好改动升分、坏改动降分”</h2>
+    <h2>用缺失样本与错误候选检查管线</h2>
     <ul><li>缺失失败、重复成功、伪造自报分数、评分器版本不一致都能被发现。</li><li>小样本涨分可返回证据不足；成本翻倍或严重违规不能被高成功率掩盖。</li><li>新旧版本完整试验均可追溯；确认集使用次数有账本。</li><li>坏候选不会先在真实用户环境生效；代码回退与副作用补偿分别验收。</li></ul>
     <p>运行入口：<code>python labs/eval_lab.py demo</code>；报告模板：<code>templates/experiment-card.md</code>。扩展到元改进时，再做 <a href="#/paper-lab">冻结改进器的消融</a>，不要把后代均分直接命名为 HGM 理论 CMP。</p>
   </section>
@@ -1566,10 +1557,10 @@ else:
 
 <!-- BEGIN GENERATED RESEARCH -->
 <section class="chapter" id="ch-research-contract">
-  <span class="ch-kicker">研究主线 R1 · 问题定义</span>
-  <h1>把“会自改”写成一个可检验的问题</h1>
-  <p class="lead">读完后，你应当能为任何一个自改系统写出：谁在改谁、哪些部分固定、预算是多少、什么结果会推翻“它变强了”。这是研究协议，不是某个框架的成熟度排行。</p>
-  <h2>三个必须分开的命题</h2>
+  <span class="ch-kicker">研究笔记 / R1 · 问题定义</span>
+  <h1>自修改、任务收益与递归收益</h1>
+  <p class="lead">一个系统能修改自己，并不意味着修改有效。即使任务得分提高，也还需要单独检验：更新后的改进器，是否比冻结版本更有效。下面分别定义这三个命题。</p>
+  <h2>三个命题</h2>
   <ol>
     <li><strong>可修改性</strong>：系统能改源码、提示词、权重或持久记忆。这是操作权限与实现能力。</li>
     <li><strong>有效改进</strong>：在预先指定的任务分布和资源约束下，新版本比旧版本更好。这需要对照与不确定性估计。</li>
@@ -1577,7 +1568,7 @@ else:
   </ol>
   <p>热加载没有验证第 2 项；benchmark 涨分没有自动验证第 3 项；第 3 项成立也没有证明无限加速。本文采用“改进产物反馈到后续改进过程”的工作定义，不要求每轮一定变好、不要求去掉所有人类参与，也不把权重必须变化当作所有论文共享的标准。STOP 自己对“full RSI”使用了更严格措辞。<cite data-source="stop"><a href="https://arxiv.org/abs/2310.02304v3" target="_blank" rel="noopener">[stop]</a></cite></p>
   <h2>最小数学模型</h2>
-  <div class="codeblock"><div class="cb-head">本站记号 · 不是现成定理</div><pre data-lang="text">S_t = (W_t, P_t, T_t, M_t, I_t)  # 权重、提示/策略、工具、记忆、改进器
+  <div class="codeblock"><div class="cb-head">记号约定</div><pre data-lang="text">S_t = (W_t, P_t, T_t, M_t, I_t)  # 权重、提示/策略、工具、记忆、改进器
 C_t = I_t(S_t, D_dev, B_search)   # 用搜索预算生成候选集合
 S_next = Select(C_t, E_fixed, D_select)
 U(S; D_target, B_infer) = E[任务得分 | 推理预算固定]
@@ -1586,35 +1577,34 @@ U(S; D_target, B_infer) = E[任务得分 | 推理预算固定]
        - E[U(Search(I_frozen, B_search))]</pre></div>
   <p><code>Search</code> 的两组实验必须从同一批起点开始，使用同样的基础模型、数据可见范围与总预算；终选候选只在开发/选择数据上决定。最终评估用独立任务与完整搜索重复。否则 Δ_meta 同时混入了模型升级、更多调用或更好的初始代码，不能归因给递归。</p>
   <p>评分器 <code>E_fixed</code> 在本次比较里固定。如果研究目标就是改进评分器，可以在另一个实验里更新它，再用独立的审计集与外部标准比较。把候选与它给自己打分的尺子一起更换，旧分数和新分数就失去共同含义。</p>
-  <h2>不要把一个维度排成六级智能</h2>
+  <h2>描述自改系统的四个维度</h2>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>维度</th><th>应记录什么</th><th>常见误判</th></tr></thead><tbody>
     <tr><td>修改对象</td><td>权重 / 上下文 / 工具 / 搜索器 / 数据生成器 / 评分器</td><td>“写代码一定比改 prompt 更深”</td></tr>
     <tr><td>反馈闭环</td><td>只修改解题器，还是新解题器也参与下一轮修改</td><td>把普通迭代次数当递归层数</td></tr>
     <tr><td>外部依赖</td><td>模型 API、人工选择、任务数据、预算和部署审批</td><td>有人审批就不算任何自改</td></tr>
     <tr><td>证据强度</td><td>自述、开发集、独立确认、跨分布迁移、元改进消融</td><td>把权限更大当成能力更强</td></tr>
   </tbody></table></div>
-  <p>一个改 prompt 的系统，如果 prompt 控制下一轮的实验设计，也可能构成元级闭环；一个能替换任意 Service 的系统，如果替换后从不对照测试，只有可修改性。原站的 L0–L5 只保留为教学索引，不能用于比较这些维度。</p>
-  <h2>资源账本决定“更好”是什么意思</h2>
+  <p>一个改 prompt 的系统，如果 prompt 控制下一轮的实验设计，也可能构成元级闭环；一个能替换任意 Service 的系统，如果替换后从不对照测试，只有可修改性。概念章中的 L0–L5 是教学索引；这里按各维度分别描述。</p>
+  <h2>质量与成本</h2>
   <p>至少分开记录搜索成本、单题推理成本、验证成本和人工时间。成功率从 60% 到 70%，但每题从 1 次调用变成 20 次，可能是有价值的质量提升，却不能写成“效率提升”。应提供固定预算对比，或展示质量—成本的 Pareto 前沿：不存在另一版本同时更便宜且更准确，才叫非支配候选。</p>
   <p>还要记录延迟分位数、超时和失败。并行线程数上升可以缩短墙钟时间，却增加总 CPU 小时；API 价格变化可以降低账单，却没有改进算法。度量需先定，不能见到哪条曲线漂亮就用哪条。</p>
   <h2>从局部闭环到智能爆炸，还缺哪些证据</h2>
   <p>局部改进可能遇到任务饱和、搜索空间限制、验证成本上涨、数据耗尽和收益递减。要支持“加速”，必须明确横轴：每单位时间、计算量还是资金的增益；再排除外部算力增长。有限轮次的最优值上升，也可能只是更多次随机搜索的自然结果。</p>
   <details class="research-exercise"><summary>练习：把重试次数从 1 改成 8，算哪种改进？</summary><p>先问该策略是否由系统产生并反馈到以后，再问固定总调用预算下是否仍获益。它可能是自修改，也可能提高成功率；只有和冻结改进器、同预算搜索相比，才能讨论元改进。没有这些实验时，应报告“增加推理预算后的任务收益”。</p></details>
-  <p class="research-next">下一步：<a href="#/paper-lab">用同一组问题拆解论文</a>。</p>
 </section>
 
 <section class="chapter" id="ch-paper-lab">
-  <span class="ch-kicker">研究主线 R2 · 机制精读</span>
-  <h1>读懂机制、假设与反事实</h1>
-  <p class="lead">论文标题不是一个实证结论。阅读时同时画出“被修改的系统”和“固定的外部控制器”，再找足以推翻作者解释的替代机制。</p>
-  <h2>先给四篇工作各找一个位置</h2>
+  <span class="ch-kicker">研究笔记 / R2 · 机制精读</span>
+  <h1>STOP、DGM 与 HGM</h1>
+  <p class="lead">这几项工作修改的对象、保留候选的方式和选择下一次修改起点的方法各不相同。下面对照它们的控制流程，重点看 DGM 的档案选择和 HGM 的谱系指标。</p>
+  <h2>修改对象与选择方法</h2>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>工作</th><th>核心对象</th><th>精读入口</th><th>不能直接推出</th></tr></thead><tbody>
     <tr><td>Gödel Machine <cite data-source="gm"><a href="https://arxiv.org/abs/cs/0309048" target="_blank" rel="noopener">[gm]</a></cite></td><td>以形式证明支持自修改</td><td>switching 条件、公理与效用建模</td><td>任意现实环境都可及时找到证明</td></tr>
     <tr><td>STOP <cite data-source="stop"><a href="https://arxiv.org/abs/2310.02304v3" target="_blank" rel="noopener">[stop]</a></cite></td><td>让代码改进器改进自身</td><td>元效用如何由下游任务构造</td><td>基础模型也在自我训练</td></tr>
     <tr><td>DGM <cite data-source="dgm"><a href="https://arxiv.org/html/2505.22954v3" target="_blank" rel="noopener">[dgm]</a></cite></td><td>能编辑自身的编码 agent 档案</td><td>§3、§4.3、附录 C.2/C.4/E</td><td>每个入档候选都优于父代</td></tr>
     <tr><td>HGM <cite data-source="hgm"><a href="https://arxiv.org/html/2510.21614v3" target="_blank" rel="noopener">[hgm]</a></cite></td><td>支系潜力估计与搜索资源分配</td><td>Assumption 1、§3.2–3.3、附录 D</td><td>实际估计器继承 oracle 的最优性</td></tr>
   </tbody></table></div>
-  <h2>DGM：入档、选父代与上线是三个不同决定</h2>
+  <h2>DGM：档案与父代选择</h2>
   <p>论文 v3 的算法把通过有效性检查的候选加入档案，不要求它即时胜过父代。其父代权重含 <code>sigmoid(10 × (score − 0.5)) / (1 + n_children)</code>，其中子代计数指仍有代码编辑能力的子代；这会抑制已经被反复展开的节点，方向不是“孩子越多越优先”。<cite data-source="dgm"><a href="https://arxiv.org/html/2505.22954v3" target="_blank" rel="noopener">[dgm]</a></cite></p>
   <p><strong>本站分析：</strong>研究档案可以保存弱分支，用户正在使用的版本却不必随之降级。维护两个引用：<code>archive</code> 供探索，<code>incumbent</code> 供使用。若把它们都叫 keep，就会把“允许搜索暂时退步”误解为“允许生产版本退步”。</p>
   <div class="codeblock"><div class="cb-head">教学抽象 · 不复刻具体实现</div><pre data-lang="text">parent = choose_parent(archive)
@@ -1638,13 +1628,12 @@ if confirm_frozen_candidate(child, incumbent) == "keep":
   </ol>
   <p>如果 B 只在训练过的仓库占优，跨仓库没有优势，应收窄为“这个任务分布上的搜索收益”。如果 B 优势在预算对齐后消失，优先接受“更多计算解释了涨分”。这些都是有价值的负结果。</p>
   <details class="research-exercise"><summary>练习：为什么“后代越好”不一定证明祖先更会改进？</summary><p>强祖先可能获得了更多展开预算、更容易的任务、更强的外部模型或人工帮助。比较时应固定剩余预算、随机化资源分配，并用独立重复的完整搜索衡量祖先的边际贡献。仅从一棵已经选优的树做相关分析，不能单独建立因果解释。</p></details>
-  <p class="research-next">下一步：<a href="#/evaluation-design">把反事实落实成评测协议</a>。</p>
 </section>
 
 <section class="chapter" id="ch-evaluation-design">
-  <span class="ch-kicker">研究主线 R3 · 统计与实验设计</span>
-  <h1>分数上涨之后，还要排除什么</h1>
-  <p class="lead">一个任务跑十次，与十个独立任务各跑一次，回答的是不同问题。先确定独立样本和选择过程，再决定置信区间与裁决门。</p>
+  <span class="ch-kicker">研究笔记 / R3 · 统计与实验设计</span>
+  <h1>评测的统计与实验设计</h1>
+  <p class="lead">一个任务跑十次，可以观察同一任务上的运行波动；十个独立任务各跑一次，可以观察任务间的差异。两者对应不同的统计单位，也需要不同的重采样方式。</p>
   <h2>三套数据，三种权限</h2>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>数据</th><th>用途</th><th>允许反馈</th></tr></thead><tbody>
     <tr><td>开发集 D_dev</td><td>诊断失败、改代码、调提示词</td><td>可公开题目和详细轨迹；其分数不能当独立泛化证据</td></tr>
@@ -1677,21 +1666,20 @@ keep requires lower &gt; δ_min
     <li>同时提供逐题结果、全体候选账本、失败类型和原始轨迹位置。没有观测到严重违规不等于风险为零。</li>
   </ul>
   <details class="research-exercise"><summary>练习：把每题重复从 3 次增到 30 次，置信区间能缩小 √10 吗？</summary><p>对固定题目上的运行噪声可能有帮助；对跨题泛化不能直接这样算。任务数没有增加。若把所有运行当独立任务抽样，会产生伪重复。实验程序刻意保留任务聚类，重复相同观测不会凭空扩大独立样本量。</p></details>
-  <p class="research-next">下一步：<a href="#/evaluator-integrity">让这些数值来自可信测量</a>。</p>
 </section>
 
 <section class="chapter" id="ch-evaluator-integrity">
-  <span class="ch-kicker">研究主线 R4 · 评分器与信任边界</span>
-  <h1>评测器也必须被评测</h1>
-  <p class="lead">统计方法假设观测有意义。如果候选能改评分函数、伪造结果或只挑容易任务，置信区间只会给错误测量增加小数位。</p>
-  <h2>三类失败，三种修复</h2>
+  <span class="ch-kicker">研究笔记 / R4 · 评分器与信任边界</span>
+  <h1>评分器误差与权限隔离</h1>
+  <p class="lead">候选得分异常升高，可能是能力提高，也可能是评分器误判、样本遗漏或结果被篡改。这三类问题需要分别检查测量规则、数据完整性和执行权限。</p>
+  <h2>评分失真从哪里来</h2>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>类型</th><th>具体例子</th><th>验证方式</th></tr></thead><tbody>
     <tr><td>评分实现错误</td><td>正确结果因浮点精度或合法替代解被拒</td><td>参考实现、边界输入、变形测试、人工复核争议样本</td></tr>
     <tr><td>目标代理失真</td><td>优化可见评分却损害真实用户目标</td><td>独立审计指标、分布外验证、优化强度曲线；不能只换更强 judge</td></tr>
     <tr><td>测量完整性破坏</td><td>候选修改测试、删失败日志、伪造 pass</td><td>外部执行身份、评分服务、只追加审计与工件核验</td></tr>
   </tbody></table></div>
   <p>奖励模型过度优化说明：代理分数越高，真实目标未必越好。这与“测试文件被修改”是不同机制；只解决权限隔离仍然可能优化错目标。<cite data-source="overoptimization"><a href="https://arxiv.org/abs/2210.10760" target="_blank" rel="noopener">[overoptimization]</a></cite></p>
-  <h2>设计两个权限域，而不只是两个插件</h2>
+  <h2>候选与评分器的权限隔离</h2>
   <p>候选执行域拿任务输入、允许的工具与临时工作区；控制域保管评分器、确认数据、预算、版本发布指针和完整日志。同一进程、同一账号下的不同 <code>packageId</code> 是组织边界，不自动是安全边界。只读挂载防写，不防读取答案；一个 hash 只能标识内容，不能证明数据来源可信。</p>
   <p>控制域从候选产物计算分数，不能采纳 <code>agent.reported_score</code>。超时由控制域计时并终止对应工作负载；把 timeout 改成结果字段本身并不构成进程隔离。本仓库的 Python lab 只做可信输入的统计分析，没有实现这一执行域。</p>
   <h2>LLM judge 的校准协议</h2>
@@ -1713,9 +1701,9 @@ keep requires lower &gt; δ_min
 </section>
 
 <section class="chapter" id="ch-research-map">
-  <span class="ch-kicker">研究主线 R5 · 广度服务于问题</span>
-  <h1>RSI 周围有哪些真正不同的研究路线</h1>
-  <p class="lead">同样叫 self-improvement，更新的可能是答案、记忆、模型权重、程序、搜索器或任务分布。用“更新什么、谁给反馈、闭环停在哪里”建立地图，比收集框架名更稳定。</p>
+  <span class="ch-kicker">研究笔记 / R5</span>
+  <h1>自我改进的几类研究方法</h1>
+  <p class="lead">Self-improvement 可以指答案修订、记忆积累、权重训练，也可以指程序搜索和搜索器更新。它们使用不同的反馈，改变系统的不同部分；读论文时应先确认修改对象。</p>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>路线与入口</th><th>变化的对象</th><th>与递归的关系</th><th>优先做的对照</th></tr></thead><tbody>
     <tr><td>Self-Refine <cite data-source="self-refine"><a href="https://arxiv.org/abs/2303.17651" target="_blank" rel="noopener">[self-refine]</a></cite></td><td>同一任务上的答案</td><td>迭代反馈并不自动积累可迁移的改进器</td><td>同预算直接多采样、无反馈重写</td></tr>
     <tr><td>Reflexion <cite data-source="reflexion"><a href="https://arxiv.org/abs/2303.11366" target="_blank" rel="noopener">[reflexion]</a></cite></td><td>语言反馈与经验记忆</td><td>不用更新权重也可能改变后续行为</td><td>清空记忆、打乱记忆、跨任务迁移</td></tr>
@@ -1728,7 +1716,7 @@ keep requires lower &gt; δ_min
     <tr><td>POET <cite data-source="poet"><a href="https://arxiv.org/abs/1901.01753" target="_blank" rel="noopener">[poet]</a></cite></td><td>环境与解法共同演化</td><td>任务分布也在变化；平均分跨轮次未必可比</td><td>冻结环境、移除迁移、外部固定审计任务</td></tr>
     <tr><td>FunSearch <cite data-source="funsearch"><a href="https://deepmind.google/blog/funsearch-making-new-discoveries-in-mathematical-sciences-using-large-language-models/" target="_blank" rel="noopener">[funsearch]</a></cite></td><td>由外部 evaluator 检验的程序</td><td>程序搜索与 agent 自修改有共同组件，但不是同一主张</td><td>固定搜索器、普通采样、候选与验证成本</td></tr>
   </tbody></table></div>
-  <h2>三条经常被漏掉的基础线</h2>
+  <h2>元学习、程序搜索与课程生成</h2>
   <p><strong>优化与统计：</strong>选择偏差、bandit 资源分配、best-arm identification、序贯检验。解决“测谁、测几次、何时停止”，而不只是“怎么生候选”。先做 R3 的选择偏差实验，再理解 HGM 为什么把展开与评估解耦。</p>
   <p><strong>系统与可复现性：</strong>内容寻址、确定的环境快照、幂等任务、故障分类、事件日志、预算调度。其价值是让算法比较成立。没有完整失败记录，再复杂的谱系统计也可能只统计幸存者。</p>
   <p><strong>开放式搜索与目标漂移：</strong>新颖性不等于用户效用，多样性也不保证持续改进。保持外部审计目标固定，分别报告覆盖、新颖性和任务效用；任务难度增加时不能直接比较原始通过率。</p>
@@ -1743,9 +1731,9 @@ keep requires lower &gt; δ_min
 </section>
 
 <section class="chapter" id="ch-reproducible-lab">
-  <span class="ch-kicker">研究主线 R6 · 可运行方法实验</span>
-  <h1>零 API 成本，先把评测做对</h1>
-  <p class="lead">仓库提供 Python 3.10+ 标准库实验。它演示统计与数据协议，使用合成观测，不调用模型、不执行候选代码，也不是 DGM/HGM 的能力复现。</p>
+  <span class="ch-kicker">研究笔记 / R6 · 可运行方法实验</span>
+  <h1>用合成数据练习评测</h1>
+  <p class="lead">这个 Python 实验用合成观测演示配对比较、数据检查和三态裁决。只需 Python 3.10+ 标准库，无需模型 API；结果用于理解统计方法。</p>
   <h2>十分钟运行</h2>
   <div class="codeblock"><div class="cb-head">在仓库根目录运行</div><pre data-lang="bash">python labs/eval_lab.py demo --output lab-output
 python labs/eval_lab.py compare lab-output/improvement.input.json
@@ -1759,10 +1747,10 @@ python -m unittest discover -s tests -v</pre></div>
     <tr><td>高分但有严重违规</td><td>reject</td><td>约束不能被平均分抵消</td></tr>
     <tr><td>高分但成本翻倍</td><td>reject</td><td>超过提前规定的 1.25 倍成本上限</td></tr>
   </tbody></table></div>
-  <h2>不要相信摘要，检查输入协议</h2>
+  <h2>检查输入与缺失样本</h2>
   <p>程序要求基线和候选拥有相同的完整 task×run 矩阵；重复 ID、缺失失败、非有限成本、非布尔结果、伪装成功的 timeout/crash 都会报错。<code>reported_score</code> 不参与计算。重复运行保留在任务簇内，不被当成更多独立任务。</p>
   <p><code>candidate_frozen: true</code> 是调用者声明，不是程序证明；<code>confirmation</code> 标签不能证明数据从未被看过。模型、环境与评分器的全局标识是同条件比较的契约，真实运行需要外部 verifier 核实这些标识。输入文件的可修改性也意味着这个工具不能防御同账号下的恶意候选。</p>
-  <h2>从玩具实验升级到真实评测</h2>
+  <h2>接入真实 Agent 观测</h2>
   <ol>
     <li>把合成输入替换为独立 runner 的观察。逐题从干净环境运行基线和候选，保存产物与外部断言结果。</li>
     <li>把 <code>cost_units</code> 映射到预先规定的统一成本，例如 token 预算；同时额外保留搜索成本和墙钟时间。</li>
@@ -1770,7 +1758,7 @@ python -m unittest discover -s tests -v</pre></div>
     <li>将代码快照、模型精确版本、数据/容器 digest、完整轨迹和失败分类写进实验卡。</li>
     <li>需要处理相关任务、连续上线或自适应采样时，升级统计协议；不要直接把本 lab 的独立任务假设带过去。</li>
   </ol>
-  <p>本轮没有运行真实模型实验，所以没有声称提高任何 agent 的性能。真正的下一份成果应是一份可复核的真实任务比较，而不是把合成数字放进 leaderboard。</p>
+  <p>接入真实模型后的步骤见 <a href="#/capstone-experiments">P7</a>。合成实验只验证方法与程序，不提供真实模型的性能结论。</p>
   <h2>三个扩展作业</h2>
   <ol>
     <li>把候选数改为 1、10、100，记录开发分数与新数据分数之差。解释为什么 winner's curse 随选择加强。</li>
@@ -1781,109 +1769,95 @@ python -m unittest discover -s tests -v</pre></div>
 </section>
 
 <section class="chapter" id="ch-research-roadmap">
-  <span class="ch-kicker">研究主线 R7 · 以作品检验学习</span>
-  <h1>深度优先的学习路径与开放问题</h1>
-  <p class="lead">每一步都有可以审阅的产物。阅读多少篇、记住多少包名，都不能代替能解释失败、能复现实验、能收窄结论。</p>
-  <h2>四个里程碑</h2>
-  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>阶段</th><th>建议投入</th><th>交付物</th><th>验收</th></tr></thead><tbody>
+  <span class="ch-kicker">研究笔记 / R7</span>
+  <h1>研究练习与开放问题</h1>
+  <p class="lead">下面给出从论文阅读到机制消融的练习顺序，以及记忆泛化、搜索效率和评分器过拟合三个可继续研究的问题。</p>
+  <h2>练习顺序</h2>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>阶段</th><th>预计时间</th><th>练习</th><th>检查方法</th></tr></thead><tbody>
     <tr><td>定义与精读</td><td>6–10 小时</td><td>一页系统边界图、STOP/DGM/HGM 机制对照</td><td>能指出固定部分、统计单位、理论假设与未证明主张</td></tr>
     <tr><td>评测方法</td><td>8–12 小时</td><td>运行 R6，改一条规则并解释裁决变化</td><td>能复现选择偏差，拒绝缺失失败样本，解释 inconclusive</td></tr>
     <tr><td>真实任务基线</td><td>2–3 周业余时间</td><td>小型 runner、任务协议、逐题轨迹、成本账本</td><td>基线可重跑；数据分离；故障能区分模型/环境/评分器</td></tr>
     <tr><td>一个机制消融</td><td>2–4 周业余时间</td><td>固定/更新改进器或记忆消融的实验报告</td><td>相同预算、完整搜索重复、独立确认、包含负结果</td></tr>
   </tbody></table></div>
   <p>时间只是排期估计，真实模型调用预算由模型、任务和重复次数决定；先记录一次试跑成本，再定上限。可以从自己熟悉的离线代码/配置任务开始，但不可使用无权公开的公司代码或内部数据。</p>
-  <h2>适合 Evaluation 工程作品集的切入点</h2>
-  <p>交付一个“候选版本 → 隔离执行 → 外部评分 → 配对统计 → 实验报告”的最小系统。用已有后端经验处理任务幂等、超时、重试、并发预算、日志和版本；把新增学习精力放在任务设计、评分器误差和实验解释上。DSH 是可选适配器，协议与报告应当独立于它。</p>
-  <p>面试时能展示一个被你推翻的“进步”：例如表面涨分来自重试次数变化，或者一个评分器错误导致合法解被拒。说明如何发现、如何验证、如何避免重现，比“搭了一个自主智能体”更可核查。这里是作品方向建议，不是岗位需求或录用保证。</p>
-  <h2>三道有明确反例的研究题</h2>
-  <div class="grid cols2">
-    <article class="card"><h3>Q1 · 记忆提高的是泛化还是熟题命中？</h3><p>假设：失败反思改善新仓库表现。对照：真记忆、打乱记忆、无记忆。固定上下文与 token 预算；若仅在同模板任务获益，收窄为分布内记忆复用。</p></article>
-    <article class="card"><h3>Q2 · 更聪明的搜索，还是测了更多次？</h3><p>假设：谱系选择提高单位预算内终选效用。对照：随机父代、当前最优父代、支系统计。记录生成/评估两种成本；按完整轨迹重复，而非只对最优节点补跑。</p></article>
-    <article class="card"><h3>Q3 · 更高通过率，还是更会迎合评分器？</h3><p>假设：优化一个 judge 的候选可迁移到独立 judge 与人工审计。保留未知攻击样本；若只在同 judge 提升，报告代理过拟合，不说目标能力提升。</p></article>
+  <p>完整工程项目见 <a href="#/capstone">RepoOps Lab</a>。这里侧重实验设计，建议选一个熟悉的任务域，完成基线后再增加变量。</p>
+  <h2>三个研究问题</h2>
+  <div class="research-questions">
+    <article><h3>记忆能否迁移到新仓库？</h3><p>假设：失败反思改善新仓库表现。对照：真记忆、打乱记忆、无记忆。固定上下文与 token 预算；若仅在同模板任务获益，收窄为分布内记忆复用。</p></article>
+    <article><h3>谱系选择是否提高搜索效率？</h3><p>假设：谱系选择提高单位预算内终选效用。对照：随机父代、当前最优父代、支系统计。记录生成/评估两种成本；按完整轨迹重复，而非只对最优节点补跑。</p></article>
+    <article><h3>优化结果能否通过独立评分？</h3><p>假设：优化一个 judge 的候选可迁移到独立 judge 与人工审计。保留未知攻击样本；若只在同 judge 提升，报告代理过拟合，不说目标能力提升。</p></article>
   </div>
-  <h2>什么叫一篇“足够深”的仓库文章</h2>
-  <ol>
-    <li>一个可证伪问题和必要前置知识，而不是十个名词。</li>
-    <li>明确定义、最小机制/伪代码、适用假设；公式解释变量和统计单位。</li>
-    <li>至少一个可运行算例或可执行实验协议，说明成本和不能验证的部分。</li>
-    <li>来源定位到论文版本与章节；把作者报告、本站分析、本仓库实测分开。</li>
-    <li>一个反例、一组公平基线、一个仍然未解的问题。</li>
-  </ol>
-  <h2>还没有完成的深度</h2>
-  <p>当前仓库已提供统计方法 lab，但尚无真实 agent 自改收益复现、完整 DSH 安全审计、参数级自训练复现或开放式环境实验。保留这些明确的缺口，后续只把有数据支持的工作升级为“复现”。扩充文章前，先完成一个真实任务评测与一个元改进消融。</p>
-  <details class="research-exercise"><summary>结业自检：怎么证明你的作品研究的是 RSI，而不只是 Agent 工程？</summary><p>指明哪一项修改回流到后续改进过程；给出冻结改进器的反事实；固定预算与初始条件；独立重复完整搜索；在未用于选择的数据上比较终选效用。如果尚未做到，应准确写“自改基础设施/评测方法实现”，仍是有价值的成果。</p></details>
+  <p>这些题目尚无本仓库的真实 Agent 复现结果。开始前可用 <a href="templates/experiment-card.md">实验卡</a> 写下假设、对照、预算与停止条件。</p>
+  <details class="research-exercise"><summary>检查：实验是否包含改进器更新？</summary><p>指明哪一项修改回流到后续改进过程；给出冻结改进器的反事实；固定预算与初始条件；独立重复完整搜索；在未用于选择的数据上比较终选效用。如果尚未做到，应准确写“自改基础设施/评测方法实现”，仍是有价值的成果。</p></details>
 </section>
 
 <section class="chapter" id="ch-research-sources">
-  <span class="ch-kicker">研究主线 R8 · 来源与证据</span>
-  <h1>哪些结论已核对，哪些仍是待验证假设</h1>
-  <p class="lead">核对日期：2026-09-19。这里记录研究与实战主线的来源和核对范围，不代表对旧站每个 API、每条事件报道和每个性能数字做过完整复现。</p>
-  <h2>三种证据标签</h2>
+  <span class="ch-kicker">研究笔记 / R8 · 来源与证据</span>
+  <h1>参考资料与版本</h1>
+  <p class="lead">论文、开源代码、岗位描述和公开面经的出处汇总。各条目记录版本与阅读范围，最近核对于 2026-09-19。</p>
+  <h2>如何阅读引用</h2>
   <ul>
     <li><strong>来源报告</strong>：论文/作者文档报告了某个机制或结果。必须写清版本、设置；没有本仓库独立验证的含义。</li>
     <li><strong>本站分析</strong>：推导、反例和实验设计建议。读者应能看到假设及替代解释。</li>
     <li><strong>本仓库运行</strong>：有命令、输入、seed、代码与结果。合成数据始终标注“教学实验”，不升级为模型能力证据。</li>
   </ul>
-  <h2>本轮修正的关键判断</h2>
-  <p>DGM 的档案保留不是单调涨分门；父代子代数权重方向原先写反。HGM 的理论 CMP、在线估计量和回顾性统计不是同一个量。DSH 的 packageId 不是权限隔离证明，插件回滚也不回滚外部副作用。运行时可修改性不构成 RSI 能力的充分条件。对应审计与后续工作在 <code>docs/content-audit.md</code>。</p>
-  <h2>来源台账：论文、文档、招聘与面试自述</h2>
-  <p>“摘要/元数据”只支持路线定位；标为“全文指定章节”的条目才支持本轮相应机制修正。没有使用二手转述充当论文证据。</p>
-  <p>招聘原文用于分析工作能力，个人面试自述和编辑整理只用于抽取考察主题；它们不是公司官方题库，也不支持技术正确性。实战课的步骤、验收和答辩练习是本站设计，具体映射见 <a href="docs/capstone/source-map.md">实战来源说明</a>。</p>
-  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>来源</th><th>版本</th><th>本轮核对范围</th></tr></thead><tbody><tr><td><a href="https://arxiv.org/abs/cs/0309048" target="_blank" rel="noopener">Gödel Machines: Fully Self-Referential Optimal Universal Self-Improvers</a><br><code>gm</code></td><td>arXiv cs/0309048</td><td>摘要；形式化结论的条件边界</td></tr><tr><td><a href="https://arxiv.org/abs/2310.02304v3" target="_blank" rel="noopener">Self-Taught Optimizer (STOP)</a><br><code>stop</code></td><td>arXiv v3 · COLM 2024</td><td>摘要；改进器自应用、冻结基础模型的范围</td></tr><tr><td><a href="https://arxiv.org/html/2505.22954v3" target="_blank" rel="noopener">Darwin Gödel Machine</a><br><code>dgm</code></td><td>arXiv v3 · 2026-03-12</td><td>全文 §3、§4.2–4.4、附录 C.2/C.4/E；档案、权重方向、基准口径</td></tr><tr><td><a href="https://arxiv.org/html/2510.21614v3" target="_blank" rel="noopener">Huxley-Gödel Machine</a><br><code>hgm</code></td><td>arXiv v3 · 2025-10-29</td><td>全文 Assumption 1、§3.2–3.3、附录 D；CMP 三种口径与定理边界</td></tr><tr><td><a href="https://arxiv.org/abs/2410.04444v4" target="_blank" rel="noopener">Gödel Agent</a><br><code>godel-agent</code></td><td>arXiv v4 · ACL 2025</td><td>摘要/元数据；自修改方法定位，未复现实验</td></tr><tr><td><a href="https://arxiv.org/abs/1506.02629" target="_blank" rel="noopener">Generalization in Adaptive Data Analysis and Holdout Reuse</a><br><code>adaptive</code></td><td>arXiv 1506.02629</td><td>摘要；自适应数据复用问题定位</td></tr><tr><td><a href="https://arxiv.org/html/2107.03374v2" target="_blank" rel="noopener">Evaluating Large Language Models Trained on Code</a><br><code>humaneval</code></td><td>arXiv v2</td><td>全文 §2.1、附录 A；pass@k 的组合估计与插件估计偏差</td></tr><tr><td><a href="https://arxiv.org/html/2406.12045v1" target="_blank" rel="noopener">τ-bench: A Benchmark for Tool-Agent-User Interaction</a><br><code>tau</code></td><td>arXiv v1</td><td>全文指标部分；pass^k 可靠性口径</td></tr><tr><td><a href="https://arxiv.org/abs/2306.05685" target="_blank" rel="noopener">Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena</a><br><code>judge</code></td><td>arXiv 2306.05685</td><td>摘要；位置、冗长和自我偏好等 judge 局限</td></tr><tr><td><a href="https://arxiv.org/abs/2210.10760" target="_blank" rel="noopener">Scaling Laws for Reward Model Overoptimization</a><br><code>overoptimization</code></td><td>arXiv 2210.10760</td><td>摘要；代理奖励与目标奖励的偏离</td></tr><tr><td><a href="https://arxiv.org/abs/2312.06942" target="_blank" rel="noopener">AI Control: Improving Safety Despite Intentional Subversion</a><br><code>control</code></td><td>arXiv 2312.06942</td><td>摘要；对手模型下的控制协议定位</td></tr><tr><td><a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/SAFETY.md" target="_blank" rel="noopener">DeepSeek Harness · SAFETY.md</a><br><code>dsh-safety</code></td><td>commit ddefc45fbc7f8e46dd73185e68295696d1297887</td><td>完整文件；实验状态、未审计与隔离限制。不是全仓安全验证</td></tr><tr><td><a href="https://arxiv.org/abs/2303.17651" target="_blank" rel="noopener">Self-Refine: Iterative Refinement with Self-Feedback</a><br><code>self-refine</code></td><td>arXiv 2303.17651</td><td>摘要；推理时反馈改写，无额外训练</td></tr><tr><td><a href="https://arxiv.org/abs/2303.11366" target="_blank" rel="noopener">Reflexion: Language Agents with Verbal Reinforcement Learning</a><br><code>reflexion</code></td><td>arXiv 2303.11366</td><td>摘要；语言反馈与记忆路线</td></tr><tr><td><a href="https://arxiv.org/abs/2305.16291" target="_blank" rel="noopener">Voyager: An Open-Ended Embodied Agent</a><br><code>voyager</code></td><td>arXiv 2305.16291</td><td>摘要；课程、技能与探索路线</td></tr><tr><td><a href="https://arxiv.org/abs/2203.14465" target="_blank" rel="noopener">STaR: Bootstrapping Reasoning With Reasoning</a><br><code>star</code></td><td>arXiv 2203.14465</td><td>摘要；生成、筛选推理与微调闭环</td></tr><tr><td><a href="https://arxiv.org/abs/1703.03400" target="_blank" rel="noopener">Model-Agnostic Meta-Learning</a><br><code>maml</code></td><td>arXiv 1703.03400</td><td>摘要；快速适应的元学习定位</td></tr><tr><td><a href="https://arxiv.org/abs/2003.03384" target="_blank" rel="noopener">AutoML-Zero: Evolving Machine Learning Algorithms From Scratch</a><br><code>automl-zero</code></td><td>arXiv 2003.03384</td><td>摘要；学习算法的程序搜索路线</td></tr><tr><td><a href="https://arxiv.org/abs/2408.08435" target="_blank" rel="noopener">Automated Design of Agentic Systems</a><br><code>adas</code></td><td>arXiv 2408.08435</td><td>摘要与 DGM 相关工作；固定 meta-agent 对照定位</td></tr><tr><td><a href="https://arxiv.org/abs/1901.01753" target="_blank" rel="noopener">Paired Open-Ended Trailblazer (POET)</a><br><code>poet</code></td><td>arXiv 1901.01753</td><td>摘要；环境与解法共同演化定位</td></tr><tr><td><a href="https://deepmind.google/blog/funsearch-making-new-discoveries-in-mathematical-sciences-using-large-language-models/" target="_blank" rel="noopener">Mathematical discoveries from program search with large language models</a><br><code>funsearch</code></td><td>作者机构发布 · 2023-12-14</td><td>作者机构说明；程序搜索与外部评估定位，论文入口未成功读取</td></tr><tr><td><a href="https://code.claude.com/docs/en/sandboxing" target="_blank" rel="noopener">Claude Code · Sandboxing</a><br><code>claude-sandbox</code></td><td>产品文档 · 检查于 2026-09-19</td><td>沙箱文档；纠正旧站“无内置 OS 沙箱”的断言</td></tr><tr><td><a href="https://arxiv.org/abs/2512.08093" target="_blank" rel="noopener">Training LLMs for Honesty via Confessions</a><br><code>confessions</code></td><td>arXiv 2512.08093 · 首次提交 2025-12</td><td>元数据；修正年份，不代表全文复现</td></tr><tr><td><a href="https://job-boards.greenhouse.io/anthropic/jobs/5198255008" target="_blank" rel="noopener">Anthropic · Research Engineer, Model Evaluations</a><br><code>job-evals</code></td><td>招聘页，2026-09-19 访问</td><td>核对职责、最低/优选资格与代表性项目；用于能力分析，不保证持续开放。</td></tr><tr><td><a href="https://job-boards.greenhouse.io/anthropic/jobs/5283063008" target="_blank" rel="noopener">Anthropic · Software Engineer, Research Infrastructure</a><br><code>job-infra</code></td><td>招聘页，2026-09-19 访问</td><td>核对职责和资格；海外资深岗位样本，不代表国内总体需求。</td></tr><tr><td><a href="https://job-boards.greenhouse.io/anthropic/jobs/5390811008" target="_blank" rel="noopener">Anthropic · Applied AI, Research Engineer</a><br><code>job-applied</code></td><td>招聘页，2026-09-19 访问</td><td>核对角色说明与职责中的原型、评测和技术沟通；不是面试题来源。</td></tr><tr><td><a href="https://github.com/datawhalechina/hello-agents/blob/203e9fac88b23291b407f76549e250fd51c295e3/Extra-Chapter/Extra01-%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93.md" target="_blank" rel="noopener">Datawhale 社区 · LLM &amp; VLM &amp; Agent 面试问题总结</a><br><code>interview-dw</code></td><td>commit 203e9fac88b23291b407f76549e250fd51c295e3</td><td>作者称整理自 2025 秋招多次真实技术面试。核对声明与 Agent/RAG/评估主题；个人自述，未独立验证，不作为技术原理依据。</td></tr><tr><td><a href="https://notes.kamacoder.com/interview/llm/20260506bytedance.html" target="_blank" rel="noopener">卡码 · 字节 Agent 开发四面面经（转载与编辑整理）</a><br><code>interview-byte</code></td><td>网页 2026-09-19 访问；原始分享不在本站</td><td>核对公开转载的候选人经历及编辑提炼的问题主题；未访问付费原帖。不可作为企业标准题库或技术答案权威。</td></tr><tr><td><a href="https://github.com/SWE-agent/mini-SWE-agent/blob/04d809ceab9df28f9adaed044884180159172930/src/minisweagent/agents/default.py" target="_blank" rel="noopener">mini-SWE-agent · DefaultAgent 源码</a><br><code>mini-code</code></td><td>commit 04d809ceab9df28f9adaed044884180159172930</td><td>核对 run/step/query/execute_actions、预算检查与轨迹保存；未安装或跑榜。</td></tr><tr><td><a href="https://github.com/UKGovernmentBEIS/inspect_ai/blob/ec4dfc6953784dc45b79de3147530c89868c6e26/src/inspect_ai/_eval/task/task.py" target="_blank" rel="noopener">Inspect AI · Task 源码</a><br><code>inspect-code</code></td><td>commit ec4dfc6953784dc45b79de3147530c89868c6e26</td><td>核对 Task 构造参数及 dataset/solver/scorer、限制、错误处理说明；未实测适配。</td></tr><tr><td><a href="https://github.com/harbor-framework/harbor/blob/2993946dd5b64a46dac3aa766d03065f432a1468/src/harbor/trial/trial.py" target="_blank" rel="noopener">Harbor · Trial 源码</a><br><code>harbor-code</code></td><td>commit 2993946dd5b64a46dac3aa766d03065f432a1468</td><td>核对 Trial 文件前 180 行：任务/环境/verifier 依赖、路径和初始化关系；非完整生命周期审计。</td></tr><tr><td><a href="https://docs.harborframework.com/tutorials/create-a-task" target="_blank" rel="noopener">Harbor 官方 · Create a task</a><br><code>harbor-task</code></td><td>在线文档 2026-09-19</td><td>核对任务文件、init/oracle/view 命令与 reward 文件；未在本仓库运行 Harbor。</td></tr><tr><td><a href="https://docs.harborframework.com/core-concepts/tasks/separate-verifier" target="_blank" rel="noopener">Harbor 官方 · Separate verifier</a><br><code>harbor-verifier</code></td><td>在线文档 2026-09-19</td><td>核对默认共享环境、显式 separate 配置、镜像选择和 artifact 传递；运行时兼容性待学习者验证。</td></tr><tr><td><a href="https://github.com/gepa-ai/gepa/blob/15ee314f9c7d34ec153b809d401f42f55c4dcd76/src/gepa/core/adapter.py" target="_blank" rel="noopener">GEPA · GEPAAdapter / EvaluationBatch 源码</a><br><code>gepa-code</code></td><td>commit 15ee314f9c7d34ec153b809d401f42f55c4dcd76</td><td>核对接口与逐样本输出/反馈/错误语义，前 180 行；未实现本项目 GEPA 插件。</td></tr><tr><td><a href="https://github.com/gepa-ai/gepa" target="_blank" rel="noopener">GEPA 官方仓库 · 反思优化</a><br><code>gepa-overview</code></td><td>README 2026-09-19</td><td>核对文本候选、轨迹反馈和适配器定位；未引用宣传收益或声称复现。</td></tr><tr><td><a href="https://docs.ollama.com/api/chat" target="_blank" rel="noopener">Ollama 官方 · Generate a chat message</a><br><code>ollama-chat</code></td><td>在线 API 文档 2026-09-19</td><td>核对本机 /api/chat、messages、stream、format 和 usage 字段；本仓库只做 HTTP 契约 mock 测试，未运行真实权重。</td></tr></tbody></table></div>
-  <h2>更新规则</h2>
-  <p>条目用稳定 ID 引用，核对范围保存在 <code>content/sources.json</code>。修改论文结论需同时更新版本与定位；模型/产品能力要写检查时点。包数量由实际数据计算；原 DSH 清单缺失生成时的上游 commit，不能事后给它补一个“已核对”的假精确版本。</p>
-  <p>新增章节源文件在 <code>content/chapters/</code>；<code>python scripts/build_research.py</code> 将其嵌入静态页面，仍可 file:// 离线阅读。<code>--check</code> 检查生成物同步，<code>scripts/check_content.py</code> 检查本地链接、路由、来源和遗留错误断言。网页不需要构建服务器或联网才能阅读。</p>
+  <h2>论文、文档与岗位资料</h2>
+  <p>“摘要/元数据”只支持路线定位；标为“全文指定章节”的条目用于相应的机制讨论。</p>
+  <p>招聘原文用于分析工作能力，个人面试自述和编辑整理只用于抽取考察主题；它们不是公司官方题库，也不支持技术正确性。项目中的步骤与面试练习由本站编写，具体映射见 <a href="docs/capstone/source-map.md">实战来源说明</a>。</p>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>来源</th><th>版本</th><th>阅读范围</th></tr></thead><tbody><tr><td><a href="https://arxiv.org/abs/cs/0309048" target="_blank" rel="noopener">Gödel Machines: Fully Self-Referential Optimal Universal Self-Improvers</a><br><code>gm</code></td><td>arXiv cs/0309048</td><td>摘要；形式化结论的条件边界</td></tr><tr><td><a href="https://arxiv.org/abs/2310.02304v3" target="_blank" rel="noopener">Self-Taught Optimizer (STOP)</a><br><code>stop</code></td><td>arXiv v3 · COLM 2024</td><td>摘要；改进器自应用、冻结基础模型的范围</td></tr><tr><td><a href="https://arxiv.org/html/2505.22954v3" target="_blank" rel="noopener">Darwin Gödel Machine</a><br><code>dgm</code></td><td>arXiv v3 · 2026-03-12</td><td>全文 §3、§4.2–4.4、附录 C.2/C.4/E；档案、权重方向、基准口径</td></tr><tr><td><a href="https://arxiv.org/html/2510.21614v3" target="_blank" rel="noopener">Huxley-Gödel Machine</a><br><code>hgm</code></td><td>arXiv v3 · 2025-10-29</td><td>全文 Assumption 1、§3.2–3.3、附录 D；CMP 三种口径与定理边界</td></tr><tr><td><a href="https://arxiv.org/abs/2410.04444v4" target="_blank" rel="noopener">Gödel Agent</a><br><code>godel-agent</code></td><td>arXiv v4 · ACL 2025</td><td>摘要/元数据；自修改方法定位，未复现实验</td></tr><tr><td><a href="https://arxiv.org/abs/1506.02629" target="_blank" rel="noopener">Generalization in Adaptive Data Analysis and Holdout Reuse</a><br><code>adaptive</code></td><td>arXiv 1506.02629</td><td>摘要；自适应数据复用问题定位</td></tr><tr><td><a href="https://arxiv.org/html/2107.03374v2" target="_blank" rel="noopener">Evaluating Large Language Models Trained on Code</a><br><code>humaneval</code></td><td>arXiv v2</td><td>全文 §2.1、附录 A；pass@k 的组合估计与插件估计偏差</td></tr><tr><td><a href="https://arxiv.org/html/2406.12045v1" target="_blank" rel="noopener">τ-bench: A Benchmark for Tool-Agent-User Interaction</a><br><code>tau</code></td><td>arXiv v1</td><td>全文指标部分；pass^k 可靠性口径</td></tr><tr><td><a href="https://arxiv.org/abs/2306.05685" target="_blank" rel="noopener">Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena</a><br><code>judge</code></td><td>arXiv 2306.05685</td><td>摘要；位置、冗长和自我偏好等 judge 局限</td></tr><tr><td><a href="https://arxiv.org/abs/2210.10760" target="_blank" rel="noopener">Scaling Laws for Reward Model Overoptimization</a><br><code>overoptimization</code></td><td>arXiv 2210.10760</td><td>摘要；代理奖励与目标奖励的偏离</td></tr><tr><td><a href="https://arxiv.org/abs/2312.06942" target="_blank" rel="noopener">AI Control: Improving Safety Despite Intentional Subversion</a><br><code>control</code></td><td>arXiv 2312.06942</td><td>摘要；对手模型下的控制协议定位</td></tr><tr><td><a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/SAFETY.md" target="_blank" rel="noopener">DeepSeek Harness · SAFETY.md</a><br><code>dsh-safety</code></td><td>commit ddefc45fbc7f8e46dd73185e68295696d1297887</td><td>完整文件；实验状态、未审计与隔离限制。不是全仓安全验证</td></tr><tr><td><a href="https://arxiv.org/abs/2303.17651" target="_blank" rel="noopener">Self-Refine: Iterative Refinement with Self-Feedback</a><br><code>self-refine</code></td><td>arXiv 2303.17651</td><td>摘要；推理时反馈改写，无额外训练</td></tr><tr><td><a href="https://arxiv.org/abs/2303.11366" target="_blank" rel="noopener">Reflexion: Language Agents with Verbal Reinforcement Learning</a><br><code>reflexion</code></td><td>arXiv 2303.11366</td><td>摘要；语言反馈与记忆路线</td></tr><tr><td><a href="https://arxiv.org/abs/2305.16291" target="_blank" rel="noopener">Voyager: An Open-Ended Embodied Agent</a><br><code>voyager</code></td><td>arXiv 2305.16291</td><td>摘要；课程、技能与探索路线</td></tr><tr><td><a href="https://arxiv.org/abs/2203.14465" target="_blank" rel="noopener">STaR: Bootstrapping Reasoning With Reasoning</a><br><code>star</code></td><td>arXiv 2203.14465</td><td>摘要；生成、筛选推理与微调闭环</td></tr><tr><td><a href="https://arxiv.org/abs/1703.03400" target="_blank" rel="noopener">Model-Agnostic Meta-Learning</a><br><code>maml</code></td><td>arXiv 1703.03400</td><td>摘要；快速适应的元学习定位</td></tr><tr><td><a href="https://arxiv.org/abs/2003.03384" target="_blank" rel="noopener">AutoML-Zero: Evolving Machine Learning Algorithms From Scratch</a><br><code>automl-zero</code></td><td>arXiv 2003.03384</td><td>摘要；学习算法的程序搜索路线</td></tr><tr><td><a href="https://arxiv.org/abs/2408.08435" target="_blank" rel="noopener">Automated Design of Agentic Systems</a><br><code>adas</code></td><td>arXiv 2408.08435</td><td>摘要与 DGM 相关工作；固定 meta-agent 对照定位</td></tr><tr><td><a href="https://arxiv.org/abs/1901.01753" target="_blank" rel="noopener">Paired Open-Ended Trailblazer (POET)</a><br><code>poet</code></td><td>arXiv 1901.01753</td><td>摘要；环境与解法共同演化定位</td></tr><tr><td><a href="https://deepmind.google/blog/funsearch-making-new-discoveries-in-mathematical-sciences-using-large-language-models/" target="_blank" rel="noopener">Mathematical discoveries from program search with large language models</a><br><code>funsearch</code></td><td>作者机构发布 · 2023-12-14</td><td>作者机构说明；程序搜索与外部评估定位，论文入口未成功读取</td></tr><tr><td><a href="https://code.claude.com/docs/en/sandboxing" target="_blank" rel="noopener">Claude Code · Sandboxing</a><br><code>claude-sandbox</code></td><td>产品文档 · 检查于 2026-09-19</td><td>沙箱文档；纠正旧站“无内置 OS 沙箱”的断言</td></tr><tr><td><a href="https://arxiv.org/abs/2512.08093" target="_blank" rel="noopener">Training LLMs for Honesty via Confessions</a><br><code>confessions</code></td><td>arXiv 2512.08093 · 首次提交 2025-12</td><td>元数据；修正年份，不代表全文复现</td></tr><tr><td><a href="https://job-boards.greenhouse.io/anthropic/jobs/5198255008" target="_blank" rel="noopener">Anthropic · Research Engineer, Model Evaluations</a><br><code>job-evals</code></td><td>招聘页，2026-09-19 访问</td><td>核对职责、最低/优选资格与代表性项目；用于能力分析，不保证持续开放。</td></tr><tr><td><a href="https://job-boards.greenhouse.io/anthropic/jobs/5283063008" target="_blank" rel="noopener">Anthropic · Software Engineer, Research Infrastructure</a><br><code>job-infra</code></td><td>招聘页，2026-09-19 访问</td><td>核对职责和资格；海外资深岗位样本，不代表国内总体需求。</td></tr><tr><td><a href="https://job-boards.greenhouse.io/anthropic/jobs/5390811008" target="_blank" rel="noopener">Anthropic · Applied AI, Research Engineer</a><br><code>job-applied</code></td><td>招聘页，2026-09-19 访问</td><td>核对角色说明与职责中的原型、评测和技术沟通；不是面试题来源。</td></tr><tr><td><a href="https://github.com/datawhalechina/hello-agents/blob/203e9fac88b23291b407f76549e250fd51c295e3/Extra-Chapter/Extra01-%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93.md" target="_blank" rel="noopener">Datawhale 社区 · LLM &amp; VLM &amp; Agent 面试问题总结</a><br><code>interview-dw</code></td><td>commit 203e9fac88b23291b407f76549e250fd51c295e3</td><td>作者称整理自 2025 秋招多次真实技术面试。核对声明与 Agent/RAG/评估主题；个人自述，未独立验证，不作为技术原理依据。</td></tr><tr><td><a href="https://notes.kamacoder.com/interview/llm/20260506bytedance.html" target="_blank" rel="noopener">卡码 · 字节 Agent 开发四面面经（转载与编辑整理）</a><br><code>interview-byte</code></td><td>网页 2026-09-19 访问；原始分享不在本站</td><td>核对公开转载的候选人经历及编辑提炼的问题主题；未访问付费原帖。不可作为企业标准题库或技术答案权威。</td></tr><tr><td><a href="https://github.com/SWE-agent/mini-SWE-agent/blob/04d809ceab9df28f9adaed044884180159172930/src/minisweagent/agents/default.py" target="_blank" rel="noopener">mini-SWE-agent · DefaultAgent 源码</a><br><code>mini-code</code></td><td>commit 04d809ceab9df28f9adaed044884180159172930</td><td>核对 run/step/query/execute_actions、预算检查与轨迹保存；未安装或跑榜。</td></tr><tr><td><a href="https://github.com/UKGovernmentBEIS/inspect_ai/blob/ec4dfc6953784dc45b79de3147530c89868c6e26/src/inspect_ai/_eval/task/task.py" target="_blank" rel="noopener">Inspect AI · Task 源码</a><br><code>inspect-code</code></td><td>commit ec4dfc6953784dc45b79de3147530c89868c6e26</td><td>核对 Task 构造参数及 dataset/solver/scorer、限制、错误处理说明；未实测适配。</td></tr><tr><td><a href="https://github.com/harbor-framework/harbor/blob/2993946dd5b64a46dac3aa766d03065f432a1468/src/harbor/trial/trial.py" target="_blank" rel="noopener">Harbor · Trial 源码</a><br><code>harbor-code</code></td><td>commit 2993946dd5b64a46dac3aa766d03065f432a1468</td><td>核对 Trial 文件前 180 行：任务/环境/verifier 依赖、路径和初始化关系；非完整生命周期审计。</td></tr><tr><td><a href="https://docs.harborframework.com/tutorials/create-a-task" target="_blank" rel="noopener">Harbor 官方 · Create a task</a><br><code>harbor-task</code></td><td>在线文档 2026-09-19</td><td>核对任务文件、init/oracle/view 命令与 reward 文件；未在本仓库运行 Harbor。</td></tr><tr><td><a href="https://docs.harborframework.com/core-concepts/tasks/separate-verifier" target="_blank" rel="noopener">Harbor 官方 · Separate verifier</a><br><code>harbor-verifier</code></td><td>在线文档 2026-09-19</td><td>核对默认共享环境、显式 separate 配置、镜像选择和 artifact 传递；运行时兼容性待学习者验证。</td></tr><tr><td><a href="https://github.com/gepa-ai/gepa/blob/15ee314f9c7d34ec153b809d401f42f55c4dcd76/src/gepa/core/adapter.py" target="_blank" rel="noopener">GEPA · GEPAAdapter / EvaluationBatch 源码</a><br><code>gepa-code</code></td><td>commit 15ee314f9c7d34ec153b809d401f42f55c4dcd76</td><td>核对接口与逐样本输出/反馈/错误语义，前 180 行；未实现本项目 GEPA 插件。</td></tr><tr><td><a href="https://github.com/gepa-ai/gepa" target="_blank" rel="noopener">GEPA 官方仓库 · 反思优化</a><br><code>gepa-overview</code></td><td>README 2026-09-19</td><td>核对文本候选、轨迹反馈和适配器定位；未引用宣传收益或声称复现。</td></tr><tr><td><a href="https://docs.ollama.com/api/chat" target="_blank" rel="noopener">Ollama 官方 · Generate a chat message</a><br><code>ollama-chat</code></td><td>在线 API 文档 2026-09-19</td><td>核对本机 /api/chat、messages、stream、format 和 usage 字段；本仓库只做 HTTP 契约 mock 测试，未运行真实权重。</td></tr></tbody></table></div>
+  <p class="reading-note">补充或修正资料，请参阅 <a href="CONTRIBUTING.md">贡献说明</a>。历史勘误见 <a href="docs/content-audit.md">内容审计记录</a>。</p>
 </section>
 
 <section class="chapter" id="ch-capstone">
-  <span class="ch-kicker">实战主线 P0 · 建议第 1 周 · 8–12 小时</span>
-  <h1>RepoOps Lab：把工程、评测与就业连起来</h1>
-  <p class="lead">你要交付一个仓库运维 Agent 的评测与改进平台：输入故障工单，检索版本化运行手册与日志，形成有证据的处置建议；随后把它升级为可在隔离环境修复仓库的 Agent。平台负责可靠运行、独立评分、公平比较与受约束的候选搜索。贯穿始终的问题是：这个改动究竟有没有帮助，付出了多少代价？</p>
-  <div class="callout info"><span class="t">完成状态先讲清楚</span>本仓库提供可运行的 Python 入门实现、12 个自编公开任务、SQLite 结果存储、离线策略、可选本机 Ollama 适配器与自动测试。P1–P4、P6 的基础机制可以立即拆解。Go 分布式控制面、混合检索、Harbor 实验、GEPA 接入和递归收益属于本课程的进阶实现作业，给出接口、步骤与验收方案；不是已经上线的产品。离线策略是人为编写的规则，成绩不是 LLM 能力证据。</div>
-  <h2>先定位工作，再决定学什么</h2>
-  <p>本课程以已有编程和后端基础的学习者为默认读者，Python 承担 Agent 与实验层，Go 可用于后期控制面。若 Python 的类型、异常、迭代器和测试尚不熟练，先用一周重写一个 JSONL 校验器；若 HTTP、事务、索引和并发取消不熟，P5 多留一周。时间表按每周 10–15 小时估算，验收没过就顺延，不把读完章节等同于能力达标。</p>
-  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>岗位方向</th><th>招聘原文所体现的工作</th><th>本项目应交付的证据</th><th>适配边界</th></tr></thead><tbody>
-    <tr><td>Agent / AI 应用工程</td><td>围绕实际需求做原型、评测与技术解释</td><td>可演示的工具循环、检索错误分析、可靠降级</td><td>优先入口；具体语言和业务以目标 JD 为准</td></tr>
-    <tr><td>评测工程 / Research Engineer</td><td>把能力定义成指标、运行评测、定位回归、分析 scaffold 影响</td><td>版本化任务集、独立评分、配对实验与负结果</td><td>需要补 Python 与统计，不能只有 API 包装</td></tr>
-    <tr><td>AI 基础设施 / 研究平台后端</td><td>设计和运营可靠、可扩展的研究基础设施</td><td>租约与恢复演练、容量报告、数据一致性说明</td><td>后端经验可迁移；个人负载实验不能冒充生产经验</td></tr>
-  </tbody></table></div>
-  <p>岗位样本来自 Anthropic 的 Model Evaluations、Research Infrastructure、Applied AI Research Engineer 招聘页。它们用于识别工作能力，并不代表中国招聘市场比例，也不表示这些海外岗位适合所有人的地点、资历和工作资格。检索日期为 2026-09-19，申请前重查岗位状态。<cite data-source="job-evals"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5198255008" target="_blank" rel="noopener">[job-evals]</a></cite><cite data-source="job-infra"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5283063008" target="_blank" rel="noopener">[job-infra]</a></cite><cite data-source="job-applied"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5390811008" target="_blank" rel="noopener">[job-applied]</a></cite></p>
-  <h2>真实面经怎样进入课程</h2>
-  <p>Datawhale 的社区作者说明，其问题整理自 2025 秋招多次线上技术面试，覆盖 Agent、RAG、评估等方向；本站核对了该声明和相关条目，但不能独立验证每次面试。卡码的字节 Agent 暑期实习四面文章转载了候选人经历，并由编辑重新组织问题与回答；这是有中间整理环节的公开自述，不是公司题库。本站只抽取考察主题，技术解释仍依据源码和官方文档。<cite data-source="interview-dw"><a href="https://github.com/datawhalechina/hello-agents/blob/203e9fac88b23291b407f76549e250fd51c295e3/Extra-Chapter/Extra01-%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93.md" target="_blank" rel="noopener">[interview-dw]</a></cite><cite data-source="interview-byte"><a href="https://notes.kamacoder.com/interview/llm/20260506bytedance.html" target="_blank" rel="noopener">[interview-byte]</a></cite></p>
-  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>公开面经中的主题</th><th>转化为项目任务</th><th>可拿出来回答的材料</th></tr></thead><tbody>
-    <tr><td>Agent 组成、工具使用和终止</td><td>P2 手写受限循环，注入非法工具响应</td><td>一条完整失败轨迹和状态转换解释</td></tr>
-    <tr><td>RAG 的检索与生成评估</td><td>P3 分开量召回与答案证据</td><td>检索消融、丢失证据的案例</td></tr>
-    <tr><td>Judge 偏差、鲁棒性与成本</td><td>P4/P6 做校准与故障分类</td><td>误判矩阵、成本账本、定位时间</td></tr>
-    <tr><td>上下文、框架选型与工程治理</td><td>P5/P8 比较自研循环和开源执行框架</td><td>架构决策记录、迁移前后的契约检查</td></tr>
-  </tbody></table></div>
-  <h2>16 周主线：每一步有可交付结果</h2>
-  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>周次</th><th>章节</th><th>完成定义</th><th>同步求职动作</th></tr></thead><tbody>
+  <span class="ch-kicker">RepoOps Lab / P0 · 项目介绍</span>
+  <h1>RepoOps Lab：从工单到实验</h1>
+  <p class="lead">checkout 服务发布后报错。工单建议回滚，新版手册却要求扩容连接池。这个项目从一件小事开始：让 Agent 找到当前有效的依据，给出处置建议，然后检查它有没有答对。</p>
+  <h2>先运行示例</h2>
+  <p>在仓库根目录执行下面的命令。需要 Python 3.10+，无需安装依赖或配置 API key。</p>
+  <div class="codeblock"><div class="cb-head">运行两种规则策略</div><pre data-lang="bash">python -m projects.repoops.runner demo
+python -m unittest discover -s tests -v</pre></div>
+  <p>结果写入 <code>lab-output/repoops/summary.json</code> 和两份策略报告。开发集有 6 张工单，来自 3 个服务家族。naive 直接采用工单建议，evidence 读取当前手册；示例中预期严格通过率分别为 0 和 1。这是人为构造的规则对照，用来检查运行和评分流程，不能据此判断 LLM 能力。</p>
+  <h2>跟着一张工单走一遍</h2>
+  <p>打开 <a href="projects/repoops/data/tasks.json">tasks.json</a> 中的 <code>checkout-0</code>。故障记录包含 <code>error=POOL_EXHAUSTED</code> 和建议 <code>rollback_release</code>；旧手册也支持回滚，但 revision 2 已将处置改为 <code>resize_pool</code>。</p>
+  <ol>
+    <li><strong>检索：</strong>用 search 查找故障记录与手册，用 read 读取原文。过期手册和不可信评论也在文档集中。</li>
+    <li><strong>回答：</strong>用 finish 返回 <code>resize_pool</code>，引用 <code>checkout-incident-0</code> 与 <code>checkout-runbook</code>。</li>
+    <li><strong>评分：</strong>循环结束后，评分器检查答案、引用是否存在、是否实际读过，以及是否覆盖要求的依据。</li>
+  </ol>
+  <p>现在的程序只返回建议。P8 才加入隔离环境中的文件修改，随后比较不同搜索策略，以及更新修改器是否有效。</p>
+  <h2>从现有代码开始扩展</h2>
+  <p>仓库已有 12 张公开教学工单、Python Agent 循环、SQLite 结果存储、规则策略和可选的本机 Ollama 适配器。代码入口见 <a href="projects/repoops/README.md">RepoOps README</a>。</p>
+  <p>混合检索、Go 调度服务、Harbor 迁移、GEPA 接入和修改器实验由后续章节逐步实现，目前提供设计与练习。全程默认有 Python 和后端基础；如果还不熟悉异常处理、HTTP、事务或并发取消，可在相应章节多留一周。</p>
+  <h2>16 周安排</h2>
+  <p>按每周 10–15 小时估算。先读 P1–P4，完成数据、循环、检索和评分；遇到统计或论文问题，再回查研究章节。<a href="#/capstone-career">P11</a> 整理了岗位样本和面试练习，可从第一周开始用。</p>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>周次</th><th>章节</th><th>项目进度</th><th>求职安排</th></tr></thead><tbody>
     <tr><td>1</td><td>P0–P1</td><td>跑通示例；写任务卡和目标岗位矩阵</td><td>收集 10 个真实 JD，选择一个主方向</td></tr>
     <tr><td>2–3</td><td>P2–P3</td><td>真实模型最小闭环；检索失败可解释</td><td>录制 3 分钟演示，找同行做项目追问</td></tr>
     <tr><td>4</td><td>P4</td><td>评分规则通过反例；第一版作品页</td><td>开始小批匹配岗位投递</td></tr>
     <tr><td>5–6</td><td>P5</td><td>队列、租约与恢复；演练重复执行</td><td>准备后端系统设计答辩</td></tr>
-    <tr><td>7</td><td>P6</td><td>能从一次回归定位模型/数据/基础设施</td><td>把故障复盘写成第二个项目故事</td></tr>
+    <tr><td>7</td><td>P6</td><td>能从一次回归定位模型/数据/基础设施</td><td>整理一次故障复盘</td></tr>
     <tr><td>8–9</td><td>P7</td><td>冻结协议，完成一次真实预算对照</td><td>评测岗位版本简历与模拟面试</td></tr>
     <tr><td>10–11</td><td>P8</td><td>迁移一个任务到 Harbor，跑通 oracle 与基线</td><td>阅读并提交一个小型开源修复或测试</td></tr>
-    <tr><td>12–13</td><td>P9</td><td>固定预算比较反思搜索和随机搜索</td><td>用负结果解释工程取舍</td></tr>
+    <tr><td>12–13</td><td>P9</td><td>固定预算比较反思搜索和随机搜索</td><td>准备实验失败与取舍的说明</td></tr>
     <tr><td>14–15</td><td>P10</td><td>完成改进器更新消融或报告证据不足</td><td>研究工程方向技术报告</td></tr>
     <tr><td>16</td><td>P11</td><td>第三方复现、项目答辩和查漏补缺</td><td>按面试反馈改材料和能力短板</td></tr>
   </tbody></table></div>
-  <p>赶求职时，先交付 P1–P7 的一个扎实版本；P8–P10 提供后续深度。不能为了“先进”把本应验证的单 Agent 问题提前变成多 Agent、Kubernetes 和强化学习的组合。</p>
-  <h2>开源项目的具体分工</h2>
-  <p><strong>mini-SWE-agent</strong> 用来读清 model/environment/agent 的职责与循环预算；<strong>Inspect AI</strong> 用来学习任务、solver、scorer 和运行限制的分离；<strong>Harbor</strong> 承载隔离任务、验证器和基准迁移；<strong>GEPA</strong> 用轨迹反馈优化文本参数。这里只保留一条主栈，Inspect 先作为设计对照，不要求第一周同时安装四套框架。固定源码提交和精读路径见 <a href="docs/capstone/source-map.md">源码与面经映射</a>。<cite data-source="mini-code"><a href="https://github.com/SWE-agent/mini-SWE-agent/blob/04d809ceab9df28f9adaed044884180159172930/src/minisweagent/agents/default.py" target="_blank" rel="noopener">[mini-code]</a></cite><cite data-source="inspect-code"><a href="https://github.com/UKGovernmentBEIS/inspect_ai/blob/ec4dfc6953784dc45b79de3147530c89868c6e26/src/inspect_ai/_eval/task/task.py" target="_blank" rel="noopener">[inspect-code]</a></cite><cite data-source="harbor-code"><a href="https://github.com/harbor-framework/harbor/blob/2993946dd5b64a46dac3aa766d03065f432a1468/src/harbor/trial/trial.py" target="_blank" rel="noopener">[harbor-code]</a></cite><cite data-source="gepa-code"><a href="https://github.com/gepa-ai/gepa/blob/15ee314f9c7d34ec153b809d401f42f55c4dcd76/src/gepa/core/adapter.py" target="_blank" rel="noopener">[gepa-code]</a></cite></p>
-  <h2>现在运行第一版</h2>
-  <div class="codeblock"><div class="cb-head">在仓库根目录 · Python 3.10+ · 无 API key</div><pre data-lang="bash">python -m projects.repoops.runner demo
-python -m unittest discover -s tests -v</pre></div>
-  <p>打开 <code>lab-output/repoops/summary.json</code> 和两份策略报告。开发集含 6 个任务、3 个服务家族；naive 预期严格通过率 0，evidence 为 1。这个刻意构造的教学差异检验“读取证据再作答”的流水线，不具备真实能力结论。后续所有简历数字必须换成你自己的真实测量，并交代样本、预算与限制。</p>
-  <p class="research-next">下一步：<a href="#/capstone-data">P1 任务契约与数据集</a>。配套代码说明：<a href="projects/repoops/README.md">RepoOps README</a>。</p>
+  <p>赶求职时，可先完成 P1–P7；P8–P10 提供后续深度。这些章节分别引入隔离执行、候选搜索和修改器更新，需要前面的评测系统支持。</p>
+  <h2>需要读哪些开源代码</h2>
+  <ul>
+    <li><strong>mini-SWE-agent：</strong>读 model、environment、agent 的职责，以及循环如何终止。<cite data-source="mini-code"><a href="https://github.com/SWE-agent/mini-SWE-agent/blob/04d809ceab9df28f9adaed044884180159172930/src/minisweagent/agents/default.py" target="_blank" rel="noopener">[mini-code]</a></cite></li>
+    <li><strong>Inspect AI：</strong>对照 task、solver、scorer 的分离方式与运行限制。<cite data-source="inspect-code"><a href="https://github.com/UKGovernmentBEIS/inspect_ai/blob/ec4dfc6953784dc45b79de3147530c89868c6e26/src/inspect_ai/_eval/task/task.py" target="_blank" rel="noopener">[inspect-code]</a></cite></li>
+    <li><strong>Harbor：</strong>学习任务环境、验证器和基准运行，P8 迁移一张任务。<cite data-source="harbor-code"><a href="https://github.com/harbor-framework/harbor/blob/2993946dd5b64a46dac3aa766d03065f432a1468/src/harbor/trial/trial.py" target="_blank" rel="noopener">[harbor-code]</a></cite></li>
+    <li><strong>GEPA：</strong>在 P9 接入轨迹反馈，比较文本参数的优化方法。<cite data-source="gepa-code"><a href="https://github.com/gepa-ai/gepa/blob/15ee314f9c7d34ec153b809d401f42f55c4dcd76/src/gepa/core/adapter.py" target="_blank" rel="noopener">[gepa-code]</a></cite></li>
+  </ul>
+  <p>阅读使用的提交版本和文件路径见 <a href="docs/capstone/source-map.md">源码阅读索引</a>。第一阶段只需要本仓库的 Python 实现。</p>
 </section>
 
 <section class="chapter" id="ch-capstone-data">
-  <span class="ch-kicker">实战主线 P1 · 第 1 周 · 前置：JSON、测试、Git</span>
-  <h1>先定义任务，再决定 Agent 怎么写</h1>
-  <p class="lead">这一阶段完成任务集 v0。输入是一张工单及允许访问的文档集合；输出是处置代码和证据 ID；成功由外部规则决定。先让一个不接模型的完整评测跑通，避免把评分器故障误判为模型能力不足。</p>
-  <h2>一条数据同时有三个视图</h2>
+  <span class="ch-kicker">RepoOps Lab / P1 · 第 1 周 · 前置：JSON、测试、Git</span>
+  <h1>任务数据与评分字段</h1>
+  <p class="lead">一张工单包含任务描述、可检索文档和参考答案。Agent 需要读到前两者，评分器还需要参考答案。本章从这个数据分工开始，加入拆分检查和断点续跑。</p>
+  <h2>工单、环境与参考答案</h2>
   <p>打开 <a href="projects/repoops/data/tasks.json">tasks.json</a> 的第一条记录。学习夹具把所有内容放在一个文件，便于检查；进入真实实验后必须按访问权限拆开。公开 prompt 告诉 Agent 要处理哪张工单；documents 是工具可访问的环境；expected_answer 和 required_citations 只属于评分器。<code>run_agent</code> 只接收 prompt 与 documents，<code>grade</code> 在循环结束后评分。进程内参数分离是设计习惯，不是防恶意代码的隔离措施。</p>
   <div class="codeblock"><div class="cb-head">核心契约 · 具体实例见数据文件</div><pre data-lang="json">{
   "id": "checkout-0", "family": "checkout", "split": "dev",
@@ -1901,61 +1875,60 @@ python -m unittest discover -s tests -v</pre></div>
     <li><strong>补 6 张原创任务卡。</strong>覆盖规则冲突、缺失证据、误导评论、无关检索结果、工具超时和多个正确处置。每张卡配一个人工 oracle 答案与一个应失败的 mutant。</li>
     <li><strong>保存版本。</strong>记录原始数据来源、使用许可、脱敏规则、family、任务哈希与评分版本。不要把公司的内部工单、客户日志或密钥加入公开作品。</li>
   </ol>
-  <h2>第一组可复现命令</h2>
+  <h2>运行与续跑</h2>
   <div class="codeblock"><div class="cb-head">同一配置自动续跑；保存 stdout 的 run ID</div><pre data-lang="bash">python -m projects.repoops.runner run --policy evidence --limit 2
 python -m projects.repoops.runner run --policy evidence
 python -m projects.repoops.runner report RUN_ID
 python -m projects.repoops.runner run --policy evidence --split test_public</pre></div>
   <p>把 <code>RUN_ID</code> 替换为前两条命令打印的 64 位值。前两次 ID 应一致，已落库 trial 不再运行；数据、代码、prompt、模型版本或预算变化会生成新 ID。报告的 <code>complete</code> 为 false 时，只能用于调试，不能拿部分成功样本汇报总成绩。重复次数变化也属于新实验。</p>
-  <h2>数据集扩展不能靠换词凑题数</h2>
+  <h2>同源任务与数据拆分</h2>
   <p>正式作品的第一版可从 20–40 个经人工确认的任务开始，这只是课程规模建议，不是统计充分性的保证。按故障机制和仓库来源分层，记录原始任务、改写任务与自动生成任务。十张共用同一处置规则的工单可能只提供很少的独立信息；置信区间要在家族或仓库层聚类。不要用开发时看过的旧题重新命名为确认集。</p>
-  <div class="research-exercise"><h3>验收与面试证据</h3><p>交付 <code>dataset-card.md</code>：目标工作流、任务来源、正负例、拆分依据、oracle、已知泄漏和排除项。请另一人只读任务描述独立标 5 题，记录分歧。能回答“为什么你的 40 题不是 40 个独立样本”“一次评分失败能否归因给 Agent”才过关。</p><details><summary>本站练习：为什么不一开始用 LLM 自动生成一万题？</summary><p>规模会掩盖任务相关性、标签偏差与模版重复。先用小样本检验任务有效性与评分器，再扩展生成、去重和人工审计。自动生成可以增广训练/开发数据，但不能替代独立的目标任务分布。</p></details></div>
-  <p class="research-next">下一步：<a href="#/capstone-agent">P2 Agent 循环</a>。理论回查：<a href="#/research-contract">R1 系统边界</a>。</p>
+  <div class="research-exercise"><h3>练习：独立标注五张工单</h3><p>在 <code>dataset-card.md</code> 中记录任务来源、正负例、拆分依据、参考答案和排除项。请另一人只读任务描述，独立标注 5 题；比较分歧，判断问题来自任务歧义还是评分规则。再检查 40 张工单中，有多少共享同一故障机制。</p><details><summary>本站练习：为什么不一开始用 LLM 自动生成一万题？</summary><p>规模会掩盖任务相关性、标签偏差与模版重复。先用小样本检验任务有效性与评分器，再扩展生成、去重和人工审计。自动生成可以增广训练/开发数据，但不能替代独立的目标任务分布。</p></details></div>
+  <p class="reading-note">相关：<a href="#/research-contract">R1 系统边界</a>。</p>
 </section>
 
 <section class="chapter" id="ch-capstone-agent">
-  <span class="ch-kicker">实战主线 P2 · 第 2 周 · 前置：P1、异常与 HTTP</span>
-  <h1>让 Agent 的每一步都能解释、终止和重放</h1>
-  <p class="lead">完成一个 search → read → finish 的 Agent 循环。你应能指出一次错误究竟发生在模型、解析器、工具、上下文还是终止逻辑，而不只是说“模型不够聪明”。</p>
+  <span class="ch-kicker">RepoOps Lab / P2 · 第 2 周 · 前置：P1、异常与 HTTP</span>
+  <h1>Agent 循环与工具协议</h1>
+  <p class="lead">RepoOps 只提供 search、read、finish 三个工具。模型决定下一步，程序负责解析和执行。非法参数、工具超时和预算耗尽，都需要在循环中有明确的处理分支。</p>
   <h2>从源码看控制流</h2>
   <p>精读 mini-SWE-agent 固定提交中的 <code>DefaultAgent.run / step / query / execute_actions</code>：run 管异常与保存，step 组织查询和执行，query 检查限制并记账，environment 执行动作。注意费用限制可能在上一次调用已超限后才阻止下一次调用；预算检查的时机是工程语义的一部分。本站借鉴职责划分，没有复制其全部工具、并发或安全能力。<cite data-source="mini-code"><a href="https://github.com/SWE-agent/mini-SWE-agent/blob/04d809ceab9df28f9adaed044884180159172930/src/minisweagent/agents/default.py" target="_blank" rel="noopener">[mini-code]</a></cite></p>
   <div class="codeblock"><div class="cb-head">实现顺序</div><pre data-lang="text">创建初始消息 → 检查剩余预算 → 调用 policy
 → 记录调用与 usage → 严格解析动作
 → finish: 提交结果；search/read: 取观察并追加消息
 → 下一步；异常或预算耗尽: 写明终态并交给评分器</pre></div>
-  <h2>把三层契约拆开</h2>
+  <h2>模型响应、工具参数与执行权限</h2>
   <p><strong>模型层</strong>返回文本和 usage，不决定是否成功。<strong>动作层</strong>只接受严格字段集：search/query、read/id、finish/answer/citations；未知工具和额外字段直接结束为 invalid_output。<strong>环境层</strong>只查询内存文档，无 shell、文件写入和网络工具。即便文档写着“删除日志”，它也不能增加工具权限。</p>
   <p>输入范围收窄以后，仍不能宣称解决了 prompt injection：模型可能选择错误答案、漏读证据或反复调用。代码里的规则策略抗注入测试只证明该夹具和分发器的行为，不能推断真实 LLM 的鲁棒性。</p>
-  <h2>亲手改造，而不是只运行</h2>
+  <h2>加入错误分支与循环上限</h2>
   <ol>
     <li>在 <a href="projects/repoops/agent.py">agent.py</a> 中跟踪 checkout-0 的四个动作；给每个字段写出消费者。删除一步 read，观察哪条评分条件失效。</li>
     <li>用 <code>--max-steps 2</code> 运行 evidence，确认 budget_exhausted 仍有 trial 和调用计数。失败调用也必须计入成本，不能靠重试抹掉。</li>
     <li>加入一个格式修复机会：只把 schema 错误交还模型，不暴露 expected_answer；修复也消耗同一个总预算。先固定协议，再比较“不修复/一次修复”。这是作业，不是默认实现。</li>
     <li>保留只读工具，接本机真实模型。首先跑一题，人工检查完整轨迹，再扩大到开发集。不要先让模型操作主机 shell。</li>
   </ol>
-  <h2>可选：用本机 Ollama 做第一轮真实调用</h2>
+  <h2>接入本机 Ollama</h2>
   <p>准备已经安装好权重、监听 <code>127.0.0.1:11434</code> 的 Ollama。执行前记录本机模型的精确 digest；模型名可指向不同权重，单记名字不够。适配器使用官方 <code>/api/chat</code> 的 messages、stream=false、format=json 和 token usage 字段。本仓库未预装模型，本次维护未测量真实模型质量。<cite data-source="ollama-chat"><a href="https://docs.ollama.com/api/chat" target="_blank" rel="noopener">[ollama-chat]</a></cite></p>
   <div class="codeblock"><div class="cb-head">将两个占位值换成你的本机模型信息</div><pre data-lang="bash">python -m projects.repoops.runner run --policy ollama \
   --model YOUR_LOCAL_MODEL --model-revision YOUR_MODEL_DIGEST \
   --limit 1 --max-steps 6 --timeout 120
 python -m projects.repoops.runner report RUN_ID</pre></div>
   <p>这是 JSON 动作协议，没有使用 Ollama 原生 tool-calling API。故障优先查：服务未启动、模型未安装、JSON 缺字段、finish 太早、上下文遗漏。温度为零不保证跨硬件与版本逐字复现；保留原始观察、usage 和模型修订。HTTP timeout 是单次请求等待限制，当前实现没有进程级硬取消，后续执行 worker 需要外部 deadline。</p>
-  <div class="research-exercise"><h3>验收与就业产物</h3><p>提交一个 3 分钟终端演示：正确任务、未知错误拒答、非法工具、预算耗尽各一次。准备一页 Agent loop 图和一份失败轨迹。解释“function calling 只规定接口，工具执行和权限检查在哪层”“取消 HTTP 等待为什么不等于服务端推理停止”。面经映射：Datawhale Agent §4 的工具使用与复杂性主题。<cite data-source="interview-dw"><a href="https://github.com/datawhalechina/hello-agents/blob/203e9fac88b23291b407f76549e250fd51c295e3/Extra-Chapter/Extra01-%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93.md" target="_blank" rel="noopener">[interview-dw]</a></cite></p></div>
-  <p class="research-next">下一步：<a href="#/capstone-retrieval">P3 检索与记忆</a>。</p>
+  <div class="research-exercise"><h3>练习：记录四种终止情况</h3><p>录制一次终端运行，覆盖正常作答、未知错误拒答、非法工具和预算耗尽。选一条失败轨迹，沿代码指出终止发生的位置。再回答：function calling 定义了接口，谁负责执行与权限检查？取消 HTTP 等待后，服务端推理是否仍可能继续？</p></div>
 </section>
 
 <section class="chapter" id="ch-capstone-retrieval">
-  <span class="ch-kicker">实战主线 P3 · 第 3 周 · 前置：P2、排序与向量基础</span>
-  <h1>检索与记忆：把回答错误拆成可以修的部分</h1>
-  <p class="lead">这一阶段扩展 RepoOps 的文档数量和版本冲突，使简单词匹配开始失败。目标不是尽快接上向量数据库，而是能证明是哪一段检索/上下文改动改善了最终任务。</p>
-  <h2>当前基线与需要突破的地方</h2>
-  <p><code>Corpus.search</code> 用小写英文词的集合重合数排序，最多返回 5 个标题；它不是 BM25，也没有中文分词或语义理解。英文教学夹具让机制清晰；改成中文工单、缩写和自然语言后，必须先测词法分词与同义词的影响。不要把这段代码描述为完整 RAG 引擎。</p>
-  <h2>实现顺序：每次只改变一件事</h2>
+  <span class="ch-kicker">RepoOps Lab / P3 · 第 3 周 · 前置：P2、排序与向量基础</span>
+  <h1>检索、上下文与记忆</h1>
+  <p class="lead">故障记录建议回滚，新版手册却要求扩容连接池。增加文档版本与干扰内容后，单纯的词匹配会开始失效。本章逐项比较检索排序、上下文组装和记忆的影响。</p>
+  <h2>词匹配基线的限制</h2>
+  <p><code>Corpus.search</code> 用小写英文词的集合重合数排序，最多返回 5 个标题；它不是 BM25，也没有中文分词或语义理解。英文教学夹具让机制清晰；改成中文工单、缩写和自然语言后，必须先测词法分词与同义词的影响。</p>
+  <h2>从词匹配到混合检索</h2>
   <ol>
     <li><strong>检索契约。</strong>输出 <code>doc_id, revision, chunk_id, score, source</code>，引用映射到不可变文档版本；同一内容重新分块不能让原有引用失效。</li>
     <li><strong>词法升级。</strong>实现或接入 BM25，并保留现有基线；先测试错误码、路径和函数名，因为它们常有精确匹配价值。</li>
     <li><strong>语义支路。</strong>固定 embedding 模型、归一化方法与语料 hash。用同一任务和候选池比较词法/向量/融合，而不是更换全部数据后再比较。</li>
-    <li><strong>融合与 rerank。</strong>可用课程设计的 RRF：每个排序贡献 <code>1/(k+rank)</code>，k 在开发集固定。重排只处理前 m 条，记录增加的延迟与调用量。超参数不是越复杂越好。</li>
+    <li><strong>融合与 rerank。</strong>可用 RRF 合并排序：每个排序贡献 <code>1/(k+rank)</code>，k 在开发集固定。重排只处理前 m 条，记录增加的延迟与调用量。在选择集检查这些参数是否改善了检索结果。</li>
     <li><strong>上下文预算。</strong>按证据相关性、文档有效期和 token 预算选择内容；保留任务目标、已读证据 ID 与待验证假设。不要让“摘要更短”覆盖错误码或否定词。</li>
   </ol>
   <h2>检索评估和任务评估同时做</h2>
@@ -1966,17 +1939,16 @@ python -m projects.repoops.runner report RUN_ID</pre></div>
     <tr><td>模型忽略证据？</td><td>答案正确与引用支持分别评分</td><td>oracle 证据仍错误则继续查生成/规则理解</td></tr>
   </tbody></table></div>
   <p>无答案样本的 Recall 分母为零，应单独报告拒答质量；不能把它当作完美检索。一个文档包含正确规则不代表每个引用都支持结论，P4 继续处理。</p>
-  <h2>记忆是另一份会污染实验的数据</h2>
+  <h2>记忆的版本与可见范围</h2>
   <p>短期状态保存当前任务、已经验证的事实和待办；长期记忆保存经验证的通用经验，不写入确认题答案。给 memory 记录来源、适用范围、创建时的代码/模型版本和有效期。运行测试任务时冻结记忆快照；禁止把 test_public 的评分结果回灌，再声称下一次是独立测试。</p>
   <p>第一版用 <code>memory.json</code> 即可：<code>{id, claim, evidence_ids, scope, revision}</code>。读取记忆前校验 scope；用“billing 的修复经验误用于 checkout”作失败练习。若增加 Planner/Executor，多出来的调用与上下文也进预算，先证明单 Agent 的具体瓶颈。</p>
-  <div class="research-exercise"><h3>验收</h3><p>交付检索对照表，至少有原词法、升级检索、oracle 三组，包含任务成功率、证据覆盖、延迟与成本；解释 3 个失败例。面试练习：若 Recall@5 提高、最终成功率下降，依次检查什么？参考思路是证据噪声、版本冲突、截断和生成偏差，不先笼统归咎模型。公开面经的 RAG 分阶段评估和上下文管理主题在此落成实物。<cite data-source="interview-dw"><a href="https://github.com/datawhalechina/hello-agents/blob/203e9fac88b23291b407f76549e250fd51c295e3/Extra-Chapter/Extra01-%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93.md" target="_blank" rel="noopener">[interview-dw]</a></cite><cite data-source="interview-byte"><a href="https://notes.kamacoder.com/interview/llm/20260506bytedance.html" target="_blank" rel="noopener">[interview-byte]</a></cite></p></div>
-  <p class="research-next">下一步：<a href="#/capstone-grading">P4 评分器质量</a>。</p>
+  <div class="research-exercise"><h3>练习：解释召回提高后的掉分</h3><p>比较原词法检索、升级检索和 oracle 证据三组，记录任务成功率、证据覆盖、延迟与成本。如果 Recall@5 上升而最终成功率下降，从版本冲突、干扰内容、截断和生成错误中找出具体原因，附上 3 个失败例。</p></div>
 </section>
 
 <section class="chapter" id="ch-capstone-grading">
-  <span class="ch-kicker">实战主线 P4 · 第 4 周 · 前置：P1–P3、混淆矩阵</span>
-  <h1>评测器要比被测系统更值得信任</h1>
-  <p class="lead">让错误答案、假引用、空拒答、篡改分数和环境异常各有明确去处。你要交付一份评分器审计，而不是一个“judge 说不错”的平均分。</p>
+  <span class="ch-kicker">RepoOps Lab / P4 · 第 4 周 · 前置：P1–P3、混淆矩阵</span>
+  <h1>评分规则与误判检查</h1>
+  <p class="lead">答案正确但引用不存在、拒答过多、环境异常被记成答错，都会扭曲通过率。本章为这些情况编写反例，并在加入自然语言答案后校准 LLM judge。</p>
   <h2>先从可判定的规则开始</h2>
   <p>当前 <code>grade</code> 的通过条件是：status=ok、动作代码正确、引用存在且曾被读取、所需证据齐全。四个维度分别输出，所以你能区分“答案碰巧对”与“证据链完整”。<code>forbidden_action</code> 记录了危险建议，但默认脚本从不真正执行该建议。规则 grader 也不证明引用语义蕴含，只适用于这些手工标注的动作任务。</p>
   <p>Inspect AI 把 Task 的 dataset、solver、scorer、metrics 和运行限制作为独立组成部分，这种分离让同一答案能重新评分，并能区分执行失败和评分失败。先读构造函数与错误策略，再设计自己的结果协议。<cite data-source="inspect-code"><a href="https://github.com/UKGovernmentBEIS/inspect_ai/blob/ec4dfc6953784dc45b79de3147530c89868c6e26/src/inspect_ai/_eval/task/task.py" target="_blank" rel="noopener">[inspect-code]</a></cite></p>
@@ -1998,17 +1970,17 @@ python -m projects.repoops.runner report RUN_ID</pre></div>
   </tbody></table></div>
   <h2>错误标签要支持归因</h2>
   <p>将失败分成 task_failure、provider_error、environment_error、grader_error；正式服务里不要把 grader_error 直接当能力失败，也不要悄悄丢掉。面向用户的端到端可靠性统计包含服务失败；模型能力估计可以按预注册规则重跑基础设施失败，但须公开排除数、重跑次数与费用。当前 starter 把协议错误/服务错误都留在完整结果中，尚未实现这套多层重跑策略。</p>
-  <div class="research-exercise"><h3>第一个求职交付点</h3><p>交付 <code>grader-audit.md</code>：评分条件、至少 8 个 mutant、人工分歧、局限和修复。此时已有能展示的小项目，可开始匹配初级应用/平台岗位的小批投递；在简历上写“完成离线原型”，真实调用未做就不要写“大模型评测提升”。本站答辩题：假阳性和假阴性哪一个更贵？答案要关联实际发布决策，而不是只背 precision/recall 公式。</p></div>
-  <p class="research-next">下一步：<a href="#/capstone-platform">P5 可靠调度</a>。理论：<a href="#/evaluator-integrity">R4 评分器信任边界</a>。</p>
+  <div class="research-exercise"><h3>练习：用反例检查评分器</h3><p>在 <code>grader-audit.md</code> 记录评分条件、至少 8 个 mutant、人工标注分歧和修复结果。分别统计假阳性与假阴性，再结合发布决策讨论哪种错误代价更高。完成这一步后，可按 <a href="#/capstone-career">P11 的安排</a> 准备第一版演示和简历。</p></div>
+  <p class="reading-note">相关：<a href="#/evaluator-integrity">R4 评分器信任边界</a>。</p>
 </section>
 
 <section class="chapter" id="ch-capstone-platform">
-  <span class="ch-kicker">实战主线 P5 · 第 5–6 周 · 前置：事务、HTTP、并发与取消</span>
-  <h1>把本地脚本升级成可靠的评测服务</h1>
-  <p class="lead">本阶段是后端能力的主战场：任务会重复投递，worker 会失联，模型调用可能已经计费但响应丢失。你的系统要知道哪些结果可信、哪些要重试、哪些账单仍然存在。</p>
-  <h2>先明确 starter 的能力上限</h2>
+  <span class="ch-kicker">RepoOps Lab / P5 · 第 5–6 周 · 前置：事务、HTTP、并发与取消</span>
+  <h1>队列、租约与故障恢复</h1>
+  <p class="lead">worker 失联后，任务被重新领取；旧 worker 又在稍后提交结果，哪一份应该生效？从这个问题出发，将本地 runner 扩展为带租约、fencing 和幂等提交的调度服务。</p>
+  <h2>本地 runner 的事务范围</h2>
   <p>现有 runner 在每个 trial 外持有 SQLite 写事务，结果与轨迹一起原子提交；已提交任务以复合主键去重。进程崩溃时未提交事务回滚，下次重跑该任务。它适合单机串行学习，不适合长时间持锁的多 worker 服务；外部调用完成后、本地提交前崩溃会再次调用，因此不具备外部副作用 exactly-once。报告可以缓存，计费不能因结果未保存而假装没发生。</p>
-  <h2>目标架构与边界</h2>
+  <h2>控制面与 worker</h2>
   <p>Go 控制面接收实验规格，数据库持久化 experiment/trial/attempt，Python worker 调用模型和环境，artifact store 保存大轨迹，评分 worker 产生独立评价。MVP 先使用一个关系数据库和轮询队列，等测出数据库争用再引入消息中间件。研究平台岗位强调的是可靠性与可扩展性的取舍，技术栈数量不能替代这一能力。<cite data-source="job-infra"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5283063008" target="_blank" rel="noopener">[job-infra]</a></cite></p>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>接口</th><th>语义</th><th>必须验证</th></tr></thead><tbody>
     <tr><td>POST /experiments</td><td>按 Idempotency-Key 创建实验</td><td>同 key 同规格返回旧 ID；同 key 不同规格返回冲突</td></tr>
@@ -2017,7 +1989,7 @@ python -m projects.repoops.runner report RUN_ID</pre></div>
     <tr><td>POST /attempts/{id}/complete</td><td>提交 artifact hash 和结果</td><td>token 与状态一致才接受；重复相同提交幂等</td></tr>
     <tr><td>POST /experiments/{id}/cancel</td><td>停止排队并请求取消运行</td><td>区分取消请求、worker 已终止、费用结算完成</td></tr>
   </tbody></table></div>
-  <h2>一步步做出一个能失败的系统</h2>
+  <h2>领取任务、续租与提交</h2>
   <ol>
     <li>先写 experiment 不可变规格：任务集、候选、模型/采样参数、环境/评分器、每题预算和总预算；保存内容哈希。实验启动后不能原地改参数。</li>
     <li>把 trial 与 attempt 分表：一个 trial 是预定的 task×repeat×arm；一个 attempt 是基础设施重试。模型自身的第二次解题若被当作 pass@k，就不能同时伪装为免费重试。</li>
@@ -2034,17 +2006,16 @@ WHERE id = :trial_id AND state = 'running'
 -- 更新 0 行：当前 attempt 无权完成，不能重试成无条件覆盖。
 -- 同一个事务写 attempt 终态；幂等重复提交需校验原结果 hash。</pre></div>
   <p>租约解决调度所有权，fencing 解决过期持有者写回；它们不能自动撤回外部 API 的副作用。真实处置动作使用下游幂等键或先查询状态；无法确认结果时进入人工/补偿流程。个人项目先让 Agent 输出 patch，不自动执行运维动作。</p>
-  <h2>故障演练与验收</h2>
+  <h2>重复投递与迟到提交</h2>
   <p>用一个本地假模型服务模拟 429、超时和迟到响应，先用 2 个 worker：领取后终止一个进程；等待租约过期；让另一进程完成；再提交旧 token，必须被拒绝。随后重复提交同一实验 10 次，只应得到一个逻辑实验。对取消后迟到结果、对象上传失败、数据库暂不可用分别写复盘。</p>
-  <p>负载报告记录机器配置、并发、任务时长分布、吞吐、排队时间、数据库争用和失败数。课程建议从 100 个假任务起步，数字只用于你自己的容量分析，不预设“支持百万并发”。验收看不丢任务、不覆盖新结果、失败有账，而不是 QPS 越大越好。</p>
-  <div class="research-exercise"><h3>求职产物</h3><p>交付 OpenAPI 或接口说明、状态表、故障演练日志和一份 ADR：为什么先用数据库队列、什么时候换。现场编码练习：用 Go 写有界 worker pool，保证 context 取消后所有 goroutine 退出；用竞态检测和 goroutine 数量检查验证。此处是课程自拟练习，不能标注为某公司原题。</p></div>
-  <p class="research-next">下一步：<a href="#/capstone-observability">P6 故障定位与成本</a>。</p>
+  <p>负载报告记录机器配置、并发、任务时长分布、吞吐、排队时间、数据库争用和失败数。先用 100 个假任务观察排队和争用，再增加负载。核对有无任务丢失、旧结果覆盖和未记录的失败。</p>
+  <div class="research-exercise"><h3>练习：实现可取消的 worker pool</h3><p>用 Go 写一个有界 worker pool。取消 context 后，检查所有 goroutine 是否退出；使用竞态检测，并记录取消前后的 goroutine 数量。保留接口说明、状态表和故障日志，再写下数据库队列的适用规模与更换条件。</p></div>
 </section>
 
 <section class="chapter" id="ch-capstone-observability">
-  <span class="ch-kicker">实战主线 P6 · 第 7 周 · 前置：P5、基本统计与日志</span>
-  <h1>一次回归，能否说清楚究竟坏在哪里</h1>
-  <p class="lead">当通过率从昨天的结果下降，先分清模型、检索、数据、评分器和基础设施，再决定回滚什么。本阶段做一个能支持排障的结果视图，而非堆满图表的展示页。</p>
+  <span class="ch-kicker">RepoOps Lab / P6 · 第 7 周 · 前置：P5、基本统计与日志</span>
+  <h1>轨迹、成本与故障定位</h1>
+  <p class="lead">换模型后通过率下降，原因可能出在模型、检索、评分器或运行环境。本章把汇总指标连接到逐题轨迹，通过重评分和对照运行缩小排查范围。</p>
   <h2>从现有报告开始</h2>
   <p><code>report RUN_ID</code> 已输出完整 trial、顺序事件、状态、调用数、耗时和 usage。离线策略没有 token 数据，因此 usage=null；model_calls 是调用次数，不是美元。summary 的 macro_success 在每题内先平均重复试验，再对题平均。完整性不满足时显著标注 partial。</p>
   <div class="codeblock"><div class="cb-head">扩展事件协议 · 在单调时钟上计算耗时</div><pre data-lang="json">{
@@ -2064,7 +2035,7 @@ WHERE id = :trial_id AND state = 'running'
     <li>建立用量账本：每次已发请求都有记录，provider 返回值和估计值分列，重试费用单列；价格表独立带日期/版本，本教程不固化实时价格。</li>
     <li>做版本差异页：模型、prompt、检索索引、评分器、镜像、任务集、种子、并发和预算。一次变更多个组件时，禁止直接归因模型。</li>
   </ol>
-  <h2>三个指标要讲清楚分母</h2>
+  <h2>成功率、延迟与成本的分母</h2>
   <p><strong>端到端完成率</strong>以全部预定 trial 为分母，服务超时也算失败。<strong>模型条件下的任务成功率</strong>只有在预先约定的基础设施排除规则下才计算，并同时给出排除数量。<strong>每个成功任务成本</strong>用全部相关成本除以成功任务数，包含失败、重试和必要的评分成本；成功数为零时报告未定义，不能返回零成本。</p>
   <p>尾延迟至少分排队、环境准备、模型和工具执行、验证。低样本 p95 可能极不稳定，直接列样本量和原始分位。比较并发策略时固定数据和模型，吞吐改善不等于单次推理更快；拥塞与 provider 限流可能让两者反向变化。</p>
   <h2>排障演练：故意引入一个回归</h2>
@@ -2072,17 +2043,16 @@ WHERE id = :trial_id AND state = 'running'
     <li>先冻结 baseline，然后随机挑一类故障注入：旧检索索引、读工具返回空、评分规则改严、provider 错误比例增加。</li>
     <li>只给排障者 dashboard 和匿名版本变更，不预告故障。要求先列两个可区分假设，再选最小验证实验。</li>
     <li>对同一份轨迹重新评分：如果回归消失，优先查 grader；给相同模型 oracle 证据：如果恢复，优先查检索；看失败时间分布与 provider 状态：确定是否基础设施。</li>
-    <li>记录发现、定位、修复和验证时间，输出带证据的复盘，而不是事后补一个完美故事。</li>
+    <li>记录发现、定位、修复和验证时间，在复盘中保留中途排除过的错误判断。</li>
   </ol>
-  <div class="research-exercise"><h3>验收与答辩</h3><p>交付一份事故报告和可点击到失败 trial 的本地结果视图；用截图或录屏展示排查过程。Model Evaluations 招聘页明确把异常结果归因、运行可靠性和可解释监控列入工作，因此这是评测工程能力的重要证据。<cite data-source="job-evals"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5198255008" target="_blank" rel="noopener">[job-evals]</a></cite>本站练习：“通过率涨了 4%，你会立刻上线吗？”先问分母、完整性、任务组成、成本与不确定性，再进入 P7。</p></div>
-  <p class="research-next">下一步：<a href="#/capstone-experiments">P7 实验设计</a>。</p>
+  <div class="research-exercise"><h3>练习：复盘一次回归</h3><p>整理一份事故报告，让其中每个异常数字都能定位到失败 trial。报告应说明哪些原因被排除、最终修改了什么，以及怎样验证修复。进一步考虑：如果通过率上涨 4 个百分点，还需要检查哪些条件才能发布？</p></div>
 </section>
 
 <section class="chapter" id="ch-capstone-experiments">
-  <span class="ch-kicker">实战主线 P7 · 第 8–9 周 · 前置：R3、P4、P6</span>
-  <h1>把“更好了”变成一份经得住追问的结论</h1>
-  <p class="lead">完成第一份真实 Agent 对照报告。主要比较“是否加入结构化证据检查”；你必须同时说明成功率、可靠性、代价和哪些因素没有被控制住。</p>
-  <h2>先冻结实验卡</h2>
+  <span class="ch-kicker">RepoOps Lab / P7 · 第 8–9 周 · 前置：R3、P4、P6</span>
+  <h1>固定预算下比较两个版本</h1>
+  <p class="lead">加入结构化证据检查后，Agent 的成功率是否提高，代价是否增加？下面固定模型、任务和预算，运行配对实验，并处理任务相关性与选择偏差。</p>
+  <h2>记录实验配置</h2>
   <p>用 <a href="templates/experiment-card.md">实验卡</a> 写明：任务目标、主指标、最小有意义收益、预算、停止规则、失败处理、聚类单位、候选选择与最终确认方法。两组共享基础模型修订、任务、工具集合、环境与 grader；只更换一个策略参数。若比较不同模型，直接把实验命名为模型比较，不把模型差异算成 harness 改进。</p>
   <h2>逐步执行</h2>
   <ol>
@@ -2101,7 +2071,7 @@ bootstrap: 重采样独立的任务/家族，保留该簇内全部 A/B 配对和
       收益下界超过预定阈值 → keep
       否则 → inconclusive，保留原版本</pre></div>
   <p>本站旧 <code>labs/eval_lab.py</code> 提供按独立任务假设的保守 Hoeffding 门和描述性 bootstrap；它不会自动识别仓库相关性。当前 12 题只有 6 个服务家族，而且是手工教学夹具，不适用独立同分布总体能力推断。不要把重复运行三次写成“36 个独立任务”。</p>
-  <h2>一个报告应该长什么样</h2>
+  <h2>逐题结果与汇总报告</h2>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>项目</th><th>必须填写</th></tr></thead><tbody>
     <tr><td>比较对象</td><td>A/B 配置 hash，模型与环境修订，唯一变化项</td></tr>
     <tr><td>样本</td><td>任务、家族、重复数，来源分层与排除数</td></tr>
@@ -2113,15 +2083,14 @@ bootstrap: 重采样独立的任务/家族，保留该簇内全部 A/B 配对和
   <p>例：“增加证据检查在本任务集观察到更高成功率，但 token 增加且区间跨零，所以保留旧版。”这是一份有效结果。不能把开放任务集调参所得分数描述为独立确认，更不能选择最好一次种子来汇报。</p>
   <h2>预算有限时怎么做</h2>
   <p>先将总预算分成 pilot、开发、确认和基础设施失败预留四部分，并写入实验卡；任何百分比都应随你的调用成本估算调整。示例计算：20 题×2 组×3 次×每题最多 6 个模型调用，调用上限为 720 次，另算评分调用。成本预估用 pilot 的输入/输出 token 分布和当前 provider 价格，不直接用调用数乘一个固定单价。</p>
-  <div class="research-exercise"><h3>验收与求职动作</h3><p>让另一人按你的 README 从新目录重跑 pilot；他应能找到每个数字的原始 trial。完成后做评测岗位版本的简历：强调实验设计、评分器和误差分析，数字保留样本与预算限定。面试自拟题：“bootstrap 区间不跨零是否就证明可推广？”答：仍受任务抽样、相关性、选择过程和数据污染限制。</p></div>
-  <p class="research-next">下一步：<a href="#/capstone-sandbox">P8 开源基准与隔离环境</a>。</p>
+  <div class="research-exercise"><h3>练习：请另一人重跑实验</h3><p>请另一人按 README 从新目录重跑 pilot，并从报告中的任一数字找到原始 trial。检查配置是否完整、失败样本是否计入、确认集是否参与过选择。讨论：bootstrap 区间不跨零后，任务抽样、相关性与数据污染还会怎样限制结论？</p></div>
 </section>
 
 <section class="chapter" id="ch-capstone-sandbox">
-  <span class="ch-kicker">实战主线 P8 · 第 10–11 周 · 前置：P4–P7、容器基础</span>
-  <h1>从处置建议走到隔离环境里的仓库修复</h1>
-  <p class="lead">把 RepoOps 的一张任务卡迁移到 Harbor：Agent 读取故障、修改一个小型服务的配置文件，独立 verifier 验证行为。先自编任务，再选一个公开基准的小子集，形成真正可复核的开源适配经验。</p>
-  <h2>为什么这时才让 Agent 改文件</h2>
+  <span class="ch-kicker">RepoOps Lab / P8 · 第 10–11 周 · 前置：P4–P7、容器基础</span>
+  <h1>在 Harbor 中运行仓库修复</h1>
+  <p class="lead">前面的 Agent 只返回处置建议。现在把一张 RepoOps 任务迁移到 Harbor，让 Agent 修改服务配置，再由独立 verifier 检查修改后的行为。</p>
+  <h2>写文件后的新增权限</h2>
   <p>前面已经确定任务契约、评分和预算，升级执行环境时才能定位新增问题。Host 上的 subprocess 不是沙箱；普通容器共享宿主内核，也不能仅凭“用了 Docker”宣称可承受任意恶意程序。学习实验使用无凭据、无宿主敏感挂载、受限网络与资源的专用环境；更强对手需要额外隔离设计。</p>
   <h2>迁移步骤与具体文件</h2>
   <ol>
@@ -2142,14 +2111,13 @@ harbor view ./jobs</pre></div>
   <h2>公开基准怎样选</h2>
   <p>偏代码修复选 SWE-bench 风格的 issue→patch→tests；偏命令行和系统任务选 Terminal-Bench/Harbor 的任务形式。先按项目能力挑 10–20 个可运行任务作为开发子集，记录筛选标准、来源许可、镜像和排除项；这不是完整榜单复现，不与公开榜单直接比较。验证集须避免和用于学习工具的任务重叠。</p>
   <p>需要读懂两处代码：mini 的环境执行如何接入 Agent；Harbor 的 Trial 如何关联任务、执行环境、verifier、结果和生命周期。固定版本入口见源码映射。源码审阅只能支持设计理解，不能替代你自己的兼容性测试。<cite data-source="mini-code"><a href="https://github.com/SWE-agent/mini-SWE-agent/blob/04d809ceab9df28f9adaed044884180159172930/src/minisweagent/agents/default.py" target="_blank" rel="noopener">[mini-code]</a></cite><cite data-source="harbor-code"><a href="https://github.com/harbor-framework/harbor/blob/2993946dd5b64a46dac3aa766d03065f432a1468/src/harbor/trial/trial.py" target="_blank" rel="noopener">[harbor-code]</a></cite></p>
-  <div class="research-exercise"><h3>验收与开源贡献</h3><p>交付一张 oracle 通过、错误实现失败、修改 grader 无效、超时会收敛的任务；保存 Agent 与 verifier 的环境边界说明。找一个在锁定版本可稳定复现的适配缺陷，先写最小复现与测试，再提交小 PR；不要为了简历制造无意义改动，也不要在被接收前写“贡献已合并”。</p></div>
-  <p class="research-next">下一步：<a href="#/capstone-improve">P9 反思搜索</a>。</p>
+  <div class="research-exercise"><h3>练习：验证一张迁移任务</h3><p>对迁移任务运行四次检查：oracle 应通过，错误实现应失败，Agent 修改可见的 grader 文件不应改变独立评分，超时任务应在预算内终止。记录 Agent 与 verifier 的权限范围。如果发现框架适配缺陷，保存锁定版本、最小复现和测试，作为开源 issue 或 PR 的依据。</p></div>
 </section>
 
 <section class="chapter" id="ch-capstone-improve">
-  <span class="ch-kicker">实战主线 P9 · 第 12–13 周 · 前置：R2/R3、P7/P8</span>
-  <h1>反思优化：固定预算下，反馈究竟值不值钱</h1>
-  <p class="lead">让一个优化器读取开发失败轨迹，提出提示词或检索参数候选，然后在独立选择数据上比较。你的任务是证明反馈的作用，而不是证明多运行几次可以找到更高分。</p>
+  <span class="ch-kicker">RepoOps Lab / P9 · 第 12–13 周 · 前置：R2/R3、P7/P8</span>
+  <h1>用轨迹反馈优化候选</h1>
+  <p class="lead">优化器读取失败轨迹，提出提示词或检索参数候选。将它与随机搜索、无反馈改写放在相同预算下比较，才能判断轨迹反馈是否帮助了搜索。</p>
   <h2>先限制候选能改什么</h2>
   <p>第一轮只允许修改 <code>system_prompt</code> 与证据选择策略的有限参数；工具权限、评分器、数据拆分和总预算固定。候选是一个可序列化对象，带 parent_id、变更摘要、代码/配置 hash 和生成成本。拒绝含有 schema 外字段的候选；扩大改动范围之前先建立测试与隔离。</p>
   <h2>读懂 GEPA 的接入点</h2>
@@ -2166,7 +2134,7 @@ def make_reflective_dataset(candidate, evaluation_batch, components_to_update):
     # 只从开发轨迹提取：任务目标、动作、工具观察、失败类别。
     # 不包含确认集、隐藏 grader 源码或外部密钥。
     return feedback_by_component</pre></div>
-  <h2>把实验做成三组，而非单条上涨曲线</h2>
+  <h2>反思、随机搜索与无反馈改写</h2>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>组别</th><th>候选来源</th><th>控制什么</th></tr></thead><tbody>
     <tr><td>固定策略</td><td>不搜索，用初始候选</td><td>记录起点和推理预算</td></tr>
     <tr><td>随机/无反馈搜索</td><td>同一候选空间中采样，或生成器不读失败轨迹</td><td>与反思组同总搜索预算、终选规则和模型</td></tr>
@@ -2181,17 +2149,16 @@ def make_reflective_dataset(candidate, evaluation_batch, components_to_update):
     <li>至少做多个完整搜索种子；种子数由 pilot 方差和预算决定。报告每次搜索的终选结果，别只展示最好一条曲线。</li>
     <li>做一项机制消融：删除错误反馈、删除检索证据或冻结选择器。选一个主要假设，避免小数据上同时搜索大量故事。</li>
   </ol>
-  <h2>失败也有研究价值</h2>
+  <h2>如何解释无收益与退化</h2>
   <p>常见结果是 dev 分数持续上升，最终任务没有提升；或者成功率上升，但成本比超限。前者应检查选择偏差、同源任务与反馈泄漏，后者应比较约束后的收益。搜索档案可以保留低分但多样的候选用于探索；生产 incumbent 仍要过独立发布门，两者不是同一个集合。</p>
-  <div class="research-exercise"><h3>验收与项目故事</h3><p>交付 candidate archive、完整预算账本、三组对照与至少一项消融。答辩时能指出一个没有起效的机制，以及你据何停止。简历可以写完成了受约束的候选搜索实验；除非确有证据，不写“实现递归自我提升”。下一章专门检验更强命题。</p></div>
-  <p class="research-next">下一步：<a href="#/capstone-meta">P10 改进器更新消融</a>。</p>
+  <div class="research-exercise"><h3>练习：比较三组搜索</h3><p>保存候选档案、完整预算记录、三组对照和一项机制消融。选一个没有起效的机制，说明它在哪些任务上失败，停止搜索的依据是什么。P10 在此基础上单独检验修改器更新。</p></div>
 </section>
 
 <section class="chapter" id="ch-capstone-meta">
-  <span class="ch-kicker">实战主线 P10 · 第 14–15 周 · 前置：P9、R1–R3</span>
-  <h1>检验改进器的改进，而不只是解题器的改进</h1>
-  <p class="lead">研究问题：利用历史搜索经验更新修改器，是否能在新的任务家族和同样的总资源下，比冻结修改器更快找到好候选？这是项目的研究深度所在；证据不足是允许的结论。</p>
-  <h2>清楚命名两个被修改对象</h2>
+  <span class="ch-kicker">RepoOps Lab / P10 · 第 14–15 周 · 前置：P9、R1–R3</span>
+  <h1>更新改进器的对照实验</h1>
+  <p class="lead">利用历史搜索经验更新修改器，能否在新的任务家族上更快找到好候选？比较从相同起点开始的两组完整搜索：一组更新修改器，另一组冻结修改器。</p>
+  <h2>解题器与修改器</h2>
   <p><code>S</code> 是处理 RepoOps 任务的解题策略；<code>I</code> 是生成 S 的候选并选择探索方向的改进器。P9 主要改变 S。这里允许改变 I 的修改提示、失败抽样或候选选择策略中的一个部分。基础模型权重、评分器、任务权限、资源边界固定。系统变得更有权限不是这一实验的处理变量。</p>
   <div class="codeblock"><div class="cb-head">本站实验定义</div><pre data-lang="text">search(I, start_S, dev_tasks, B) → selected_S
 meta_gain = E[U(search(I_updated, S0, D, B))]
@@ -2208,32 +2175,46 @@ meta_gain = E[U(search(I_updated, S0, D, B))]
   </ol>
   <h2>把论文机制转成可检验问题</h2>
   <p>STOP 提供改进器反馈参与后续改进的研究线索；DGM 提示探索档案不必只保留当前最高分；HGM 讨论对子代潜力的估计与选择。三者的搜索对象、成本假设和实验环境不同，不能把本站的小任务实验称为这些论文的完整复现。具体机制和局限先读 <a href="#/paper-lab">R2</a>。<cite data-source="stop"><a href="https://arxiv.org/abs/2310.02304v3" target="_blank" rel="noopener">[stop]</a></cite><cite data-source="dgm"><a href="https://arxiv.org/html/2505.22954v3" target="_blank" rel="noopener">[dgm]</a></cite><cite data-source="hgm"><a href="https://arxiv.org/html/2510.21614v3" target="_blank" rel="noopener">[hgm]</a></cite></p>
-  <h2>三种结果如何写</h2>
+  <h2>正结果、负结果与不确定性</h2>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>观察</th><th>可以支持</th><th>还不能支持</th></tr></thead><tbody>
     <tr><td>同分布选择集更高</td><td>该搜索过程更擅长优化这份开发数据</td><td>独立泛化、迁移、递归收益</td></tr>
     <tr><td>新家族上预算匹配结果更好</td><td>在所测范围内的改进器迁移收益</td><td>无限持续改进或更大规模同样成立</td></tr>
     <tr><td>区间过宽、不同种子分歧大</td><td>当前预算下证据不足</td><td>收益不存在，或必然存在只差算力</td></tr>
   </tbody></table></div>
   <p>如果搜索重复数量很少，直接展示每次结果与局限。预算控制住也不保证因果解释正确：更丰富的先验、候选空间差异、反馈格式变化都可能解释结果，因此要靠消融逐项收窄。</p>
-  <div class="research-exercise"><h3>最终研究产物</h3><p>交付 4–6 页技术报告：问题、方法、协议、主要结果、消融、失败案例与威胁有效性的因素；附可运行脚本和 manifest。口头答辩第一分钟就说清楚自己的证据达到哪一层。对研究工程岗，这比把几十篇论文名堆在技能栏更能展示实际判断。</p></div>
-  <p class="research-next">下一步：<a href="#/capstone-career">P11 作品集与就业闭环</a>。</p>
+  <div class="research-exercise"><h3>练习：整理实验报告</h3><p>写一份 4–6 页报告，包含问题、方法、实验配置、结果、消融和失败案例，附运行脚本与 manifest。结论需要明确区分任务得分变化和修改器更新带来的变化，并说明哪些因素仍未控制。</p></div>
 </section>
 
 <section class="chapter" id="ch-capstone-career">
-  <span class="ch-kicker">实战主线 P11 · 全程执行，第 16 周集中答辩</span>
-  <h1>让每个阶段都减少一个真实的求职障碍</h1>
-  <p class="lead">项目不能保证录用，但可以把“没有相关经验”拆成可处理的问题：岗位定位不清、作品不可运行、技术讲不深、结果不可信、编码基础不足。求职反馈从第 1 周就进入迭代。</p>
-  <h2>每四周交付一个可以投递的版本</h2>
-  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>阶段</th><th>工程完成条件</th><th>对外证据</th><th>求职反馈</th></tr></thead><tbody>
-    <tr><td>第 1 周</td><td>选定主方向与 10 个岗位样本</td><td>JD→能力→证据→缺口表</td><td>去掉地点、资历、工作资格不匹配的目标</td></tr>
+  <span class="ch-kicker">RepoOps Lab / P11 · 全程执行，第 16 周集中答辩</span>
+  <h1>项目展示与面试准备</h1>
+  <p class="lead">应用工程、评测工程和平台后端会追问项目的不同部分。本章整理岗位样本、投递安排和项目面试练习，可以从第 1 周开始使用。</p>
+  <h2>三个岗位方向</h2>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>岗位方向</th><th>招聘原文所体现的工作</th><th>对应的项目部分</th><th>适配边界</th></tr></thead><tbody>
+    <tr><td>Agent / AI 应用工程</td><td>围绕实际需求做原型、评测与技术解释</td><td>可演示的工具循环、检索错误分析、可靠降级</td><td>优先入口；具体语言和业务以目标 JD 为准</td></tr>
+    <tr><td>评测工程 / Research Engineer</td><td>把能力定义成指标、运行评测、定位回归、分析 scaffold 影响</td><td>版本化任务集、独立评分、配对实验与负结果</td><td>需要补 Python 与统计，不能只有 API 包装</td></tr>
+    <tr><td>AI 基础设施 / 研究平台后端</td><td>设计和运营可靠、可扩展的研究基础设施</td><td>租约与恢复演练、容量报告、数据一致性说明</td><td>后端经验可迁移；个人负载实验不能冒充生产经验</td></tr>
+  </tbody></table></div>
+  <p>岗位样本来自 Anthropic 的 Model Evaluations、Research Infrastructure、Applied AI Research Engineer 招聘页。它们用于识别工作能力，并不代表中国招聘市场比例，也不表示这些海外岗位适合所有人的地点、资历和工作资格。检索日期为 2026-09-19，申请前重查岗位状态。<cite data-source="job-evals"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5198255008" target="_blank" rel="noopener">[job-evals]</a></cite><cite data-source="job-infra"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5283063008" target="_blank" rel="noopener">[job-infra]</a></cite><cite data-source="job-applied"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5390811008" target="_blank" rel="noopener">[job-applied]</a></cite></p>
+  <h2>公开面经的参考范围</h2>
+  <p>Datawhale 的社区作者说明，其问题整理自 2025 秋招多次线上技术面试，覆盖 Agent、RAG、评估等方向；本站核对了该声明和相关条目，但不能独立验证每次面试。卡码的字节 Agent 暑期实习四面文章转载了候选人经历，并由编辑重新组织问题与回答；这是有中间整理环节的公开自述，不是公司题库。本站只抽取考察主题，技术解释仍依据源码和官方文档。<cite data-source="interview-dw"><a href="https://github.com/datawhalechina/hello-agents/blob/203e9fac88b23291b407f76549e250fd51c295e3/Extra-Chapter/Extra01-%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93.md" target="_blank" rel="noopener">[interview-dw]</a></cite><cite data-source="interview-byte"><a href="https://notes.kamacoder.com/interview/llm/20260506bytedance.html" target="_blank" rel="noopener">[interview-byte]</a></cite></p>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>公开面经中的主题</th><th>对应练习</th><th>讨论材料</th></tr></thead><tbody>
+    <tr><td>Agent 组成、工具使用和终止</td><td>P2 手写受限循环，注入非法工具响应</td><td>一条完整失败轨迹和状态转换解释</td></tr>
+    <tr><td>RAG 的检索与生成评估</td><td>P3 分开量召回与答案证据</td><td>检索消融、丢失证据的案例</td></tr>
+    <tr><td>Judge 偏差、鲁棒性与成本</td><td>P4/P6 做校准与故障分类</td><td>误判矩阵、成本账本、定位时间</td></tr>
+    <tr><td>上下文、框架选型与工程治理</td><td>P5/P8 比较自研循环和开源执行框架</td><td>架构决策记录、迁移前后的契约检查</td></tr>
+  </tbody></table></div>
+  <h2>按项目进度安排投递</h2>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>阶段</th><th>工程完成条件</th><th>展示材料</th><th>求职反馈</th></tr></thead><tbody>
+    <tr><td>第 1 周</td><td>选定主方向与 10 个岗位样本</td><td>岗位要求与个人经历对照表</td><td>去掉地点、资历、工作资格不匹配的目标</td></tr>
     <tr><td>第 4 周</td><td>工具闭环与 grader 审计</td><td>一键运行、3 分钟演示、第一版简历</td><td>小批投递应用/平台岗位；记录回复与技术问题</td></tr>
     <tr><td>第 8–9 周</td><td>可靠调度与真实比较</td><td>故障复盘、实验报告、系统设计图</td><td>扩大匹配投递；针对筛选或面试瓶颈调整</td></tr>
     <tr><td>第 12–16 周</td><td>开源适配、搜索与迁移实验</td><td>源码阅读记录、小 PR、研究报告</td><td>评测/研究工程方向深度答辩</td></tr>
   </tbody></table></div>
-  <p>岗位矩阵和投递台账模板在 <a href="templates/career-evidence.md">career-evidence.md</a>。每周可先挑 3–5 个高匹配岗位，这是工作量建议，不是最优投递数量。无回复先检查匹配与材料；笔试不过补基础；项目面讲不深回到对应实验。不要把短期小样本转化率当成能力的客观排名。</p>
-  <h2>同一项目，按岗位强调不同证据</h2>
+  <p>岗位矩阵和投递记录模板在 <a href="templates/career-evidence.md">career-evidence.md</a>。每周可先挑 3–5 个高匹配岗位，可按时间调整。无回复先检查匹配与材料；笔试不过补基础；项目面讲不深回到对应实验。记录具体反馈，小批投递的回复率波动较大。</p>
+  <h2>按岗位选择展示内容</h2>
   <p><strong>应用方向：</strong>用户工单→检索→工具→结果→失败兜底，展示具体业务约束。<strong>平台方向：</strong>租约、fencing、幂等、取消、成本和容量，关联自己已有后端经验。<strong>评测方向：</strong>任务有效性、独立评分、污染控制、统计与负结果。<strong>研究方向：</strong>定义假设、固定预算与机制消融，并说明没有证明什么。主简历只突出一个方向，其他部分留作追问。</p>
-  <h2>简历条目要能回到原始证据</h2>
+  <h2>简历条目示例</h2>
   <div class="codeblock"><div class="cb-head">模板：方括号只能填写自己实际测量的结果</div><pre data-lang="text">构建 RepoOps Agent 评测原型，覆盖 [N] 个任务 / [G] 个家族，
 实现版本化任务、独立证据评分和 [实际完成的可靠性机制]；
 在 [模型修订]、[预算] 下比较 [A/B]，配对成功率变化 [Δ及区间]，
@@ -2242,7 +2223,7 @@ meta_gain = E[U(search(I_updated, S0, D, B))]
 若只完成离线夹具：明确写“规则策略、教学任务、未测真实 LLM”。
 若实验无显著收益：写“建立比较协议并识别 [退化/不确定性]”。</pre></div>
   <p>不使用“精通所有 Agent 框架”“准确率提升 50%”这类无分母表述。示例代码来自课程时，说明自己新增了哪些模块、做了哪些实验；依赖项目的能力不能全部归功于自己。</p>
-  <h2>45 分钟项目面：课程自拟的完整答辩</h2>
+  <h2>45 分钟模拟项目面试</h2>
   <ol>
     <li><strong>0–5 分钟：</strong>问题、用户、约束和演示。无需先讲一遍所有框架名称。</li>
     <li><strong>5–15 分钟：</strong>拿一条真实轨迹走通数据与控制流。追问某个工具失败时如何恢复，哪份数据由谁读取。</li>
@@ -2262,22 +2243,22 @@ meta_gain = E[U(search(I_updated, S0, D, B))]
     <tr><td>反思优化会不会只是在多花钱？</td><td>同总预算、生成/评分成本、无反馈基线</td><td>P9 完整搜索账本</td></tr>
     <tr><td>哪里体现递归？</td><td>S 与 I 的区别、冻结 I 对照、新家族迁移</td><td>P10 元收益消融</td></tr>
   </tbody></table></div>
-  <h2>编码与模型基础不能被项目替代</h2>
+  <h2>编码与模型基础</h2>
   <p>每周留两段 45 分钟：一段练数据结构/算法与复杂度，一段练项目相关编码。建议顺序：JSONL 校验器、Top-K 检索合并、有界并发与取消、指数退避、幂等写入、配对统计。Go 方向补 goroutine/channel、内存与 race；Python 方向补异常边界、迭代器、类型与异步 I/O。算法题尽量在无助手条件下讲思路、写实现、举反例。</p>
   <p>模型基础安排三次白板练习：注意力的 Q/K/V 和序列长度成本；prefill/decode 与 KV cache；采样、上下文和结构化输出的边界。若目标 JD 要求训练，另补 SFT/LoRA 与偏好优化的原理和真实小实验；本主线不声称已经覆盖模型训练岗位。</p>
-  <h2>作品集最终目录与评分</h2>
-  <p>入口 README 包括运行命令、真实/离线模式、演示和完成范围；数据卡说明来源和拆分；架构 ADR 说明取舍；报告能回到 trial；故障复盘展示定位；贡献链接注明状态。第三方在新环境跑不通是交付问题，优先修它。不要把公司的代码、日志或个人信息当面试材料。</p>
-  <p>自评每项 0–2 分：可复现、任务有效、评分可信、恢复可靠、预算完整、统计恰当、源码理解、表达清楚。0=没有，1=有实现但证据不足，2=能演示并解释反例。课程建议至少 12/16 且前六项无零分再做深度项目答辩；这是学习检查，不是企业录用标准。记录每次追问和证据缺口，下一周只修最重要的两项。</p>
-  <p class="research-next">回到 <a href="#/capstone">P0 主线</a>，或用 <a href="docs/capstone/source-map.md">岗位、面经与源码映射</a> 检查自己的证据覆盖。</p>
+  <h2>作品目录与自查</h2>
+  <p>入口 README 包括运行命令、真实/离线模式、演示和完成范围；数据卡说明来源和拆分；架构 ADR 说明取舍；报告能回到 trial；故障复盘展示定位；贡献链接注明状态。请另一人在新环境试跑，补齐遗漏的依赖与步骤。不要把公司的代码、日志或个人信息当面试材料。</p>
+  <p>自评每项 0–2 分：可复现、任务有效、评分可信、恢复可靠、预算完整、统计恰当、源码理解、表达清楚。0=没有，1=有实现但证据不足，2=能演示并解释反例。分数用于检查遗漏，不设统一的投递门槛。记录面试中没能回答的问题，下一周优先补齐其中两项。</p>
+  <p class="research-next">回到 <a href="#/capstone">项目介绍</a>，或用 <a href="docs/capstone/source-map.md">岗位、面经与源码映射</a> 查找对应的源码和问题出处。</p>
 </section>
 <!-- END GENERATED RESEARCH -->
 
   </main>
 </div>
 
-<script src="assets/js/data.js?v=20260919r"></script>
-<script src="assets/js/research-data.js?v=20260919r"></script>
+<script src="assets/js/data.js?v=20260920e"></script>
+<script src="assets/js/research-data.js?v=20260920e"></script>
 <script src="assets/js/research.js?v=20260919r"></script>
-<script src="assets/js/app.js?v=20260919r"></script>
+<script src="assets/js/app.js?v=20260920e"></script>
 </body>
 </html>

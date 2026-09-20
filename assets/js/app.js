@@ -76,7 +76,9 @@
       var a = el('a', 'nav-item', '');
       a.href = '#/' + c.id;
       a.dataset.ch = c.id;
-      a.innerHTML = '<span class="nav-num">' + c.num + '</span><span class="nav-title">' + c.title + '</span>' + CHECK_SVG;
+      a.title = c.title;
+      a.setAttribute('aria-label', c.num + ' ' + c.title);
+      a.innerHTML = '<span class="nav-num">' + c.num + '</span><span class="nav-title">' + esc(c.short) + '</span>' + CHECK_SVG;
       nav.appendChild(a);
     });
   }
@@ -91,7 +93,9 @@
     $$('.done-btn').forEach(function (b) {
       var on = !!store.done[b.dataset.ch];
       b.classList.toggle('is-done', on);
-      b.innerHTML = on ? '✓ 已完成本章(点击撤销)' : '✓ 标记本章完成';
+      b.textContent = on ? '✓ 已读' : '标记已读';
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.title = on ? '撤销已读标记' : '保存本章阅读进度';
     });
   }
   function go(id) { location.hash = '#/' + id; }
@@ -102,7 +106,7 @@
     currentId = id;
     $$('.chapter').forEach(function (s) { s.classList.toggle('active', s.id === 'ch-' + id); });
     var lc = DSH.chapters.find(function (c) { return c.id === id; });
-    document.title = (id === 'home' ? 'How to RSI · 造一个能改进自己的 Agent' : (lc ? lc.title : '刷题笔记') + ' · How to RSI');
+    document.title = (id === 'home' ? 'How to RSI · 递归自我改进的原理与实验' : (lc ? lc.title : '刷题笔记') + ' · How to RSI');
     window.scrollTo(0, 0);
     closeSidebar();
     refreshNav();
@@ -112,7 +116,7 @@
   function buildFooters() {
     DSH.chapters.forEach(function (c, i) {
       var sec = $('#ch-' + c.id);
-      if (!sec) return;
+      if (!sec || c.id === 'home') return;
       var f = el('div', 'chapter-footer');
       if (i > 0) {
         var prev = el('a', 'btn small', '← ' + DSH.chapters[i - 1].short);
@@ -121,7 +125,7 @@
       }
       f.appendChild(el('div', 'cf-spacer'));
       if (c.id !== 'home') {
-        var doneBtn = el('button', 'btn small done-btn', '✓ 标记本章完成');
+        var doneBtn = el('button', 'btn small done-btn', '标记已读');
         doneBtn.dataset.ch = c.id;
         doneBtn.addEventListener('click', function () {
           store.done[c.id] = !store.done[c.id];
@@ -144,15 +148,19 @@
     var host = $('#homeIndex');
     DSH.modules.forEach(function (m) {
       var chs = DSH.chapters.filter(function (c) { return c.module === m.id && c.id !== 'home'; });
-      host.appendChild(el('h4', 'idx-mod', esc(m.name) + ' — ' + esc(m.desc)));
+      if (!chs.length) return;
+      var group = el('details', 'idx-group');
+      var summary = el('summary', 'idx-mod', '<span>' + esc(m.name) + '</span><span class="idx-count">' + chs.length + ' 篇</span>');
+      group.appendChild(summary);
       chs.forEach(function (c) {
         var a = el('a', 'idx-item', '');
         a.href = '#/' + c.id;
         a.dataset.ch = c.id;
-        a.innerHTML = '<span class="idx-num">' + c.num + '</span><span class="idx-title">' + esc(c.title) + '</span>' +
-          '<span class="idx-blurb">' + esc(c.blurb) + '</span>' + CHECK_SVG;
-        host.appendChild(a);
+        a.innerHTML = '<span class="idx-num">' + c.num + '</span><span class="idx-copy"><span class="idx-title">' + esc(c.title) + '</span>' +
+          '<span class="idx-blurb">' + esc(c.blurb) + '</span></span>' + CHECK_SVG;
+        group.appendChild(a);
       });
+      host.appendChild(group);
     });
   }
 

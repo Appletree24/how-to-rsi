@@ -1,7 +1,7 @@
 <section class="chapter" id="ch-research-map">
-  <span class="ch-kicker">研究主线 R5 · 广度服务于问题</span>
-  <h1>RSI 周围有哪些真正不同的研究路线</h1>
-  <p class="lead">同样叫 self-improvement，更新的可能是答案、记忆、模型权重、程序、搜索器或任务分布。用“更新什么、谁给反馈、闭环停在哪里”建立地图，比收集框架名更稳定。</p>
+  <span class="ch-kicker">研究笔记 / R5</span>
+  <h1>自我改进的几类研究方法</h1>
+  <p class="lead">Self-improvement 可以指答案修订、记忆积累、权重训练，也可以指程序搜索和搜索器更新。它们使用不同的反馈，改变系统的不同部分；读论文时应先确认修改对象。</p>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>路线与入口</th><th>变化的对象</th><th>与递归的关系</th><th>优先做的对照</th></tr></thead><tbody>
     <tr><td>Self-Refine <cite data-source="self-refine"></cite></td><td>同一任务上的答案</td><td>迭代反馈并不自动积累可迁移的改进器</td><td>同预算直接多采样、无反馈重写</td></tr>
     <tr><td>Reflexion <cite data-source="reflexion"></cite></td><td>语言反馈与经验记忆</td><td>不用更新权重也可能改变后续行为</td><td>清空记忆、打乱记忆、跨任务迁移</td></tr>
@@ -14,7 +14,7 @@
     <tr><td>POET <cite data-source="poet"></cite></td><td>环境与解法共同演化</td><td>任务分布也在变化；平均分跨轮次未必可比</td><td>冻结环境、移除迁移、外部固定审计任务</td></tr>
     <tr><td>FunSearch <cite data-source="funsearch"></cite></td><td>由外部 evaluator 检验的程序</td><td>程序搜索与 agent 自修改有共同组件，但不是同一主张</td><td>固定搜索器、普通采样、候选与验证成本</td></tr>
   </tbody></table></div>
-  <h2>三条经常被漏掉的基础线</h2>
+  <h2>元学习、程序搜索与课程生成</h2>
   <p><strong>优化与统计：</strong>选择偏差、bandit 资源分配、best-arm identification、序贯检验。解决“测谁、测几次、何时停止”，而不只是“怎么生候选”。先做 R3 的选择偏差实验，再理解 HGM 为什么把展开与评估解耦。</p>
   <p><strong>系统与可复现性：</strong>内容寻址、确定的环境快照、幂等任务、故障分类、事件日志、预算调度。其价值是让算法比较成立。没有完整失败记录，再复杂的谱系统计也可能只统计幸存者。</p>
   <p><strong>开放式搜索与目标漂移：</strong>新颖性不等于用户效用，多样性也不保证持续改进。保持外部审计目标固定，分别报告覆盖、新颖性和任务效用；任务难度增加时不能直接比较原始通过率。</p>

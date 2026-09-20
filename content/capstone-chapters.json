@@ -2,25 +2,25 @@
   {
     "id": "capstone",
     "num": "P0",
-    "title": "RepoOps Lab：项目总览与岗位地图",
-    "short": "项目总览",
-    "blurb": "16 周构建、三类岗位、源码路线与真实面经证据。",
+    "title": "RepoOps Lab：从工单到实验",
+    "short": "项目介绍",
+    "blurb": "运行示例、任务范围与 16 周安排。",
     "icon": "book",
     "module": "capstone"
   },
   {
     "id": "capstone-data",
     "num": "P1",
-    "title": "P1 任务契约与数据集",
+    "title": "任务数据与评分字段",
     "short": "任务数据",
-    "blurb": "任务、证据、评分与拆分；跑出第一份完整实验。",
+    "blurb": "工单、参考答案、家族拆分与断点续跑。",
     "icon": "book",
     "module": "capstone"
   },
   {
     "id": "capstone-agent",
     "num": "P2",
-    "title": "P2 有边界的 Agent 循环",
+    "title": "Agent 循环与工具协议",
     "short": "Agent 循环",
     "blurb": "工具协议、终止状态、模型适配与预算。",
     "icon": "book",
@@ -29,7 +29,7 @@
   {
     "id": "capstone-retrieval",
     "num": "P3",
-    "title": "P3 检索、上下文与记忆",
+    "title": "检索、上下文与记忆",
     "short": "检索记忆",
     "blurb": "从词法基线到混合检索，检索与生成分别归因。",
     "icon": "book",
@@ -38,7 +38,7 @@
   {
     "id": "capstone-grading",
     "num": "P4",
-    "title": "P4 独立评分与评测质量",
+    "title": "评分规则与误判检查",
     "short": "可信评分",
     "blurb": "校准、反例、拒答、证据与污染测试。",
     "icon": "book",
@@ -47,8 +47,8 @@
   {
     "id": "capstone-platform",
     "num": "P5",
-    "title": "P5 从脚本到可靠调度服务",
-    "short": "可靠调度",
+    "title": "队列、租约与故障恢复",
+    "short": "调度与恢复",
     "blurb": "Go 控制面、租约、fencing、幂等与恢复。",
     "icon": "book",
     "module": "capstone"
@@ -56,7 +56,7 @@
   {
     "id": "capstone-observability",
     "num": "P6",
-    "title": "P6 轨迹、成本与故障定位",
+    "title": "轨迹、成本与故障定位",
     "short": "可观测性",
     "blurb": "trace、失败分层、尾延迟、成本账本与事故演练。",
     "icon": "book",
@@ -65,7 +65,7 @@
   {
     "id": "capstone-experiments",
     "num": "P7",
-    "title": "P7 公平比较与统计判断",
+    "title": "固定预算下比较两个版本",
     "short": "实验判断",
     "blurb": "配对、聚类、预算、确认集与三态决策。",
     "icon": "book",
@@ -74,7 +74,7 @@
   {
     "id": "capstone-sandbox",
     "num": "P8",
-    "title": "P8 迁移到隔离执行与开源基准",
+    "title": "在 Harbor 中运行仓库修复",
     "short": "隔离执行",
     "blurb": "Harbor 任务、mini-SWE-agent 基线与独立 verifier。",
     "icon": "book",
@@ -83,7 +83,7 @@
   {
     "id": "capstone-improve",
     "num": "P9",
-    "title": "P9 固定预算下的反思优化",
+    "title": "用轨迹反馈优化候选",
     "short": "反思优化",
     "blurb": "GEPA 接口、失败轨迹、搜索账本与消融。",
     "icon": "book",
@@ -92,7 +92,7 @@
   {
     "id": "capstone-meta",
     "num": "P10",
-    "title": "P10 检验改进器的改进",
+    "title": "更新改进器的对照实验",
     "short": "递归研究",
     "blurb": "冻结改进器对照、全搜索重复与元收益。",
     "icon": "book",
@@ -101,9 +101,9 @@
   {
     "id": "capstone-career",
     "num": "P11",
-    "title": "P11 从作品证据到求职反馈",
-    "short": "求职闭环",
-    "blurb": "分阶段投递、项目答辩、编码题与作品集。",
+    "title": "项目展示与面试准备",
+    "short": "面试准备",
+    "blurb": "岗位样本、简历示例、模拟面试与投递记录。",
     "icon": "book",
     "module": "capstone"
   }
