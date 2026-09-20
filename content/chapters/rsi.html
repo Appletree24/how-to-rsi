@@ -1,0 +1,78 @@
+<section class="chapter" id="ch-rsi">
+  <span class="ch-kicker">01 · 基础概念</span>
+  <h1>改进一个程序，与改进它的改进器</h1>
+  <p class="lead">假设服务收到配置 <code>" 3s "</code>，需要把它解析成 3000 毫秒，当前程序却返回了错误。修复解析器是一件事；让负责修复的程序以后更有效地找到补丁，是另一件事。从这两个具体对象出发，才能说清“递归”发生在哪里。</p>
+
+  <h2>先有一个可以观察的错误</h2>
+  <p>本章的解析器接收非负时长：没有单位时按毫秒解释，允许 <code>ms</code> 和 <code>s</code>、首尾空白、大小写单位，以及换算后恰好为整数毫秒的小数。非法输入返回 <code>None</code>。因此 <code>"10" → 10</code>、<code>" 3s " → 3000</code>、<code>"1.5s" → 1500</code>，而 <code>"-2s"</code> 和 <code>"0.1ms"</code> 应被拒绝。这是本实验自己定义的接口，不是通用时长标准。</p>
+  <p>初始版本只识别数字串。我们准备四种人工编写的补丁：支持单位 <code>units</code>、单位转小写 <code>case</code>、去首尾空白 <code>trim</code>、支持小数 <code>decimal</code>。每个候选版本由启用了哪些补丁确定，最多有 2⁴ = 16 种。后面的“搜索”就在这 16 种真实可执行的解析器配置中进行。</p>
+  <div class="codeblock"><div class="cb-head">初始行为与完整行为</div><pre data-lang="python">Solver().parse("10")                              # 10
+Solver().parse(" 3s ")                             # None
+Solver(("units", "trim")).parse(" 3s ")             # 3000
+Solver(("units", "case")).parse(" 3s ")             # None
+Solver(("units", "decimal")).parse("1.5s")          # 1500</pre></div>
+  <p>注意最后三个版本各有适用范围。一个补丁修复了某个输入，并不能说明它在所有输入上都更有用。首先要指定需要处理的输入集合，然后测量。</p>
+
+  <h2>固定的改进器，也能让解题器变好</h2>
+  <p>将解析器称为解题器 S。改进器 I 接收 S，提出候选，再用测试得分决定是否保留。初始改进器 I₀ 的尝试顺序是 <code>units → case → trim → decimal</code>；每次只允许尝试两个补丁。分数相同就保留原版本，失败和无效尝试也消耗一次机会。</p>
+  <p>开发集有 10 条输入。初始 S₀ 只通过数字串那一条；启用 units 后，通过数字串及两条带小写单位的输入；随后加 case，又通过一条大写单位输入。分数依次为 1/10、3/10、4/10。<strong>这里 S 变了，I 的尝试顺序和接受规则都没有变。</strong></p>
+  <div class="codeblock"><div class="cb-head">固定改进器；伪代码中的评分都使用开发集</div><pre data-lang="python">best = initial_solver
+for patch in ("units", "case"):       # 顺序固定，预算为 2
+    candidate = enable(best, patch)
+    if score(candidate) > score(best):
+        best = candidate</pre></div>
+  <p>不断执行这样的循环，分数完全可能上涨。上涨说明找到了更好的解题器；它本身还没有说明“寻找更好版本的方法”发生了改进。普通超参数搜索、固定策略的程序修复，也可以产生类似曲线。</p>
+
+  <h2>怎样给改进器本身打分</h2>
+  <p>现在想修改 I 的补丁顺序。不能拿 I 的源代码直接去解析 <code>"3s"</code>，因为它的工作是产生解析器。给 I 打分需要多走一步：从同一个空补丁版本 S₀ 开始，让 I 用两个尝试机会找出 S，然后测量这个 S 的得分。</p>
+  <div class="codeblock"><div class="cb-head">元效用：评分对象是改进器，观测来自它产生的解题器</div><pre data-lang="text">U(S) = 解析器在指定任务集上的通过比例
+M(I) = U(从 S₀ 出发、由 I 用两个补丁机会得到的解析器)
+
+I₀: units → case → trim → decimal    得到 units + case    M(I₀) = 0.4
+I₁: trim → units → case → decimal    得到 trim + units    M(I₁) = 0.8</pre></div>
+  <p>为什么 I₁ 更高？开发集里有五条带空白的输入，其中两条同时带单位。先处理空白再处理单位，能在两个机会内覆盖更多情况。原因是任务构成与补丁组合，并没有神秘的“更高智能层级”。把输入构成换掉，排序可能反过来。</p>
+  <p>这也解释了两种测试的区别：U 检查“这个程序解得怎样”；M 检查“这个改进器在规定起点和预算下，通常能得到怎样的程序”。真实系统有随机性时，M 还需要对多个起点、任务和完整搜索过程取平均。本章先用确定性例子把调用关系看清。</p>
+
+  <h2>让 I₀ 参与修改 I₀</h2>
+  <p>如果新顺序由人手工指定，只能说人设计了更好的改进器。配套代码做了一个受限的自应用：仍使用同一个 <code>improve</code> 过程，但把目标从 Solver 换成 Improver，并将评分函数从 U 换成 M。</p>
+  <p>同一个操作名有两种解释：对 Solver 使用 trim，表示启用去空白补丁；对 Improver 使用 trim，表示把 trim 移到尝试顺序的第一位。I₀ 按自己的顺序依次提出这四种修改，用 M 比较，最终保留 trim 优先的 I₁。下一次修复解析器时，实际执行的是 I₁ 的顺序。</p>
+  <div class="codeblock"><div class="cb-head">调用结构；完整实现见 labs/improver_lab.py</div><pre data-lang="python">def meta_utility(candidate_improver):
+    solver = improve(candidate_improver, Solver(), U, budget=2)
+    return U(solver)
+
+I1 = improve(controller=I0, target=I0, utility=meta_utility, budget=4)
+S1 = improve(controller=I1, target=Solver(), utility=U, budget=2)</pre></div>
+  <p>上面省略了计账参数，实际程序会复用已取得的得分，避免重复评分。这一轮外层调用期间 controller 固定为 I₀；返回的 I₁ 只在后续调用中接管。否则，修改“下一项操作的顺序”可能让同一次循环跳项或重复运行，连预算都难以解释。</p>
+  <p><strong>这个例子展示的是配置层面的改进器自应用。</strong>四种补丁、移动顺序的操作、接受规则和评分函数都由人写好；它没有发明新的补丁或算法。保留这些固定部分，是为了让反馈关系可以完整追踪，不能据此声称实现了开放式 RSI。</p>
+
+  <h2>运行，然后读一条完整轨迹</h2>
+  <div class="codeblock"><div class="cb-head">仓库根目录 · Python 3.10+ 标准库</div><pre data-lang="bash">python labs/improver_lab.py
+python labs/improver_lab.py --rounds 2 --output lab-output/improver/two-rounds.json</pre></div>
+  <p>默认输出在 <code>lab-output/improver/report.json</code>。<code>training.trace</code> 同时记录内层解析器修改和外层顺序修改；查看 <code>stage</code> 以区分两者。最终每一条输入的期望值、实际值和通过状态都在 <code>methods.*.results</code> 中。</p>
+  <!-- IMPROVER_RESULTS -->
+  <p>确认集只替换了数字，沿用了开发集的格式模板；它检查同类新输入，无法支持跨任务泛化结论。变化集则增加大写单位、减少空白。I₀ 在变化集上达到 8/10，I₁ 只达到 3/10：同一个自应用过程，产生了可复现的分布外退化。</p>
+  <p>再看成本：评一个改进器，需要运行一次基线解析器和两个候选，共 3 次整组评分。外层要评初始改进器和 4 个候选，所以训练为 5 × 3 = 15 次；随后用 I₁ 修复解析器还需 3 次，总计 18 次。穷举全部 16 种配置只需 16 次，而且得分更高。因此这次实验支持“学到的顺序在两个补丁机会内更适合这些模板”，不支持“从零开始比穷举更划算”。</p>
+  <p>所有方法最后还各执行 30 次单条输入检查，用于报告三个任务集。表里的成本单位是“对 10 条开发输入评分一次”，不是秒或 token；真实模型实验要另记调用、生成、验证和超时成本。重复自应用两轮还会发现：顺序不再变化，但外层搜索仍然付费。</p>
+
+  <h2>“递归”要指向具体的反馈关系</h2>
+  <p>在上述例子中，关键是新产生的 I₁ 被拿来承担后续改进工作。它不是因为函数调用栈出现了递归语法才有这个关系；把程序改写为 while 循环，关系仍在。相反，反复调用一个从不改变的 I₀，不会因为运行一百轮就自动成为“改进器的改进”。</p>
+  <p>文献对 RSI 的范围没有完全统一的操作口径。STOP 让调用模型的改进程序自应用，同时明确其底层语言模型没有改变，因此不称为 full RSI。<cite data-source="stop"></cite>本站讨论实验时会写明是哪一部分更新、谁生成修改、更新后有没有被再次使用；不根据“改的是 prompt 还是 Python 文件”判定深浅。</p>
+  <p>例如，一段 prompt 如果决定补丁提议与实验选择，它就是改进策略的一部分；修改它可能改变 I。给解题器增加一个数据库工具则可能只改变 S。记忆也一样：保存答案和保存“以后优先尝试哪些改法”，作用的位置不同。普通优化器按固定公式更新动量缓存，首先是固定学习规则下的状态演化；仅凭“内部状态变了”还不足以支持更强的元改进主张。</p>
+  <p>人类审批和外部模型属于系统的依赖条件，应单独写清。审批存在，并不会抹去 I₀ 到 I₁ 的反馈；取消审批，也不会自动让 I₁ 更有效。能改评分器是另一个研究问题：如果连衡量成绩的规则也换了，新旧分数需要外部共同标准才能比较。</p>
+
+  <h2>从局部改进到智能爆炸，还缺什么</h2>
+  <p>Good 的原始论述从“设计机器本身也是一种智力活动”出发，设想更强机器继续设计更强机器。<cite data-source="good"></cite>这给出了正反馈的动机，没有给出本章解析器会持续加速的证明。“不再使用新数据”和“不再经过人工批准”都不是由这个反馈关系推出的定义条件。</p>
+  <p>可以用一个<strong>仅作推理练习的动力学模型</strong>说明差别。设 q 是某个明确能力指标，每轮获得的平均有效增益为 g(q)，一轮所需时间为 c(q)。平均增长速度近似为 <code>dq/dτ = g(q) / c(q)</code>。模型假设指标、环境和成本函数在讨论区间内有意义；它不是现实智能的测量定律。</p>
+  <ul>
+    <li>若 g/c 是常数 a，则 <code>q(τ) = q₀ + aτ</code>。系统可以持续改进，但没有加速。</li>
+    <li>若指标上限为 1，且 g/c = a(1−q)，则 <code>q(τ) = 1 − (1−q₀)e^(−aτ)</code>。反馈仍存在，收益却逐渐耗尽。</li>
+    <li>若假设 g/c = aq²，且 q₀&gt;0，则 <code>q(τ) = q₀ / (1−aq₀τ)</code>，在理想模型中出现有限时间发散。真正需要论证的正是这个超线性假设，以及为何验证、数据、硬件与部署成本不会使它失效。</li>
+  </ul>
+  <p>本实验最多只有 16 个解析器配置，得分上限是 1，无法无限增长。真实编码基准也会饱和。若要研究持续加速，需要换成能表达新增能力的任务分布和指标，记录完整资源投入，再检验增长机制；单条开发集涨分曲线做不到这些。</p>
+
+  <h2>换一个条件，结论还成立吗</h2>
+  <details class="research-exercise"><summary>把内层预算从 2 改为 4，I₁ 的优势会怎样？</summary><p>不能只看两个顺序都“列出了四个补丁”，还要检查接受规则。若先提一个暂时无收益、却与后续补丁互补的改动，严格贪心会丢掉它。运行所有顺序并记录被拒绝的中间候选，才能判断差异来自预算还是搜索路径。这个问题会在下一章的档案搜索中再次出现。</p></details>
+  <details class="research-exercise"><summary>如果我只保存最终的 80%，丢掉训练记录，会失去什么？</summary><p>至少失去三件事：I₁ 是否实际承担后续改进、得到 I₁ 花了多少预算、I₁ 是怎样从候选中选出来的。只有最终 S 的得分，无法重建元改进的因果过程，也无法排除人为挑选最好一次结果。</p></details>
+  <details class="research-exercise"><summary>怎样把这个问题搬到 RepoOps？</summary><p>把 S 换成工单 Agent 的提示词和检索配置，把 I 换成根据失败轨迹提出配置修改的程序。先固定 I 比较 S，再让当前 I 提议自身策略的候选。对每个 I 候选，从相同的 S₀ 重跑固定预算搜索；最终任务集只在选择结束后使用。此时能复用 P1–P7 的数据、评分、计账和实验基础，但仍需真正实现候选生成与隔离执行。</p></details>
+  <p class="reading-note">源码：<a href="labs/improver_lab.py">improver_lab.py</a> · <a href="labs/improver/README.md">实验说明</a>。数学定义与对照设计见 <a href="#/research-contract">R1</a>，论文中的具体做法见 <a href="#/paper-lab">R2</a>。</p>
+</section>

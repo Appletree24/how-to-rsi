@@ -4,18 +4,18 @@
   {
     "id": "research-contract",
     "num": "R1",
-    "title": "自修改、任务收益与递归收益",
+    "title": "检验递归收益",
     "short": "问题定义",
-    "blurb": "自修改、自改收益、递归收益；固定预算与反事实。",
+    "blurb": "共同起点、元效用、总预算、训练摊销与完整搜索重复。",
     "icon": "book",
     "module": "research"
   },
   {
     "id": "paper-lab",
     "num": "R2",
-    "title": "STOP、DGM 与 HGM",
+    "title": "STOP、DGM 与 HGM 的控制流程",
     "short": "机制精读",
-    "blurb": "档案、CMP、oracle 假设与元改进消融。",
+    "blurb": "自应用轨迹、修改者消融、父代权重与 CMP 手算。",
     "icon": "book",
     "module": "research"
   },
@@ -191,36 +191,44 @@
   DSH.chapters.splice.apply(DSH.chapters, [after + chapters.length, 0].concat(capstone));
   DSH.sources = [
   {
+    "id": "good",
+    "title": "Speculations Concerning the First Ultraintelligent Machine",
+    "url": "https://languagelog.ldc.upenn.edu/myl/Good1964.pdf",
+    "version": "I. J. Good · Advances in Computers 6 · 1965",
+    "checked_at": "2026-09-20",
+    "scope": "§2，原刊页 33；机器设计正反馈的历史论述"
+  },
+  {
     "id": "gm",
     "title": "Gödel Machines: Fully Self-Referential Optimal Universal Self-Improvers",
-    "url": "https://arxiv.org/abs/cs/0309048",
-    "version": "arXiv cs/0309048",
-    "checked_at": "2026-09-19",
-    "scope": "摘要；形式化结论的条件边界"
+    "url": "https://arxiv.org/abs/cs/0309048v5",
+    "version": "arXiv v5 · 2006-12-17（首版 2003）",
+    "checked_at": "2026-09-20",
+    "scope": "§2–4、Theorem 4.1；切换与继续搜索的比较、公理和效用条件"
   },
   {
     "id": "stop",
     "title": "Self-Taught Optimizer (STOP)",
     "url": "https://arxiv.org/abs/2310.02304v3",
     "version": "arXiv v3 · COLM 2024",
-    "checked_at": "2026-09-19",
-    "scope": "摘要；改进器自应用、冻结基础模型的范围"
+    "checked_at": "2026-09-20",
+    "scope": "§3–4、Algorithm 1、式 (2)、§5.2；自应用、元效用与固定模型"
   },
   {
     "id": "dgm",
     "title": "Darwin Gödel Machine",
     "url": "https://arxiv.org/html/2505.22954v3",
     "version": "arXiv v3 · 2026-03-12",
-    "checked_at": "2026-09-19",
-    "scope": "全文 §3、§4.2–4.4、附录 C.2/C.4/E；档案、权重方向、基准口径"
+    "checked_at": "2026-09-20",
+    "scope": "§3、§4.3、附录 C.2–C.4、E.1；修改者对照、诊断分工、档案权重、费用口径"
   },
   {
     "id": "hgm",
     "title": "Huxley-Gödel Machine",
     "url": "https://arxiv.org/html/2510.21614v3",
     "version": "arXiv v3 · 2025-10-29",
-    "checked_at": "2026-09-19",
-    "scope": "全文 Assumption 1、§3.2–3.3、附录 D；CMP 三种口径与定理边界"
+    "checked_at": "2026-09-20",
+    "scope": "§2、Assumption 1、§3.2–3.3、附录 D；展开/评估分离与 CMP 三种口径"
   },
   {
     "id": "godel-agent",

@@ -8,7 +8,15 @@ DSH / Cordis 是运行时工程案例之一。可修改运行时、单次跑分�
 
 直接打开 [index.html](index.html)，无需构建、联网或安装依赖。也可运行 `python -m http.server 8080` 后访问 `http://127.0.0.1:8080`。
 
-建议从网站的 **RepoOps Lab P0–P11** 开始，遇到机制与实验问题回查 **论文与实验 R1–R8**。
+先读 **01–03 基础章节**，运行一个时长解析器的改进器自应用实验：从修一个输入错误，到修改补丁顺序，再解释成本与分布变化后的退化。接着读 **R1–R2**，学习共同起点、冻结修改者对照以及 STOP / DGM / HGM 的控制流程。
+
+工程主线是 **RepoOps Lab P0–P11**。已有评测基础的读者可直接从 P0 开始，遇到研究方法问题再回查基础章与 R1–R8。
+
+```sh
+python labs/improver_lab.py
+```
+
+这是实际执行解析器的有限配置实验，不调用模型。更新后的顺序在同模板确认集上从 4/10 提高到 8/10，在格式比例变化后却从 8/10 降到 3/10；包含训练的 18 次评分也没有胜过 16 次穷举。完整步骤、逐层计账与延伸练习见[实验说明](labs/improver/README.md)。网页结果表在生成时运行同一份代码。
 
 ## RepoOps Lab
 
@@ -66,19 +74,20 @@ python -m unittest discover -s tests -v
 - [贡献指南](CONTRIBUTING.md)：写作约定与校验命令。
 - GitHub Actions：自动检查生成一致性、本地链接、JS 语法和 Python 实验。
 
-旧 DSH 包/工具清单未保存生成时的上游 commit，需按使用版本核对；精确 API 应以目标版本为准。原站 L0–L5 是教学索引，不是通用成熟度标准。论文资料核对日期：**2026-09-19**。
+旧 DSH 包/工具清单未保存生成时的上游 commit，需按使用版本核对；精确 API 应以目标版本为准。基础章节按修改对象、反馈关系和实验结果分别描述，不采用单一能力等级。各来源的版本与核对范围保存在 `content/sources.json`。
 
 ## 目录与内容检查
 
 ```text
-content/chapters/          新增研究章节的可编辑 HTML 源文
+content/chapters/          01–03、R1–R8、P0–P11 的 HTML 源文
 content/sources.json       一手来源与核对范围
 content/research-chapters.json  研究导航清单
-index.html                原章节 + 生成嵌入的研究章节，可直接离线打开
+index.html                原章节 + 生成嵌入的基础/研究/实战正文，可离线打开
 assets/js/data.js          原课程与 DSH 历史清单
 assets/js/research-data.js  生成的研究导航与来源数据
 assets/js/research.js       浏览器端选择偏差实验
 labs/eval_lab.py           Python 标准库评测方法实验
+labs/improver_lab.py       有限改进器自应用与成本/退化实验
 tests/                    评测协议与统计裁决的回归测试
 scripts/                  生成与内容一致性检查
 ```

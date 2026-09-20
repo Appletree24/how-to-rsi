@@ -1,0 +1,61 @@
+<section class="chapter" id="ch-capmap">
+  <span class="ch-kicker">Chapter 03 · 机制与评测</span>
+  <h1>把一次自修改做成可追踪的实验</h1>
+  <p class="lead">你让 Agent 给自己加了一个工具，下次运行也确实调用了它。接下来要回答：执行的是哪个版本，改善了哪些任务，耗费多少资源，失败后能恢复到什么状态？本章把第一章的解析器实验扩展成一份可以接到 RepoOps 的工程设计。</p>
+
+  <h2>先画出修改边界</h2>
+  <p>在解析器实验里，Solver 的 <code>enabled</code> 决定如何解题，Improver 的 <code>order</code> 决定先尝试什么补丁。同一个 JSON 文件也能同时保存这两项。因此，文件扩展名、是否热加载、是否注册 Service，都不足以区分解题器修改与改进器修改。需要追踪数据实际控制了哪一步。</p>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>改动</th><th>实际影响</th><th>需要检查的使用点</th></tr></thead><tbody>
+    <tr><td>给任务提示增加检索说明</td><td>可能改变解题策略 S</td><td>任务调用是否加载这个提示版本</td></tr>
+    <tr><td>提示改为“先分析超时，再提候选”</td><td>如果用于候选生成，会改变 I</td><td>下一轮候选生成是否由新版本执行</td></tr>
+    <tr><td>保存过去的错误</td><td>可能只是记录，也可能进入 S 或 I</td><td>谁读取、在什么阶段读取、是否改变决策</td></tr>
+    <tr><td>替换文件系统 Provider</td><td>改变执行环境及可用操作</td><td>对照组是否仍共享相同环境条件</td></tr>
+  </tbody></table></div>
+  <p>在实际项目中，先列出允许改动的路径或字段，以及不允许改动的模型配置、任务集、计账器和评分规则。本轮如果要研究评分规则本身，就另设比较标准。不能同时改答案和答案表，再用“通过率提高”解释能力变化。</p>
+
+  <h2>候选必须先成为一个确定的版本</h2>
+  <p>如果候选只是工作目录里不断变化的几个文件，运行记录中的“v2”没有确定含义。至少要保存父版本、内容标识、生成者版本和运行环境。第一章使用不可变 dataclass；真实代码可采用提交、制品摘要或镜像标识。标识能帮助核对内容，不能替代隔离或证明内容正确。</p>
+  <div class="codeblock"><div class="cb-head">拟议的记录结构；RepoOps 元改进扩展需自行实现</div><pre data-lang="json">{
+  "candidate_id": "candidate-017",
+  "parent_id": "candidate-009",
+  "artifact_digest": "sha256:...",
+  "improver_id": "improver-003",
+  "proposal": "reduce search scope after repeated timeout",
+  "development_run_ids": ["run-108", "run-109"],
+  "decision": "archive",
+  "decision_reason": "valid candidate; confirmation not run"
+}</pre></div>
+  <p><code>parent_id</code> 表示改的是哪个起点，<code>improver_id</code> 表示谁生成修改。二者必须分开，否则无法区分“好起点容易改”和“修改者变强”。运行记录还要指向实际评分器版本、任务集标识和配置快照；只保存结论字符串，之后无法追查分数变动是哪个条件造成的。</p>
+
+  <h2>一次运行至少产生三类事实</h2>
+  <p>第一类是候选做了什么：读取文件、发起检索、调用工具、写入产物。第二类是外部观测：断言通过、产物内容、退出状态、超时或权限拒绝。第三类是成本：模型调用和 token、CPU 时间、墙钟时间、验证费用。它们应通过运行 ID 关联，而不是混在一段模型自述中。</p>
+  <p>例如，候选输出“已修复 12 个工单”，但 runner 只收到 10 份完整结果，另两次超时。分母仍是预先安排的 12 个任务；超时不能从平均值中消失。若候选能写评测数据库中的 <code>passed</code> 列，记录再完整也不可信，需要先修复写权限和结果生成路径。</p>
+  <p>RepoOps 当前的规则代理与 SQLite 结果存储可以用来练习这些关联；它们不执行任意自生成代码，也不是一个现成的安全沙箱。接入候选执行时还需处理进程超时、任务目录、凭据和网络边界。仅把评分器放进另一个 Python 模块，候选仍可能读取或覆盖它。</p>
+
+  <h2>把“入档”和“发布”分成两个决定</h2>
+  <p>开发数据用于快速筛选和继续搜索；确认数据用于检验已经冻结的终选候选。两者频率和目的不同。若每生成一个候选就读取确认结果，再据此提下一次修改，确认集已经变成搜索反馈，换一个文件名不会恢复独立性。</p>
+  <div class="codeblock"><div class="cb-head">控制流草案；没有包含隔离执行实现</div><pre data-lang="python">candidate = propose(parent, improver, development_feedback)
+artifact = freeze(candidate)
+observations = run_development(artifact, fixed_runner)
+ledger.append(artifact, observations, full_cost)
+
+if valid_for_further_search(observations):
+    archive.add(artifact)  # 不要求超过当前发布版本
+
+# 在预先约定的终选时点才执行：
+selected = choose_using_development_only(archive)
+confirmation = confirm(selected, incumbent, locked_protocol)
+if confirmation.decision == "keep":
+    incumbent = selected</pre></div>
+  <p>这里的 <code>valid_for_further_search</code> 可以检查能启动、接口满足约定、仍能生成候选；它不等于“任务表现已提高”。<code>keep</code> 需要满足预先规定的质量、成本与关键错误约束。如果数据不足，<code>inconclusive</code> 也是完整结果，应保持旧发布版本，而不是勉强选胜者。</p>
+
+  <h2>回滚恢复的是什么？</h2>
+  <p>把代码指针从 v2 指回 v1，只恢复了代码选择。若 v2 已经修改数据库、写入记忆、创建外部资源或留下后台进程，v1 仍在新状态上运行。设计一次失败注入：候选先写一条错误记忆，再使任务失败；随后只回滚代码，观察后续任务是否仍读取那条记忆。这个实验能暴露“版本回退”和“环境恢复”的差别。</p>
+  <p>对离线基准，较容易的办法是每次从相同快照启动独立环境，运行结束后销毁。对真实服务，需要逐项定义事务回滚、补偿操作、兼容迁移或不可逆操作的审批。不要承诺一个通用 rollback 函数能恢复所有副作用；列明本实验实际涉及哪些状态即可。</p>
+
+  <h2>将记录接到元改进对照</h2>
+  <p>到这一步，只能证明修改可追踪。要检验新改进器 I₁，仍需回到同一批起点，分别让 I₀ 和 I₁搜索。不要让 I₁ 从 I₀ 已经优化好的末代继续，再拿两个末代分数直接比较；那样起点和累计预算都变了。</p>
+  <p>第一章的有限实验已经保存两层 trace 与评分成本。把它搬到 RepoOps 时，先让候选只修改少量检索、提示或重试参数；为每次完整搜索保存起点、候选序列、失败和终选。等这条实验链条可靠之后，再扩大可修改空间。R1 给出具体的预算与对照计算。</p>
+  <details class="research-exercise"><summary>你在面试中被问“Agent 自动优化后成功率提高 20%，怎么证明？”</summary><p>先说明这是绝对百分点还是相对增幅，再给出同任务的基线、候选冻结时点、评分规则和成本。若声称递归带来收益，还需展示冻结改进器对照，以及独立完整搜索的重复结果。展示一条失败轨迹，解释它怎样计入分母、为什么没有发布。能现场从运行 ID 追到输入、版本、断言与成本，比只展示一张汇总图更能支持自己的结论。</p></details>
+  <p class="reading-note">项目衔接：<a href="#/capstone-data">P1 数据与任务</a> · <a href="#/capstone-grading">P4 评分规则</a> · <a href="#/capstone-experiments">P7 实验对照</a>。这些链接介绍现有工程基础，上面的自动候选生成与发布控制仍是扩展设计。</p>
+</section>

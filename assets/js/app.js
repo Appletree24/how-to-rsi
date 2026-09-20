@@ -390,33 +390,6 @@
     show();
   }
 
-  /* ---------- RSI 分级阶梯 ---------- */
-  function buildRsiLevels() {
-    var host = $('#rsiLevels');
-    if (!host) return;
-    DSH.rsiLevels.forEach(function (l, i) {
-      var row = el('div', 'layer reveal d' + (i % 4 + 1) + (l.cur ? ' lv-cur' : ''));
-      row.innerHTML = '<span class="ln">' + l.n + '</span><div><div class="lt">' + esc(l.t) + (l.cur ? ' <span class="lv-tag">今天可达</span>' : '') + '</div><div class="ld">' + esc(l.d) + '</div></div><span class="arrow-down">↓</span>';
-      host.appendChild(row);
-    });
-  }
-
-  /* ---------- 哥德尔机对照表 ---------- */
-  function buildGodel() {
-    var tb = $('#godelTable');
-    if (tb) {
-      DSH.godelMachines.forEach(function (m) {
-        var tr = el('tr', '',
-          '<td><b>' + esc(m.name) + '</b><div class="muted small">' + esc(m.by) + '</div></td>' +
-          '<td>' + esc(m.year) + '</td>' +
-          '<td>' + esc(m.gate) + '<div class="muted small">' + esc(m.key) + '</div></td>' +
-          '<td>' + esc(m.eval) + '</td>' +
-          '<td>' + esc(m.status) + '</td>');
-        tb.appendChild(tr);
-      });
-    }
-  }
-
   /* ---------- 开放进化模拟器(贪心 vs 档案) ---------- */
   /* 教学模型:8 个特性位,分数 = 激活数 + (bit7&bit8 同时激活 ? +35 : 单独各罚 12)
      贪心只从当前最优个体继续;开放档案从全部历史个体中均匀取样——后者能走出需要"暂时退步"的突破。 */
@@ -497,8 +470,8 @@
           clearInterval(evoTimer); evoTimer = null;
           var b = best();
           var verdict = greedy
-            ? (b.score >= MAXS ? '竟然到了 ' + b.score + ' 分——少数几次运气够好' : '卡在 ' + b.score + ' 分,bit7+bit8 的 +35 分永远够不着(单独激活各罚 12)')
-            : (b.score >= MAXS ? '达到 ' + b.score + ' 分!开放档案踩出了两步退化后的突破' : '达到 ' + b.score + ' 分——再跑几代通常能到 43');
+            ? (b.score >= MAXS ? '到达 ' + b.score + ' 分；应检查是否改变了单比特变异或接受规则' : '卡在 ' + b.score + ' 分,bit7+bit8 的 +35 分永远够不着(单独激活各罚 12)')
+            : (b.score >= MAXS ? '达到 ' + b.score + ' 分；档案保留了穿过低分状态的搜索路径' : '本次 60 代找到 ' + b.score + ' 分；有限随机搜索不保证达到 43');
           $('#evoResult').textContent = '结果：' + verdict;
           logLine('<span class="hl2">最优 ' + b.score + ' 分</span> — ' + verdict);
         }
@@ -513,25 +486,6 @@
       $('#evoResult').textContent = '选择一个策略开始';
     });
     render();
-  }
-
-  /* ---------- RSI 能力地图 ---------- */
-  function buildCapMap() {
-    var host = $('#capMapGrid');
-    if (!host) return;
-    var grid = el('div', 'grid cols2');
-    DSH.capMap.forEach(function (c, i) {
-      var ready = c.st === 'ready';
-      var card = el('div', 'card cap-card reveal d' + (i % 2 + 1));
-      var badge = ready ? '<span class="badge d">● 已有</span>' : '<span class="badge o">● 需扩展</span>';
-      card.innerHTML =
-        '<div class="cc-head"><h3>' + esc(c.t) + '</h3>' + badge + '</div>' +
-        '<p>' + esc(c.d) + '</p>' +
-        '<div class="cc-refs">' + c.refs.map(function (r) { return '<code>' + esc(r) + '</code>'; }).join(' ') + '</div>' +
-        '<div class="cc-q">' + esc(c.q) + '</div>';
-      grid.appendChild(card);
-    });
-    host.appendChild(grid);
   }
 
   /* ---------- 载体对比 ---------- */
@@ -1408,10 +1362,7 @@
     applyTheme();
     buildNav();
     buildHome();
-    buildRsiLevels();
-    buildGodel();
     buildEvoSim();
-    buildCapMap();
     buildCordis();
     buildSim();
     buildLoop();
