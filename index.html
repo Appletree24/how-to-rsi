@@ -75,15 +75,15 @@
 <li><a href="#ch-confessions">10 Confessions：事后报告的诚实激励与局限</a></li>
 <li><a href="#ch-safety">11 隔离与审批：把授权绑定到真正执行的动作</a></li>
 <li><a href="#ch-intro">12 Harness：一次执行的责任边界</a></li>
-<li><a href="#ch-cordis">13 Cordis：依赖与插件生命周期</a></li>
+<li><a href="#ch-cordis">13 Cordis 案例：依赖与插件生命周期</a></li>
 <li><a href="#ch-architecture">14 Harness 架构：上下文、能力与执行环境</a></li>
 <li><a href="#ch-loop">15 Agent Loop：调度、预算与取消</a></li>
 <li><a href="#ch-session">16 会话恢复：事件日志、未知结果与 Checkpoint</a></li>
-<li><a href="#ch-packages">17 包选型：按依赖边界组织能力</a></li>
+<li><a href="#ch-packages">17 包案例：按依赖边界组织能力</a></li>
 <li><a href="#ch-tools">18 工具契约：授权、执行与副作用</a></li>
-<li><a href="#ch-conventions">19 工程契约：资源、错误与持久格式</a></li>
+<li><a href="#ch-conventions">19 契约案例：资源、错误与持久格式</a></li>
 <li><a href="#ch-testing">20 测试设计：最小反例与真实执行路径</a></li>
-<li><a href="#ch-workflow">21 变更发布：从评审到停写与恢复</a></li>
+<li><a href="#ch-workflow">21 变更案例：从评审到停写与恢复</a></li>
 <li><a href="#ch-glossary">22 术语表：定义、运行边界与评测口径</a></li>
 <li><a href="#ch-quiz">23 场景自测：16 道机制与边界题</a></li>
 <li><a href="#ch-practice">24 项目任务书：知识助手、仓库修复与评测平台</a></li>
@@ -115,7 +115,7 @@
     </div>
     <h2>Harness：模型之外的执行系统</h2>
     <p>模型请求由哪些材料组成，工具何时获准执行，取消后还有哪些工作未结束，崩溃后如何处理结果未知的动作——这些问题决定了 Agent 的运行行为。</p>
-    <p>相关章节从<a href="#/intro">职责与架构选择</a>展开，进入<a href="#/architecture">上下文编译</a>、<a href="#/loop">调度与预算</a>、<a href="#/session">会话恢复</a>和<a href="#/testing">故障测试</a>。其中既有 DeepSeek Harness 固定版本的文档分析，也有通用设计方案；来源和适用范围随具体内容说明。</p>
+    <p>相关章节从<a href="#/intro">职责与架构选择</a>展开，进入<a href="#/architecture">上下文编译</a>、<a href="#/loop">调度与预算</a>、<a href="#/session">会话恢复</a>和<a href="#/testing">故障测试</a>。设计原则不绑定某个产品；<a href="#/cordis">Cordis 案例</a>与<a href="#/packages">包索引</a>保留了一个固定版本运行时的具体形态，供对照参考。</p>
     <h2>自改与元改进</h2>
     <p>修改提示词或代码后表现提高，说明这个候选在相应条件下更有效。若连产生候选的方法也被修改，还需要单独比较改进器。<a href="#/paper-lab">论文机制</a>介绍相关研究的控制流程，<a href="#/capstone-improve">候选搜索</a>讨论反馈驱动的版本迭代，<a href="#/capstone-meta">元改进实验</a>比较冻结与更新改进器的过程。</p>
     <h2>本地实验</h2>
@@ -563,8 +563,8 @@ python labs/eval_lab.py compare lab-output/improvement.input.json</pre></div>
   <p>隔离的失败路径同样影响实际权限。沙箱初始化失败后若自动转为宿主执行，这次操作便不再受预期边界约束；通用网络代理或宿主 socket 也可能绕过文件系统隔离。运行记录需要保存实际隔离模式与拒绝事件，无法建立规定边界时记为配置失败。否则，更宽权限带来的成功会被误计为搜索算法的收益。</p>
 
   <h2>公开实现的版本范围</h2>
-  <p>DSH 提供了一个运行时扩展案例：后文沿 <a href="#/cordis">Cordis 生命周期</a>、<a href="#/architecture">组合层</a> 与 <a href="#/tools">工具执行</a> 讨论其具体机制。固定 commit <code>ddefc45fbc7f8e46dd73185e68295696d1297887</code> 的 SAFETY.md 将它标为 developer preview，明确说明未经安全审计、不能视为安全或生产就绪，也不能作为不可信工作负载的唯一安全控制。<cite data-source="dsh-safety"><a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/SAFETY.md" target="_blank" rel="noopener">[dsh-safety]</a></cite>本章的机制分析不构成 DSH 安全审计。</p>
-  <p>DSH 包与工具清单缺少生成时的 commit，因此只能作为导航，不能作为已验证的 API 快照。实际适配需要记录安装版本、commit、依赖锁、profile 与叠加配置；define/run/stop 的参数、异步终态和卸载范围均受具体版本约束。Git commit、镜像 digest 或内容寻址包都可标识候选，记录结构无需依赖某个固定字段名。</p>
+    <p>DSH 提供了一个运行时扩展案例：其固定 commit 的 SAFETY.md 将它标为 developer preview，明确说明未经安全审计、不能视为安全或生产就绪，也不能作为不可信工作负载的唯一安全控制。<cite data-source="dsh-safety"><a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/SAFETY.md" target="_blank" rel="noopener">[dsh-safety]</a></cite>插件框架的具体机制见 <a href="#/cordis">第 13 章</a>；包索引见 <a href="#/packages">第 17 章</a>。</p>
+    <p>DSH 包与工具清单缺少生成时的 commit，因此只能作为导航，不能作为已验证的 API 快照。实际适配需要记录安装版本、commit、依赖锁、profile 与叠加配置；define/run/stop 的参数、异步终态和卸载范围均受具体版本约束。Git commit、镜像 digest 或内容寻址包都可标识候选，记录结构无需依赖某个固定字段名。</p>
   <p>Claude Code 官方沙箱文档的 2026-09-20 页面介绍了 sandboxed Bash 的文件系统与网络隔离，并区分平台支持、权限模式与非沙箱重试。<cite data-source="claude-sandbox"><a href="https://code.claude.com/docs/en/sandboxing" target="_blank" rel="noopener">[claude-sandbox]</a></cite>这说明产品提供内置沙箱能力，但不能推广为所有工具和扩展默认获得同样隔离。复现需要记录实际 CLI 版本与系统，并确定沙箱不可用时的行为、非沙箱重试权限与排除项。本节依据在线文档，不包含本机产品运行验证。</p>
 
   <h2>切换开销与固定预算下的比较</h2>
@@ -1161,9 +1161,9 @@ executing → succeeded | failed | outcome_unknown
   <section class="chapter" id="ch-intro">
     <span class="ch-kicker">运行时 / 12 · Harness 职责</span>
     <h1>Harness：<span class="grad">一次执行的责任边界</span></h1>
-    <p class="lead">模型已经返回“修改 README”的工具调用，编辑器这时断线，用户又按了取消。文件可能已改，界面却没收到结果。重连后的处理取决于执行端留下了什么：尚未派发的动作可以停止，已完成的动作需要核对，结果未知的动作不能盲目重试。DeepSeek Harness（DSH）的运行时结构，可以从这个失败窗口开始理解。</p>
+    <p class="lead">模型已经返回“修改 README”的工具调用，编辑器这时断线，用户又按了取消。文件可能已改，界面却没收到结果。重连后的处理取决于执行端留下了什么：尚未派发的动作可以停止，已完成的动作需要核对，结果未知的动作不能盲目重试。Harness 的职责，可以从这个失败窗口开始理解。</p>
 
-    <div class="callout info"><span class="t">版本与来源</span>DSH 部分依据提交 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/architecture.md" target="_blank" rel="noopener"><code>ddefc45fbc7f</code> 的架构文档</a>及子系统文档。文中的通用设计、代码骨架和故障时序为分析示例；本地 RepoOps 的实现范围在后文单独说明。<cite data-source="dsh-runtime-contracts"><a href="https://github.com/deepseek-ai/deepseek-harness/tree/ddefc45fbc7f8e46dd73185e68295696d1297887/docs" target="_blank" rel="noopener">[dsh-runtime-contracts]</a></cite></div>
+    <div class="callout info"><span class="t">本章范围</span>本章按职责边界组织 Harness 的通用设计：上下文、派发、预算与恢复的责任划分不依赖某个具体产品。一个固定版本的运行时案例在 <a href="#/cordis">第 13 章</a>与<a href="#/architecture">第 14 章末节</a>单独讨论；本地 RepoOps 的实现范围在后文说明。</div>
 
     <h2>模型输出、工具结果与任务完成</h2>
     <p>“模型说改好了”只能证明它生成了文字；“工具返回成功”说明一次调用给了结果；“文件内容符合要求且结果可恢复”才接近用户的完成条件。取消与断线让这三个事实分离：网络响应丢失不代表写入没发生，回合结束也不自动代表日志已越过持久化屏障。</p>
@@ -1204,19 +1204,19 @@ executing → succeeded | failed | outcome_unknown
     <p>子 Agent 的收益来自可独立推进的任务分支。任务依赖图决定哪些分支可以并行，每支还需要明确预算、产物格式与合并责任。若三支都修改同一文件且没有可独立检查的产物，增加协调器可能只会增加冲突。父任务取消后，子任务尚未退出，资源所有权就仍须保留；具体调度与故障处理见 <a href="#/testing">Harness 故障注入</a>。</p>
     <p>正常轨迹只能展示各组件如何协作。审批期间撤权、动作完成后丢失回包、父任务取消后子进程仍在运行，这三条故障轨迹分别暴露授权、结果核对与资源释放的边界。比较架构时，可以记录这些切点上的权威状态、恢复动作和用户可见结果，再按 <a href="#/capstone-experiments">P7 的 Harness 消融实验</a> 衡量各机制的实际收益。</p>
 
-    <h2>DSH 的插件化执行循环</h2>
-    <p>固定提交的架构文档把模型适配器、工具注册表、会话日志和 Agent Loop 都定义为可配置插件。服务定义是消费者依赖的接口，Provider 是实现，Consumer 通常是工具或宿主。替换实现的范围由这三类角色之间的契约确定：消费者不必知道具体 Provider，但仍依赖它的错误、取消和生命周期语义。</p>
+    <h2>接口可替换性与行为契约</h2>
+    <p>把模型适配器、工具注册表、会话日志和回合驱动器分别定义成可替换接口，可以让不同实现共享同一个执行骨架。服务定义是消费者依赖的接口，Provider 是实现，Consumer 通常是工具或宿主。替换实现的范围由这三类角色之间的契约确定：消费者不必知道具体 Provider，但仍依赖它的错误、取消和生命周期语义。</p>
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>职责与文档中的接口</th><th>可替换什么</th><th>不能借替换丢掉什么</th></tr></thead>
+      <thead><tr><th>可替换的职责</th><th>可以换什么</th><th>不能借替换丢掉什么</th></tr></thead>
       <tbody>
-        <tr><td><code>ctx.systemPrompt</code> / <code>ctx.tools</code></td><td>上下文提供者、工具集合</td><td>模型所见与日志重建一致；执行端仍须对已暴露的工具做授权检查</td></tr>
-        <tr><td><code>ctx.agents</code> / <code>ctx.agentLoop</code></td><td>Agent 接口背后的默认驱动器</td><td>输入领取、取消传播、结束状态与清理责任</td></tr>
-        <tr><td><code>ctx.llm</code></td><td>模型路由与适配器</td><td>流协议、实际用量的未知值、错误与取消语义</td></tr>
-        <tr><td><code>ctx.sessions</code> / <code>ctx.sessionPersistence</code></td><td>日志的存储后端</td><td>单写者、连续事件序号、flush 后的持久承诺</td></tr>
-        <tr><td><code>tools/*</code> 能力扩展点</td><td>审批、观察与执行包装</td><td>不能用后处理“撤销”已发生的外部副作用</td></tr>
+        <tr><td>上下文与工具提供</td><td>提示词组装、可见工具集合</td><td>模型所见与日志重建一致；执行端仍须对已暴露的工具做授权检查</td></tr>
+        <tr><td>回合驱动</td><td>Agent 接口背后的默认驱动器</td><td>输入领取、取消传播、结束状态与清理责任</td></tr>
+        <tr><td>模型适配</td><td>模型路由与协议适配器</td><td>流协议、实际用量的未知值、错误与取消语义</td></tr>
+        <tr><td>持久化后端</td><td>日志的存储实现</td><td>单写者、连续事件序号、flush 后的持久承诺</td></tr>
+        <tr><td>工具执行包装</td><td>审批、观察与度量钩子</td><td>不能用后处理“撤销”已发生的外部副作用</td></tr>
       </tbody>
     </table></div>
-    <p>一个进程、一个类持有全部依赖，是固定、只读、短任务中较容易理解和验证的方案。多个载体、不同执行环境与独立生命周期出现后，插件化才有明确收益，同时也引入服务查找、配置合成和卸载顺序等故障面。第 13 章讨论依赖失效，第 14 章讨论执行环境替换与跨会话隔离。</p>
+    <p>一个进程、一个类持有全部依赖，是固定、只读、短任务中较容易理解和验证的方案。多个载体、不同执行环境与独立生命周期出现后，插件化才有明确收益，同时也引入服务查找、配置合成和卸载顺序等故障面。<a href="#/cordis">第 13 章</a>用一个真实的插件框架讨论依赖失效；<a href="#/architecture">第 14 章</a>讨论执行环境替换与跨会话隔离。</p>
 
     <h2>三类产品中的运行时约束</h2>
     <div class="grid cols3">
@@ -1224,52 +1224,19 @@ executing → succeeded | failed | outcome_unknown
       <div class="card reveal d2"><h3>仓库修复：再守副作用</h3><p>编辑、命令与子进程让取消变得不可逆。需要隔离工作区、可检查的差异、进程退出与产物断言；返回一个取消标记不会回滚文件。</p></div>
       <div class="card reveal d3"><h3>评测平台：再守恢复身份</h3><p>重复投递、worker 失联、评分版本变化要求稳定 trial 身份与提交规则。任务跑完和成绩可晋级是两条不同的状态线。</p></div>
     </div>
-    <p>本仓库 RepoOps 是一个只读实现：<code>projects/repoops/agent.py</code> 提供 <code>search/read/finish</code> 协议；<code>runner.py</code> 串行执行 trial，并把结果与完整轨迹放入同一 SQLite 提交。它尚未接入 DSH，也没有文件修复工具、会话级恢复或强制进程取消。扩展为仓库修复工具时，写入所有权、执行中持久化和取消收尾会成为新增的实现责任。</p>
+    <p>本仓库 RepoOps 是一个只读实现：<code>projects/repoops/agent.py</code> 提供 <code>search/read/finish</code> 协议；<code>runner.py</code> 串行执行 trial，并把结果与完整轨迹放入同一 SQLite 提交。它没有文件修复工具、会话级恢复或强制进程取消。扩展为仓库修复工具时，写入所有权、执行中持久化和取消收尾会成为新增的实现责任。</p>
 
-    <h2>固定版本与启动入口</h2>
-    <p>试用入口和固定版本源码回答不同的问题。第一条命令解析当时的 npm 版本，适合了解产品入口；分析本文契约则需要锁定对应提交。运行前应检查该提交的运行时要求、锁文件和安全说明，并使用可丢弃环境。</p>
-    <div class="codeblock">
-      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 试用入口，不是版本锁</div>
-      <pre data-lang="sh">npx @deepseek-ai/dsh web
-# 未指定 npm 版本；启动参数、端口及浏览器行为以该版本 --help 为准</pre>
-    </div>
-    <div class="codeblock">
-      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 固定文档对应的源码，再按该版本 README 核对命令</div>
-      <pre data-lang="sh">git clone https://github.com/deepseek-ai/deepseek-harness.git
-cd deepseek-harness
-git checkout ddefc45fbc7f8e46dd73185e68295696d1297887
-# 先检查 package.json 的 engines/packageManager 与该提交的 README
-pnpm install --frozen-lockfile
-pnpm run typecheck
-pnpm run build
-pnpm dsh web
-pnpm dsh --profile headless "修掉 README 错别字"
-# 此处是待执行路线；不要在持有敏感资料的工作目录试运行</pre>
-    </div>
-    <div class="callout warn"><span class="t">插件生命周期与安全隔离</span>固定提交的 SAFETY.md 明确：DSH 是未安全审计的实验性 developer preview；沙箱、审批和权限控制不能保证隔离，更不能保护已授权访问的资源。最小权限、可丢弃环境、备份与凭据隔离仍由部署方负责。<cite data-source="dsh-safety"><a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/SAFETY.md" target="_blank" rel="noopener">[dsh-safety]</a></cite></div>
-
-    <h2>沿执行路径定位源码</h2>
-    <div class="tree reveal">deepseek-harness/
-├─ <b>vendor/</b>        Cordis 生命周期与 Loader 的定位入口
-├─ <b>packages/</b>      插件与能力服务
-│  ├─ core/          session / tools / agent / agent-loop / scope
-│  ├─ llm/ fs/ shell/ sandbox/ subagent/…   定义、实现与消费者
-│  └─ bundle/        组合层；与 profile / patch 一起决定启动树
-├─ <b>apps/</b>          载体，不应另造一份循环契约
-├─ <b>python/</b>        SDK 载体；固定提交文档描述其启动同一 dsh CLI
-├─ <b>snapshots/</b>     回放线索，不是实模型能力或安全证明
-├─ <b>docs/</b>          架构 → 子系统 → API 声明 → 事故复盘
-└─ <b>scripts/</b>       文档生成与静态门禁的定位入口</div>
-    <p>固定提交文档要求受支持的 Node 应用通过命名 profile 启动：<code>web</code>、<code>headless</code>、<code>sdk</code>、<code>sdk-minimal</code>、<code>acp</code>。这是该项目的载体契约，不是所有插件框架的普遍定律。手工 <code>ctx.plugin()</code> 可用于单元测试，却不能据此宣称真实 Loader 路径已经验证。</p>
-    <p>一次工具调用跨越请求、准入、执行、结算和持久化五个边界。文档规定契约，源码调用点决定顺序，运行观测说明具体环境中的行为，三者提供不同层次的依据。RSI 实验同样依赖这些边界：若候选改动改变了执行方式或评测责任，即使提升数字不变，实验之间也可能失去可比性。</p>
+    <h2>比较实现时的核对方法</h2>
+    <p>不同 harness 产品的能力差异不在功能列表，而在上述边界上的具体行为。比较时可以沿三条路径取证：文档与版本固定的契约声明、源码中决策点的调用顺序，以及受控环境下的运行观测。三者提供不同层次的依据——文档规定意图，调用点决定顺序，观测说明具体环境中的实际行为。</p>
+    <p>一次工具调用至少跨越请求组装、准入、执行、结算和持久化五个边界。候选实现若改变了其中任一边界的责任归属，即使外部指标不变，两次执行也不在同一契约下。<a href="#/cordis">Cordis 案例</a>展示一个真实框架如何把这些边界组织为插件生命周期；<a href="#/testing">故障注入</a>给出比较这些边界的实验方法。</p>
   </section>
 
   <!-- ============ 13 Cordis 核心 ============ -->
   <section class="chapter" id="ch-cordis">
-    <span class="ch-kicker">运行时 / 13 · Cordis 核心</span>
+    <span class="ch-kicker">运行时 / 13 · 案例：Cordis</span>
     <h1><span class="grad">Cordis</span>：依赖与插件生命周期</h1>
     <p class="lead">一个检索插件依赖数据库服务。重载配置时，如果数据库先关闭，旧工具可能仍在处理请求；如果只撤销注册，已经开始的调用又未必停止。依赖注入决定插件何时可以启动，生命周期管理还需要处理停止入口、收尾调用与释放依赖之间的顺序。</p>
-    <p class="small muted">Cordis 机制与事故案例依据固定提交的 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/cordis-primer.md" target="_blank" rel="noopener">Cordis primer</a> 及下文复盘。活动调用的 drain、取消与资源所有权是本文分析的设计责任；框架的可逆注册不涵盖任意异步任务或外部副作用回滚。示例省略导入、工具定义与类型细节，交互组件仅模拟分发规则。<cite data-source="dsh-runtime-contracts"><a href="https://github.com/deepseek-ai/deepseek-harness/tree/ddefc45fbc7f8e46dd73185e68295696d1297887/docs" target="_blank" rel="noopener">[dsh-runtime-contracts]</a></cite></p>
+    <p class="small muted">本章以 DeepSeek Harness 固定提交的 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/cordis-primer.md" target="_blank" rel="noopener">Cordis primer</a> 及复盘为案例，讨论依赖注入与生命周期的通用问题。活动调用的 drain、取消与资源所有权是本文分析的设计责任；框架的可逆注册不涵盖任意异步任务或外部副作用回滚。示例省略导入、工具定义与类型细节，交互组件仅模拟分发规则。<cite data-source="dsh-runtime-contracts"><a href="https://github.com/deepseek-ai/deepseek-harness/tree/ddefc45fbc7f8e46dd73185e68295696d1297887/docs" target="_blank" rel="noopener">[dsh-runtime-contracts]</a></cite></p>
 
     <h2>服务可用期间的注册与调用</h2>
     <p>设工具消费者 C 需要服务 P。C 未激活时不应接单；P 可用后才能发布注册；停止时先关入口，再处理飞行中的调用，最后释放 P。服务键让 C 不依赖 P 的具体类，<code>inject</code> 表达所需服务，事件承载协作，effect/disposer 记录需要撤销的注册。五个概念都服务于这个时间窗口，而不是五种独立语法。</p>
@@ -1351,47 +1318,40 @@ export function apply(ctx: Context, config: Config) {
     <span class="ch-kicker">运行时 / 14 · 架构总览</span>
     <h1>Harness 架构：<span class="grad">上下文、能力与执行环境</span></h1>
     <p class="lead">同一套 Agent 可以服务只读知识问答和有写权限的仓库修复，但两者对执行环境的要求不同。如果修复任务的 Bash 已切到远程沙箱，文件读取仍走本机，模型分析的代码与命令修改的就可能是两份仓库。Provider 替换因此涉及一组相互约束的工作区、身份和生命周期。</p>
-    <p class="small muted">DSH 的分层、能力 seam 与事件域依据 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/architecture.md" target="_blank" rel="noopener">固定提交 architecture.md</a>。上下文编译和远程部署小节讨论通用设计方案，未提供 DSH 运行结果；末节说明 RepoOps 现有实现与接入差异。<cite data-source="dsh-runtime-contracts"><a href="https://github.com/deepseek-ai/deepseek-harness/tree/ddefc45fbc7f8e46dd73185e68295696d1297887/docs" target="_blank" rel="noopener">[dsh-runtime-contracts]</a></cite></p>
+    <p class="small muted">本章讨论通用设计方案：配置合成、上下文编译与执行环境一致性不绑定某个产品。一个固定版本的插件框架案例见 <a href="#/cordis">第 13 章</a>；RepoOps 现有实现与接入差异在末节说明。</p>
 
-    <h2>Profile 与 Bundle 合成最终插件树</h2>
-    <p>线上和本地行为的差异可能来自最终生效的配置组合。文档中 <strong>Profile</strong> 是 Harness home 内的具名组合，声明 bundle 并持有用户补丁与仓外插件；<strong>Bundle</strong> 分发配置行及所挂载代码。<code>package.json</code> 的 <code>dsh.profile</code>、<code>dsh.bundle</code> 描述两者身份。执行树由这些配置合成，单个 YAML 文件只能描述其中一层。</p>
+    <h2>组合配置决定实际行为</h2>
+    <p>线上和本地行为的差异可能来自最终生效的配置组合。常见结构是：基础层提供共享默认，应用层按载体叠加能力，用户层持有补丁，命令行做临时覆盖。执行树由这些层合成，单个配置文件只能描述其中一层。</p>
     <div class="layerstack">
-      <div class="layer reveal d1"><span class="ln">1</span><div><div class="lt">Bundles：按 profile 的声明顺序</div><div class="ld"><code>dsh-base</code> 提供共享基础；web/headless/sdk/acp 的应用 bundle 增加各自载体。<code>sdk-minimal</code> 是不叠 base、自己拥有完整树的例外。</div></div><span class="arrow-down">↓</span></div>
-      <div class="layer reveal d2"><span class="ln">2</span><div><div class="lt">Profile 的 cordis.patch.yml</div><div class="ld">这个具名组合的选择，不代表全局默认。</div></div><span class="arrow-down">↓</span></div>
-      <div class="layer reveal d3"><span class="ln">3</span><div><div class="lt">Home 层 cordis.patch.yml</div><div class="ld">同一用户环境的全局补丁，可能改变多个 profile。</div></div><span class="arrow-down">↓</span></div>
-      <div class="layer reveal d4"><span class="ln">4</span><div><div class="lt">--patch 覆盖层</div><div class="ld">临时叠加；按 id 定位行，替换整个 config 或插入行。</div></div></div>
+      <div class="layer reveal d1"><span class="ln">1</span><div><div class="lt">基础与应用层：按组合顺序</div><div class="ld">共享基础提供默认能力；web / headless / sdk 等载体层增加各自入口与工具面。也有载体不叠基础层、自己拥有完整树的设计。</div></div><span class="arrow-down">↓</span></div>
+      <div class="layer reveal d2"><span class="ln">2</span><div><div class="lt">具名组合（profile）的补丁层</div><div class="ld">这个具名组合的选择，不代表全局默认。</div></div><span class="arrow-down">↓</span></div>
+      <div class="layer reveal d3"><span class="ln">3</span><div><div class="lt">用户环境的全局补丁</div><div class="ld">同一用户环境的全局补丁，可能改变多个 profile。</div></div><span class="arrow-down">↓</span></div>
+      <div class="layer reveal d4"><span class="ln">4</span><div><div class="lt">启动参数覆盖层</div><div class="ld">临时叠加；按 id 定位行，替换整个 config 或插入行。</div></div></div>
     </div>
     <figure class="fig">
       <div class="fig-scroll" tabindex="0" role="region" aria-label="图：四层引导顺序，可横向滚动"><img src="assets/figures/fig-architecture-layers.svg" alt="有序 bundle、profile 补丁、home 补丁和命令行覆盖层依次合成插件树；后层可替换前层配置" loading="lazy" decoding="async" width="840" height="430"></div>
       <figcaption>图 · 合成顺序是行为输入。只保留最上层 patch，不足以复原当时的执行树。</figcaption>
     </figure>
-    <p>例如，底层某行的配置为 <code>{ timeout: 30, policy: 'deny-write' }</code>，上层只写 <code>{ timeout: 60 }</code>。按“整个 config 替换”的契约，<code>policy</code> 已从该行消失，最终策略取决于 Provider 默认值，不能假定 deny-write 被继承。这两个键用于说明替换语义；实际字段由目标 Provider 的 schema 决定。</p>
-    <div class="codeblock">
-      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 在隔离环境查看最终配置</div>
-      <pre data-lang="sh">dsh --profile web --dump-config
-# 同时记录 dsh/插件版本、profile、补丁顺序与最终配置的身份
-# 输出可能含配置敏感值；进入报告前按字段脱敏，不发布凭据</pre>
-    </div>
-    <p>固定提交文档称 base 默认启用仅配置 HMR，headless/SDK/ACP 禁用，sdk-minimal 不挂该行；profile 补丁仍可改变选择。这个默认反映生命周期取舍，不保证所有热更新都无损：一次性 runner 中途替换存储或策略，可能让一次任务跨越两套行为契约。做评测时更合适的选择常常是锁住整次 run 的组合。</p>
+    <p>例如，底层某行的配置为 <code>{ timeout: 30, policy: 'deny-write' }</code>，上层只写 <code>{ timeout: 60 }</code>。若合并契约是"整个 config 替换"，<code>policy</code> 已从该行消失，最终策略取决于实现默认值，不能假定 deny-write 被继承。这两个键用于说明替换语义；实际字段由目标实现的 schema 决定。</p>
+    <p>组合是否允许运行中替换也影响行为。仅配置热更新改变行为边界，却不必重启进程；一次性 runner 中途替换存储或策略，可能让一次任务跨越两套行为契约。做评测时更合适的选择常常是锁住整次 run 的组合；是否需要运行中替换，取决于产品语义而非实现便利。</p>
 
     <h2>服务接口中的所有权契约</h2>
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>包与服务</th><th>负责的事实</th><th>消费者依赖的契约</th></tr></thead>
+      <thead><tr><th>职责</th><th>负责的事实</th><th>消费者依赖的契约</th></tr></thead>
       <tbody>
-        <tr><td><code>core/session → ctx.sessions</code></td><td>追加式日志、内存会话</td><td>事件连续与投影语义，而不只是相同方法名</td></tr>
-        <tr><td><code>core/system-prompt → ctx.systemPrompt</code></td><td>提示词与工具 schema 组装</td><td>请求里没有未记录的模型可见补丁</td></tr>
-        <tr><td><code>core/tools → ctx.tools</code></td><td>作用域注册、守卫与执行流水线</td><td>未授权调用不能因绕过某个 UI 而放行</td></tr>
-        <tr><td><code>core/agent → ctx.agents</code></td><td>Agent 接口与存活注册</td><td>消费者不依赖某个具体驱动器的内部状态</td></tr>
-        <tr><td><code>core/agent-loop → ctx.agentLoop</code></td><td>默认回合驱动</td><td>初始化、取消、结算、释放仍满足接口约定</td></tr>
-        <tr><td><code>core/scope</code>（库，无 ctx 键）</td><td>按 agent 作用域注册</td><td>会话 A 的注册不泄漏到 B</td></tr>
-        <tr><td><code>llm/llm → ctx.llm</code></td><td>适配器与流词汇</td><td>取消与错误有稳定映射，未知 usage 不伪造为零</td></tr>
-        <tr><td><code>webhook/webhook → ctx.webhookRuntime</code></td><td>已验证投递与会话创建</td><td>入口身份与重放策略不由模型自行判断</td></tr>
+        <tr><td>会话日志</td><td>追加式事件、内存会话</td><td>事件连续与投影语义，而不只是相同方法名</td></tr>
+        <tr><td>提示词组装</td><td>系统提示与工具 schema 的合成</td><td>请求里没有未记录的模型可见补丁</td></tr>
+        <tr><td>工具注册与执行</td><td>作用域注册、守卫与执行流水线</td><td>未授权调用不能因绕过某个 UI 而放行</td></tr>
+        <tr><td>回合驱动</td><td>默认回合的初始化、取消、结算、释放</td><td>消费者不依赖某个具体驱动器的内部状态</td></tr>
+        <tr><td>作用域隔离</td><td>按 agent 或会话注册能力</td><td>会话 A 的注册不泄漏到 B</td></tr>
+        <tr><td>模型适配</td><td>协议适配与流式词汇</td><td>取消与错误有稳定映射，未知 usage 不伪造为零</td></tr>
+        <tr><td>入口接入</td><td>外部投递的验证与会话创建</td><td>入口身份与重放策略不由模型自行判断</td></tr>
       </tbody>
     </table></div>
     <p>服务定义、Provider、Consumer 构成能力 seam，将替换时需要保持的行为集中到接口契约。路径、错误码和取消语义都属于这个契约；两个 Provider 即使具有相同类型签名，也可能在这些行为上不兼容。</p>
 
     <h2>将上下文编译为有版本的请求</h2>
-    <p>上下文编译把任务、证据和能力约束组织为一次不可变输入。产物包括实际消息、可见工具 schema、证据来源清单、裁剪记录，以及配置与授权快照身份。这样，请求的来源与转换过程都能被追踪。接入 DSH 时，system prompt、tools 与 session seam 提供相应位置，完整的编译产物契约还需要额外实现。</p>
+    <p>上下文编译把任务、证据和能力约束组织为一次不可变输入。产物包括实际消息、可见工具 schema、证据来源清单、裁剪记录，以及配置与授权快照身份。这样，请求的来源与转换过程都能被追踪；实现接缝时，提示词组装、工具注册与会话记录提供相应位置，完整的编译产物契约仍需显式定义。</p>
     <div class="tbl-wrap"><table class="tbl">
       <thead><tr><th>输入与信任层</th><th>编译时如何处理</th><th>不能越过的边界</th></tr></thead>
       <tbody>
@@ -1411,30 +1371,30 @@ export function apply(ctx: Context, config: Config) {
     <p>编译器的故障实验可以覆盖三类变化：检索正文中的伪系统指令、请求冻结后的写权限撤销，以及超过窗口的输入。分别检查低信任标记与外发拒绝、派发时的授权决定、裁剪清单和实际 token 量。策略热更新需要在后续执行前重新判断准入；若更换分词器或摘要版本，也应记录编译版本并区分新的请求身份。历史请求的授权摘要只能解释过去的决定，当前执行仍依赖服务端校验；版本衔接见 <a href="#/session">第 16 章</a>。</p>
 
     <h2>文件系统与子进程共享一个执行环境</h2>
-    <p>文档把文件系统与子进程 Provider 放在同一“执行世界”中考虑：<code>ctx.fs</code>、<code>ctx.subprocess</code> 以及消费它们的 shell、终端、LSP 必须针对同一工作区。假设模型在本地读到版本 A，命令在远程版本 B 打补丁，工具返回的 diff 即使合法，也不是它分析过的输入。</p>
+    <p>设计时应把文件系统与子进程 Provider 放在同一个"执行世界"中考虑：文件读写、进程执行、终端与语言服务必须针对同一工作区。假设模型在本地读到版本 A，命令在远程版本 B 打补丁，工具返回的 diff 即使合法，也不是它分析过的输入。</p>
     <p>环境切换首先需要固定任务的工作区/仓库快照与执行主体，让模型读取、命令 cwd 和产物收集指向同一基线。fs、subprocess、PTY、LSP 和后台任务都是这份映射的消费者；任何本机回退都应显式记录或拒绝，静默回退会把环境错误伪装成正常结果。</p>
     <p>取消同样跨越这些消费者。终端、子进程和输出流停止后，工作区才能释放；提前删除目录会与仍在运行的写入竞争。断开远程连接的故障实验可以检查各条读写路径是否一致失败、有无任务转到本机，以及尚未完整收集的产物是否被误标完成。</p>
-    <p>替代方案是在本机生成 patch、在独立环境只做验证。它减少远程交互，但要求验证使用同一个基线并显式应用该 patch；否则“远程验证通过”与交付的内容仍可能脱节。DSH 的插件树本身不提供这份外部环境一致性证明。</p>
+    <p>替代方案是在本机生成 patch、在独立环境只做验证。它减少远程交互，但要求验证使用同一个基线并显式应用该 patch；否则"远程验证通过"与交付的内容仍可能脱节。插件框架本身不提供这份外部环境一致性证明。</p>
 
     <h2>持久事实、活体决策与能力边界</h2>
     <div class="grid cols3">
-      <div class="card domain-card reveal d1"><h3>Session：重启后仍应知道</h3><p>模型输入、工具结果与回合边界进入会话事实。<code>session/event</code> 广播通知观察者，持久性另由 flush 屏障确认。重放读取事实，不重新执行副作用。</p></div>
-      <div class="card domain-card dm2 reveal d2"><h3>Agent：存活执行中的决策</h3><p><code>agent/pre-step</code>、请求路由、取消和收尾依赖当前 Agent。初始化 <code>agent/created</code> 按文档需等待完成才让排队工作启动；失败应回滚创建。</p></div>
-      <div class="card domain-card dm3 reveal d3"><h3>能力：所有调用者都应受约束</h3><p>写前检查应靠近 <code>fs/*</code>，工具执行包装在 <code>tools/*</code>。只在聊天 UI 禁用按钮，拦不住 SDK 或另一个工具路径。</p></div>
+      <div class="card domain-card reveal d1"><h3>Session：重启后仍应知道</h3><p>模型输入、工具结果与回合边界进入会话事实。事件广播通知观察者，持久性另由 flush 屏障确认。重放读取事实，不重新执行副作用。</p></div>
+      <div class="card domain-card dm2 reveal d2"><h3>Agent：存活执行中的决策</h3><p>请求路由、取消和收尾依赖当前 Agent。初始化需等待完成才让排队工作启动；失败应回滚创建。</p></div>
+      <div class="card domain-card dm3 reveal d3"><h3>能力：所有调用者都应受约束</h3><p>写前检查应靠近文件系统接缝，工具执行包装在工具流水线。只在聊天 UI 禁用按钮，拦不住 SDK 或另一个工具路径。</p></div>
     </div>
     <p>用“批准一次写入”检验域划分：审批对话是活体交互，审批结果若影响恢复审计需要持久记录，最终约束要在真正的写入路径执行。把全部逻辑塞进 Session 观察者，可能事后才看见已经发生的写入；把它只放 Agent 钩子，又可能漏掉无需模型回合的人类命令。还要确认是否存在直接 Node 文件调用等旁路；能力层守卫不是操作系统安全边界。</p>
 
     <h2>按状态归属选择扩展点</h2>
     <p>下面的查询表按三项条件组织扩展点：状态是否必须重启可见、处理过程是否需要活体 Agent、约束是否覆盖全部能力消费者。具体 API 仍以目标版本为准。当现有事件无法表达必需的原子顺序时，修改循环本身也可能是合理选择。</p>
     <div id="extPicker"></div>
-    <p>知识助手的新检索工具挂到 <code>ctx.tools</code>；会话之间的不同能力集合由作用域与隔离服务区分；模型可见上下文进入可记录路径；新存储实现 SessionPersistence 的 handle 契约。这些共用边界使多个载体可以复用同一执行循环，减少取消、恢复和策略实现的分叉。</p>
+    <p>知识助手的新检索工具挂到工具注册接口；会话之间的不同能力集合由作用域与隔离服务区分；模型可见上下文进入可记录路径；新存储实现持久化契约。这些共用边界使多个载体可以复用同一执行循环，减少取消、恢复和策略实现的分叉。</p>
 
     <h2>独立载体的数据与版本兼容性</h2>
-    <p>固定提交文档描述 Electron 携带自己的生产运行时，CLI 与 Desktop 共享产品数据但执行包、激活选择和 lockfile 分离，公开 CLI 不管理 Desktop 的保留 profile。这个例子揭示一个常见误判：<strong>共享同一个 home 目录，不意味着两套运行时支持同一个日志格式</strong>。旧载体遇到未来格式应显式拒绝，不能悄悄打开旧代继续写；第 16 章继续推导。</p>
+    <p>不同载体（如桌面应用与 CLI）可能共享同一配置目录，却各自携带运行时与持久格式。这个组合揭示一个常见误判：<strong>共享同一个 home 目录，不意味着两套运行时支持同一个日志格式</strong>。旧载体遇到未来格式应显式拒绝，不能悄悄打开旧代继续写；<a href="#/session">第 16 章</a>继续推导代际与恢复。</p>
 
     <h2>RepoOps 接入时的实验身份</h2>
-    <p><code>projects/repoops/runner.py</code> 的 manifest 已记录数据集、模型修订、系统提示、步数/时间预算与 agent/runner 源码摘要，但它没有 DSH 插件树、远程工作区或 Provider 身份。接入后，这些配置也会影响行为，需要纳入实验身份。将 <code>RulePolicy</code> 换成远程 Agent 已经改变了执行条件，原有 manifest 尚不足以描述两次实验的差异。</p>
-    <p>可以让两个 profile 只在执行 Provider 上不同，对同一任务比较模型所见证据、工具权限和产物基线，再加入一层覆盖，定位最终插件树的变化。双会话实验则交换创建顺序、关闭其中一个，检查工具注册与会话状态是否互相污染。这两组实验分别检查 Provider 替换和作用域隔离，也为后续结果比较保留配置依据。</p>
+    <p><code>projects/repoops/runner.py</code> 的 manifest 已记录数据集、模型修订、系统提示、步数/时间预算与 agent/runner 源码摘要，但它没有插件树、远程工作区或 Provider 身份。接入真实 harness 后，这些配置也会影响行为，需要纳入实验身份。将 <code>RulePolicy</code> 换成远程 Agent 已经改变了执行条件，原有 manifest 尚不足以描述两次实验的差异。</p>
+    <p>可以让两组配置只在执行 Provider 上不同，对同一任务比较模型所见证据、工具权限和产物基线，再加入一层覆盖，定位最终组合的变化。双会话实验则交换创建顺序、关闭其中一个，检查工具注册与会话状态是否互相污染。这两组实验分别检查 Provider 替换和作用域隔离，也为后续结果比较保留配置依据。</p>
   </section>
 
   <!-- ============ 15 Agent Loop ============ -->
@@ -1442,17 +1402,17 @@ export function apply(ctx: Context, config: Config) {
     <span class="ch-kicker">运行时 / 15 · Agent Loop</span>
     <h1>Agent Loop：调度、预算与取消</h1>
     <p class="lead">一次工具调用已经写入日志，文件也改了一半，取消信号才到。立即返回会留下未结算调用，继续派发又会扩大副作用。回合循环需要在任意中断点区分已领取的输入、已发出的请求、已发生的副作用与仍待核对的结果，并为每一类状态安排收尾路径。</p>
-    <p class="small muted">DSH 的正常顺序来自固定提交的 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/architecture.md#turn-flow" target="_blank" rel="noopener">Turn flow</a>，工具阶段来自同提交的 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/tool-execution-pipeline.md" target="_blank" rel="noopener">执行流水线</a>。调度分类、根预算账本和停止协议属于通用设计方案；播放器与时序展示其工作过程，不是 DSH 实跑轨迹。末节说明 RepoOps 的同步循环及其限制。<cite data-source="dsh-runtime-contracts"><a href="https://github.com/deepseek-ai/deepseek-harness/tree/ddefc45fbc7f8e46dd73185e68295696d1297887/docs" target="_blank" rel="noopener">[dsh-runtime-contracts]</a></cite></p>
+    <p class="small muted">本章讨论通用设计方案：回合边界、调度分类、根预算账本和停止协议不绑定某个产品。播放器与时序展示其工作过程，不是某个实现的运行轨迹。末节说明 RepoOps 的同步循环及其限制。</p>
 
     <h2>step、turn 与 round 的边界</h2>
     <div class="grid cols3">
       <div class="card reveal d1"><h3>step：一次逻辑工作段</h3><p>一次模型请求及其触发的工具执行。失败请求可在同一逻辑 step 中重试，因此 step 数不一定等于网络尝试数。</p></div>
-      <div class="card reveal d2"><h3>turn：输入排空的边界</h3><p>在首次领取输入前记录 <code>turn/start</code>；可能零个 step，也可能多个。拒绝、空输入与取消都可以让它不进入模型请求就结束。</p></div>
+      <div class="card reveal d2"><h3>turn：输入排空的边界</h3><p>在首次领取输入前记录回合开始；可能零个 step，也可能多个。拒绝、空输入与取消都可以让它不进入模型请求就结束。</p></div>
       <div class="card reveal d3"><h3>round：外层策略的计数</h3><p>目标推进、改进器或重试搜索的策略迭代。它拥有自己的预算；不能拿一个 turn 的结束当作整个 RSI 搜索结束。</p></div>
     </div>
     <p>已记录的工具调用需要结果或明确的中断解释；已打开的回合/step 必须最终结算，或由恢复逻辑识别为开放状态；模型请求内容需要能从日志重建。这些约束使逻辑状态可解释，但外部写入次数与内存事件的持久性仍分别依赖执行协议和存储屏障。</p>
     <figure class="fig">
-      <div class="fig-scroll" tabindex="0" role="region" aria-label="图：回合内事件序列，可横向滚动"><img src="assets/figures/fig-loop-turn.svg" alt="回合从 turn/start 和输入领取开始，经 step、请求准备、日志重建、模型输出及工具结果后结束；持久事件与进程内拦截点分开" loading="lazy" decoding="async" width="840" height="520"></div>
+      <div class="fig-scroll" tabindex="0" role="region" aria-label="图：回合内事件序列，可横向滚动"><img src="assets/figures/fig-loop-turn.svg" alt="回合从开启和输入领取开始，经 step、请求准备、日志重建、模型输出及工具结果后结束；持久事件与进程内拦截点分开" loading="lazy" decoding="async" width="840" height="520"></div>
       <figcaption>图 · 正常时序中的“模型可见 ⇒ 可从日志重建”是单向关系。turn、attempt 等日志项不进入模型历史，持久性还需由存储屏障确认。</figcaption>
     </figure>
 
@@ -1460,11 +1420,11 @@ export function apply(ctx: Context, config: Config) {
     <p>播放器以“修改 README 错别字”为例，展示输入领取、模型请求、工具执行和结果落账四个边界。工具调用与结果之间的间隙，正是取消或崩溃可能留下未知状态的窗口。</p>
     <div class="loop-player" id="loopPlayer"></div>
     <ol>
-      <li><strong>打开回合、领取输入：</strong>先有 <code>turn/start</code>，再从 inbox 领取待办。<code>agent/pre-step</code> 可以拒绝或改写准入内容；拒绝或首个 enter 变空会以零 step 关闭回合。不能把“收到输入”和“输入已进入模型”合成一个状态。</li>
-      <li><strong>准备实际请求：</strong><code>step/start</code> 后通过 <code>agent/request</code> 与 <code>prepareCall()</code> 解析实际路由。固定提交架构文档明确：在这两个异步阶段取消，不提交 system 或 user 消息；先前的回合/step 边界并不因此消失。</li>
-      <li><strong>记录后再投影：</strong>用准备好的调用能力对账 <code>system/message</code>，首次尝试追加准入的 <code>user/message</code>，按需记录 <code>request/header</code> 和 <code>request/context</code>，再 <code>deriveMessages()</code> 并冻结请求。不要在最后发 HTTP 时偷偷追加日志中没有的提示词。</li>
-      <li><strong>流输出到结算：</strong>实时 <code>agent/assistant-stream</code> 帧是进程内通知。完整成功输出结算为 <code>assistant/message</code>；无表面消息的已结算失败尝试写 <code>assistant/attempt</code>。硬崩溃发生在结算前，不能假定 UI 看见的每个 chunk 都能恢复。</li>
-      <li><strong>执行工具，再判断是否继续：</strong>先记录 <code>tool/call</code>，经准入、守卫、执行、后处理和最终结果后记录 <code>tool/result</code>。工具反馈或新 next-step 输入可能要求下一 step；<code>agent/turn-stopping</code> 收尾后才关闭 turn。</li>
+      <li><strong>打开回合、领取输入：</strong>先记录回合开始，再从待办队列领取输入。准入检查可以拒绝或改写内容；拒绝或输入为空会以零 step 关闭回合。不能把"收到输入"和"输入已进入模型"合成一个状态。</li>
+      <li><strong>准备实际请求：</strong>step 开始后解析模型路由与调用参数。若在这两个异步阶段取消，不提交 system 或 user 消息；先前的回合/step 边界并不因此消失。</li>
+      <li><strong>记录后再投影：</strong>对账系统提示、首次尝试追加准入的用户消息，按需记录请求配置与上下文元数据，再投影为模型历史并冻结请求。不要在最后发请求时偷偷追加日志中没有的提示词。</li>
+      <li><strong>流输出到结算：</strong>实时流帧是进程内通知。完整成功输出结算为正式消息；无表面消息的已结算失败尝试保留为 attempt。硬崩溃发生在结算前，不能假定 UI 看见的每个 chunk 都能恢复。</li>
+      <li><strong>执行工具，再判断是否继续：</strong>先记录调用，经准入、守卫、执行、后处理和最终结果后记录结果。工具反馈或新 next-step 输入可能要求下一 step；收尾事件完成后才关闭回合。</li>
     </ol>
 
     <h2>取消后的结算与资源释放</h2>
@@ -1473,29 +1433,29 @@ export function apply(ctx: Context, config: Config) {
       <tbody>
         <tr><td>请求路由准备中</td><td>已开回合，但尚未提交准入消息；不应继续派发</td><td>不能说“整个日志没有变化”</td></tr>
         <tr><td>模型流已输出一段</td><td>正常取消可结算已交付前缀，并标 interrupted；无表面消息则保留 attempt</td><td>硬杀进程会跳过合作式收尾，未结算前缀可能丢失</td></tr>
-        <tr><td>已记 tool/call，工具体尚未开始</td><td>产生未派发/取消结算，避免把它当作执行成功</td><td>调用存在不证明副作用发生</td></tr>
+        <tr><td>已记调用，工具体尚未开始</td><td>产生未派发/取消结算，避免把它当作执行成功</td><td>调用存在不证明副作用发生</td></tr>
         <tr><td>工具已经修改外部状态</td><td>尝试停止继续工作，等资源退出，并记录所知状态</td><td>AbortSignal 不会恢复原文件、撤回邮件或回滚远端请求</td></tr>
         <tr><td>副作用完成，结果未落账便崩溃</td><td>动作状态未决；恢复先查证或按幂等协议处理</td><td>缺少 result 时，执行与未执行均有可能，不能盲目重试</td></tr>
       </tbody>
     </table></div>
-    <p>旧版教学接口可写作 <code>agent.cancel(cause, { keepInbox })</code>，并把调用结果区分为 <code>ABORTED_BEFORE_DISPATCH</code> / <code>ABORTED</code>。这些具体签名和错误码在此仅保留为源码定位线索，接入时需核对 <code>core/agent</code> 与 <code>core/agent-loop</code> 的声明、派发点和消费者。产品层还要选择取消是否保留待办、是否停止后台子任务、何时向用户确认“已停止”。</p>
-    <p>停止协议可以分为“停止接单 → 发出取消 → 等待活动执行退出 → 结算日志 → 按需求 flush → 释放依赖”。界面的 stopped 状态需要与相应阶段对应。对不合作的子进程，监督器负责超时与进程树终止；AbortSignal 只传递取消意图，无法自行完成这些动作。</p>
+    <p>取消接口需要区分"尚未派发"与"已在执行"两种结果：前者可以安全放弃，后者需要等待执行退出或核对副作用。产品层还要选择取消是否保留待办、是否停止后台子任务、何时向用户确认"已停止"。</p>
+    <p>停止协议可以分为"停止接单 → 发出取消 → 等待活动执行退出 → 结算日志 → 按需求 flush → 释放依赖"。界面的 stopped 状态需要与相应阶段对应。对不合作的子进程，监督器负责超时与进程树终止；取消信号只传递意图，无法自行完成这些动作。</p>
 
     <h2>请求重试复用已领取的输入</h2>
-    <p>假设第一次模型请求遇到临时错误，第二次成功。如果每次重试都从“领取输入”开始，会重复消费 inbox、重复跑可能有副作用的准入逻辑，甚至把同一用户指令追加两遍。固定提交文档描述的边界是：重试复用同一份已渲染组装，不重跑 pre-step，只有首次尝试追加 user；失败尝试保留为 attempt，不冒充新的成功回答。</p>
+    <p>假设第一次模型请求遇到临时错误，第二次成功。如果每次重试都从"领取输入"开始，会重复消费待办、重复跑可能有副作用的准入逻辑，甚至把同一用户指令追加两遍。合理的边界是：重试复用同一份已渲染组装，不重跑准入，只有首次尝试追加 user；失败尝试保留为 attempt，不冒充新的成功回答。</p>
     <div class="codeblock">
       <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 逻辑 step 与尝试计数（教学时序，不是运行输出）</div>
-      <pre data-lang="log">turn/start
-  step/start
-  user/message       # 本次准入一次
-  request/header
-  assistant/attempt  # attempt 1 失败，不新增用户输入
-  assistant/message  # attempt 2 成功
-  tool/call          # callId=c1；工具是否重试是另一份契约
-  tool/result        # 对 c1 的模型可见结算
-  step/end
-turn/end
-# 模型调用成本 = 失败尝试 + 成功尝试，不能只数 assistant/message</pre>
+      <pre data-lang="log">turn begin
+  step begin
+  user msg           # 本次准入一次
+  request header
+  assistant attempt  # attempt 1 失败，不新增用户输入
+  assistant msg      # attempt 2 成功
+  tool call          # callId=c1；工具是否重试是另一份契约
+  tool result        # 对 c1 的模型可见结算
+  step end
+turn end
+# 模型调用成本 = 失败尝试 + 成功尝试，不能只数 assistant msg</pre>
     </div>
     <p>模型请求重试仍可能产生费用，已输出的部分内容和 Provider 接收状态也可能不确定，因此每次尝试都受预算与截止时间约束。工具重试还取决于幂等性：读取文档通常可重试，写文件可用版本前置条件，外部动作往往需要幂等键与状态查询。这些条件来自工具与目标系统的协议，无法仅凭工具名判断。</p>
 
@@ -1526,16 +1486,16 @@ retry_allowed =
     <p>并发预算预留与取消后的派发关闭需要各自的原子状态转换。若取消和派发同时发生，这个转换点决定调用属于“尚未发出”还是“在途待结算”。流中断后仍可能计费，相关占用也不能提前释放。硬退出期限与可靠完成通知冲突时，系统只能保留未决状态并交给恢复路径，不能将强制退出记为成功收尾。</p>
 
     <h2>工具流水线中的单调守卫</h2>
-    <p>文档给出的顺序是：<code>tool/call</code> → <code>tools/pre-execute</code> → 单调守卫 → <code>tools/execute</code> → <code>tools/post-execute</code> → 工具定义的 <code>finalizeContent</code> → <code>tools/result</code> → <code>tool/result</code>。ask 需要审批通道返回一次性允许；通道缺失或无法回答应拒绝，不应“为了可用性默认同意”。</p>
-    <p>普通 waterfall 可以短路或包装，单调守卫只拒绝或弃权，用来保护不能被后续 allow 翻案的约束。<code>tools/execute</code> 可包装超时和度量；<code>post-execute</code> 能阻断/替换模型所见结果，<strong>不能阻止已经执行过的副作用</strong>。如果敏感信息已经发送到外网，在 result 阶段抹掉文本也不算防泄露成功。</p>
-    <p>未知工具应形成可检查的结构化失败，而不是假装正常输出；确定性出现 <code>UNKNOWN_TOOL</code> 的轨迹也不能被简单刷新为“正确快照”。审计需要保留调用身份、原始参数、实际执行与模型可见结果的对应关系，避免策略层暗改参数后让历史描述另一个动作。</p>
+    <p>一次工具调用的典型流水线是：调用落账 → 准入决策（允许/拒绝/取消/询问）→ 单调守卫 → 执行包装 → 后处理 → 结果整形 → 结果通报 → 结果落账。ask 分支需要审批通道返回一次性允许；通道缺失或无法回答应拒绝，不应"为了可用性默认同意"。</p>
+    <p>普通 waterfall 可以短路或包装，单调守卫只拒绝或弃权，用来保护不能被后续 allow 翻案的约束。执行包装可挂超时和度量；后处理能阻断/替换模型所见结果，<strong>不能阻止已经执行过的副作用</strong>。如果敏感信息已经发送到外网，在结果阶段抹掉文本也不算防泄露成功。</p>
+    <p>未知工具应形成可检查的结构化失败，而不是假装正常输出；确定性出现未知工具错误的轨迹也不能被简单刷新为"正确快照"。审计需要保留调用身份、原始参数、实际执行与模型可见结果的对应关系，避免策略层暗改参数后让历史描述另一个动作。</p>
 
     <h2>输入注入与回合收尾的竞态</h2>
-    <p>单一 inbox 将 next-turn 与 next-step 意图区分开。文档明确注入上下文要等待唤醒消息；旧教学 API 中 <code>followup</code>、<code>steer</code>、<code>inject</code> 对应不同路由/唤醒组合，移植时按版本确认签名。若每条注入都自动唤醒，后台文件通知可能制造自激循环；若所有新输入只看回合开始时的快照，又会漏掉收尾期间的新工作。</p>
-    <p><code>agent/turn-stopping</code> 是 serial 而非 waterfall，没有 <code>next()</code>。把收尾监听器误写成异步递归调用下一回合，可能产生重入；更可解释的设计是提交新的待办，让驱动器在一个明确点重新检查。预算必须覆盖这种 continuation，否则“永远再检查一次”就成了无限回合。</p>
+    <p>单一待办队列将 next-turn 与 next-step 意图区分开。注入上下文通常要等待唤醒消息；不同的注入方式对应不同路由与唤醒组合。若每条注入都自动唤醒，后台文件通知可能制造自激循环；若所有新输入只看回合开始时的快照，又会漏掉收尾期间的新工作。</p>
+    <p>回合收尾监听器是串行而非瀑布式，没有 next() 链。把收尾误写成异步递归调用下一回合，可能产生重入；更可解释的设计是提交新的待办，让驱动器在一个明确点重新检查。预算必须覆盖这种 continuation，否则"永远再检查一次"就成了无限回合。</p>
 
     <h2>RepoOps 的同步循环与时间预算</h2>
-    <p><code>projects/repoops/agent.py:run_agent</code> 在调用前计算 remaining，传入 <code>policy.generate</code>，返回后再次检查时钟；它有步数与时间预算，但不是强制墙钟终止。如果 policy 不返回，主循环没有机会检查超时。轨迹在内存中累积，runner 在 trial 结束后提交；因此这里没有 DSH 式逐事件恢复，也没有文件写入、tool call/result 取消结算或进程树清理。</p>
+    <p><code>projects/repoops/agent.py:run_agent</code> 在调用前计算 remaining，传入 <code>policy.generate</code>，返回后再次检查时钟；它有步数与时间预算，但不是强制墙钟终止。如果 policy 不返回，主循环没有机会检查超时。轨迹在内存中累积，runner 在 trial 结束后提交；因此这里没有逐事件恢复，也没有文件写入、调用结算或进程树清理。</p>
     <p>向异步执行扩展时，可以用受控 Provider 分别暂停在路由准备、流中段、工具派发前和副作用后，再发出取消。每个切点同时观察日志、外部状态与退出结果：用户输入应只领取一次，失败尝试仍计入预算，取消后停止新派发，已有副作用则保留真实结果或未知状态。这些观测覆盖同步循环目前尚未承担的责任。</p>
   </section>
 
@@ -1544,12 +1504,12 @@ retry_allowed =
     <span class="ch-kicker">运行时 / 16 · 会话与持久化</span>
     <h1>会话恢复：事件日志、未知结果与 Checkpoint</h1>
     <p class="lead">日志最后一条是“请求编辑文件”，没有工具结果。这个尾部可能来自几种完全不同的情况：日志写到一半，工具尚未执行，或文件早已修改但结果还没落盘。恢复协议需要分别处理物理完整性、逻辑完整性与外部副作用；仅凭缺失结果，无法决定是否可以重新编辑。</p>
-    <p class="small muted">DSH 的会话与存储契约依据固定提交的 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/subsystems/session.md" target="_blank" rel="noopener">session 文档</a>、<a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/subsystems/persistence.md" target="_blank" rel="noopener">persistence 文档</a>。恢复决策表、工单示例与 checkpoint 身份字段属于通用协议设计，故障场景是实验方法，未提供 DSH 崩溃恢复实测。末节对照 RepoOps 的 trial 级持久化。<cite data-source="dsh-runtime-contracts"><a href="https://github.com/deepseek-ai/deepseek-harness/tree/ddefc45fbc7f8e46dd73185e68295696d1297887/docs" target="_blank" rel="noopener">[dsh-runtime-contracts]</a></cite></p>
+    <p class="small muted">本章讨论通用恢复协议设计：事件日志、持久化屏障、未决副作用与 checkpoint 身份不绑定某个产品。恢复决策表、工单示例与 checkpoint 字段属于协议设计；故障场景是实验方法。末节对照 RepoOps 的 trial 级持久化。</p>
 
     <h2>事件日志保存执行事实，消息是其中一个投影</h2>
-    <p>聊天消息能保存用户和助手文字，却通常缺少失败尝试的预算、工具派发状态、内容压缩范围，以及当时的工具 schema。DSH 文档以追加式 SessionEvent 为事实源，<code>deriveMessages()</code> 从中导出模型历史。消息投影随事件变化，不单独维护另一份可任意修改的历史。</p>
-    <div class="callout law"><span class="t">模型可见 ⇒ 日志可重建</span><code>turn/*</code>、<code>request/header</code>、<code>assistant/attempt</code> 等日志项用于恢复或审计，无需全部进入模型历史。插件修改模型所见内容时，必须通过记录与已声明的纯投影路径；离线读取方也需要同版本投影定义，才能由事件重建请求。</div>
-    <p>每条事件为 <code>{ type, seq, time, data }</code>，seq 连续，data 要能无损表示为 JSON。四类表面事件——<code>system/message</code>、<code>user/message</code>、<code>assistant/message</code>、<code>tool/result</code>——带 <code>surfaceOp</code> 声明追加或替换范围；log-only 事件不带它。日志从不改旧事件，但投影可以通过新事件替换模型当前看到的表面，这两句话并不矛盾。</p>
+    <p>聊天消息能保存用户和助手文字，却通常缺少失败尝试的预算、工具派发状态、内容压缩范围，以及当时的工具 schema。一种可靠的持久化方案以追加式事件为事实源，模型历史从中投影导出。消息投影随事件变化，不单独维护另一份可任意修改的历史。</p>
+    <div class="callout law"><span class="t">模型可见 ⇒ 日志可重建</span>回合边界、请求配置、已结算失败尝试等日志项用于恢复或审计，无需全部进入模型历史。修改模型所见内容时，必须通过记录与已声明的纯投影路径；离线读取方也需要同版本投影定义，才能由事件重建请求。</div>
+    <p>每条事件为 <code>{ type, seq, time, data }</code>，seq 连续，data 要能无损表示为 JSON。表面事件——系统提示、用户消息、助手消息、工具结果——带追加或替换范围声明；log-only 事件不进入模型历史。日志从不改旧事件，但投影可以通过新事件替换模型当前看到的表面，这两句话并不矛盾。</p>
     <figure class="fig">
       <div class="fig-scroll" tabindex="0" role="region" aria-label="图：日志与投影结构，可横向滚动"><img src="assets/figures/fig-session-log.svg" alt="追加式事件日志经投影产生模型历史与界面；写入经单写者句柄，append 与 flush 提供不同级别的承诺" loading="lazy" decoding="async" width="840" height="470"></div>
       <figcaption>图 · 事件日志派生模型输入和界面视图。fork、resume 与导出还依赖投影版本、所有权、持久化屏障和附件保留。</figcaption>
@@ -1558,24 +1518,24 @@ retry_allowed =
     <h2>同一日志的模型历史与调用视图</h2>
     <div class="codeblock">
       <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 事件含义示例，省略 payload，不是可导入日志</div>
-      <pre data-lang="log">seq 0  turn/start
-seq 1  step/start
-seq 2  system/message     surface append：当前系统提示
-seq 3  user/message       surface append：用户问题
-seq 4  request/header     log-only：路由配置与工具 schema
-seq 5  assistant/attempt  log-only：一次已结算失败尝试
-seq 6  assistant/message surface append：成功回答
-seq 7  step/end
-seq 8  turn/end
+      <pre data-lang="log">seq 0  turn begin
+seq 1  step begin
+seq 2  system msg       surface append：当前系统提示
+seq 3  user msg         surface append：用户问题
+seq 4  request header   log-only：路由配置与工具 schema
+seq 5  assistant attempt log-only：一次已结算失败尝试
+seq 6  assistant msg    surface append：成功回答
+seq 7  step end
+seq 8  turn end
 # 模型历史：system、user、assistant
 # 调用分析：还需要 attempt 与请求配置，不能只看模型历史
 # UI：可另呈现状态与失败，不代表这些文字都进入下一次模型请求</pre>
     </div>
     <p>可以把投影写成 <code>state[n+1] = fold(state[n], event[n], projectionVersion)</code>。增量投影避免每次从头扫描；冷读必须能用相同规则复算。若某个投影依赖当前网络结果或系统时间，重放会改变历史；纯投影应只依赖受控输入。快照是加速手段，不应成为第二份无法对账的真相源。</p>
-    <p><code>request/header</code> 记录调用配置与工具，<code>request/context</code> 记录路由能力等元数据；系统提示通过 <code>system/message</code> 进入日志。完整 assistant message 内嵌已结算流及可用的 usage；attempt 保留未形成表面消息的已结算尝试。进程硬崩溃前尚未结算的实时流可能丢失，这些事件无法恢复从未记录的内容。</p>
+    <p>请求配置记录调用参数与工具，上下文元数据记录路由能力等；系统提示通过系统消息事件进入日志。完整助手消息内嵌已结算流及可用的 usage；attempt 保留未形成表面消息的已结算尝试。进程硬崩溃前尚未结算的实时流可能丢失，这些事件无法恢复从未记录的内容。</p>
 
     <h2>append 的可见性与 flush 的持久性</h2>
-    <p>文档中的 <code>SessionHandle.append</code> 承诺批次已接受、排序，并对同后端实例后续读取可见；后端可以缓冲。已 resolve 的 <code>flush</code> 才承诺其覆盖的已确认写入具备崩溃持久性。该承诺依赖部署环境满足文件系统与存储硬件假设，覆盖范围也限于相应存储屏障。</p>
+    <p>追加式日志的 append 承诺批次已接受、排序，并对同后端实例后续读取可见；后端可以缓冲。flush 才承诺其覆盖的已确认写入具备崩溃持久性。该承诺依赖部署环境满足文件系统与存储硬件假设，覆盖范围也限于相应存储屏障。</p>
     <div class="tbl-wrap"><table class="tbl">
       <thead><tr><th>观察</th><th>可以得出的结论</th><th>不可以得出的结论</th></tr></thead>
       <tbody>
@@ -1583,21 +1543,21 @@ seq 8  turn/end
         <tr><td>Session 内存 append 完成</td><td>逻辑会话接受了事件</td><td>异步存储后端已落盘</td></tr>
         <tr><td>存储 handle append resolve</td><td>同后端实例在其后开始的读至少可见该前缀</td><td>所有进程已经可见，或崩溃后一定存在</td></tr>
         <tr><td>handle flush resolve</td><td>该屏障覆盖的已确认追加持久；会话物化</td><td>外部工具副作用与日志形成了跨系统事务</td></tr>
-        <tr><td>whenIdle / turn/end</td><td>某个执行边界达成</td><td>它必然隐含 flush</td></tr>
+        <tr><td>空闲 / 回合结束</td><td>某个执行边界达成</td><td>它必然隐含 flush</td></tr>
       </tbody>
     </table></div>
-    <div class="callout warn"><span class="t">固定提交中 flush 时点的文档差异</span>persistence 的 checkpoint 段称循环在领取下一普通 turn 前用 flush 作为检查点；同提交 session 的 <code>turn/end</code> 注释却称 loop 不在回合边界等待 flush，由 checkpoint-policy 负责每请求屏障，<code>whenIdle()</code> 后读取存储的消费者需自己 flush。这两处描述不足以确定默认时点。handle 的显式 flush 契约是明确的；实际屏障由目标 profile、checkpoint 插件及调用路径决定。</div>
+    <div class="callout warn"><span class="t">flush 时点需要显式约定</span>循环是否在回合边界等待 flush、checkpoint 策略是否每请求屏障、读取存储的消费者是否需自行 flush——这些时点必须由实现契约明确规定。文档中两处描述不一致时，实际屏障由具体配置与调用路径决定，不能默认回合结束即已持久。</div>
     <p>每条事件都 fsync 可以缩小丢失窗口，但会增加 I/O 与尾延迟。批处理降低成本的同时，也拉长了接收成功与持久成功之间的间隔；两种确认需要分开，并向调用方暴露存储失败。若业务承诺用户收到完成通知就能恢复，通知之前就需要完成相应持久化屏障。</p>
 
     <h2>物理修复与逻辑恢复</h2>
-    <p>文档中的 JSONL Provider 默认使用带校验和的拼接 Zstandard 帧，也可配置裸行。存储层只返回物理有效的连续前缀，处理撕裂尾巴，并在新 append 前完成必要的物理修复；它不应因为 turn 未结束而删掉整个回合。一个长回合可能已经持久化大量有效工作。</p>
-    <p>逻辑恢复由持有写 handle 的 resume 路径计算 <code>interruptedTurnClosers</code>：为缺失工具结果补中断错误、闭合开放 step，并追加 <code>turn/end { reason: { kind: 'interrupted' } }</code>。这些是新的普通事件，不伪造历史成功。只读观察者可在内存平衡视图，但不写回，以免与活体 writer 竞争。</p>
+    <p>追加式日志的存储层只返回物理有效的连续前缀，处理撕裂尾巴，并在新 append 前完成必要的物理修复；它不应因为回合未结束而删掉整个回合。一个长回合可能已经持久化大量有效工作。</p>
+    <p>逻辑恢复由持有写句柄的 resume 路径计算中断闭包：为缺失工具结果补中断错误、闭合开放 step，并追加回合结束标记。这些是新的普通事件，不伪造历史成功。只读观察者可在内存平衡视图，但不写回，以免与活体 writer 竞争。</p>
     <div class="codeblock">
       <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 失败窗口推演：恢复不是重新执行工具</div>
       <pre data-lang="log">T0 writer 获得会话所有权
-T1 tool/call(c1) 进入有效日志前缀
+T1 tool call(c1) 进入有效日志前缀
 T2 外部写入可能发生，也可能尚未发生
-T3 进程崩溃，tool/result(c1) 未持久
+T3 进程崩溃，tool result(c1) 未持久
 T4 新 writer 获得所有权，读取连续前缀
 T5 为未结算调用补中断结果，并闭合 step/turn
 T6 对外部副作用做状态核对；只有明确策略才决定能否重试
@@ -1622,14 +1582,14 @@ T6 对外部副作用做状态核对；只有明确策略才决定能否重试
     <p>派发前将 <code>callId=c17</code>、规范化参数摘要、主体、目标系统与稳定幂等键 K 记录并完成持久屏障；K 代表这次逻辑动作，不能每次重试生成新键。远端创建成功后、写本地结果前崩溃，恢复者首先查询 K 对应的工单。查询确认成功，就追加带操作 ID 的核对记录，再让用户知道工单已经存在；远端仍在处理中则有界等待，而不是再创建一张。</p>
     <p>查询返回“未找到”也未必是未执行：需要确认查询是否强一致、旧请求是否仍在途以及幂等键是否还在保留期内。仅当目标协议保证同一 K 与相同参数再次提交不会重复动作，且当前权限与预算允许时，才能带 K 重试；参数冲突或键已过期都应停下。若服务既无幂等键又无可靠查询，保留 outcome unknown 并提示人工查证。根据标题搜索到一张相似工单只能作为线索，不足以自动认领为本次结果。</p>
     <p>不同目标系统提供不同的核对条件。本地文件可以通过“期望旧摘要 → 原子替换 → 校验新摘要”降低歧义，但新摘要相同只证明目标状态满足，未必证明由本次调用完成。受控数据库可以把业务变更与执行账本放进同一事务。通用 outbox 保存待投递意图，投递仍可能重复，因此消费者必须去重。缺少这些条件的跨系统动作需要保留未知状态；补偿同样是新的副作用，必须独立授权。</p>
-    <p>工单协议的故障实验有三个关键切点：意图 flush 后尚未派发、远端提交后尚未收到回执、结果 flush 后尚未写入 turn/end。每次终止执行者后，记录有效日志、目标系统操作数量和恢复决策；连续恢复两次，应重用已有核对事实而不创建第二个工单。查询暂时未找到时仍保持未知，旧执行者恢复连通后也不能绕过所有权继续提交。目标系统若无法约束旧执行者，重复动作风险就仍然存在。</p>
+    <p>工单协议的故障实验有三个关键切点：意图 flush 后尚未派发、远端提交后尚未收到回执、结果 flush 后尚未写入回合结束。每次终止执行者后，记录有效日志、目标系统操作数量和恢复决策；连续恢复两次，应重用已有核对事实而不创建第二个工单。查询暂时未找到时仍保持未知，旧执行者恢复连通后也不能绕过所有权继续提交。目标系统若无法约束旧执行者，重复动作风险就仍然存在。</p>
 
     <h2>单写者所有权与恢复竞争</h2>
-    <p>每会话 <code>SessionHandle</code> 把读取、追加、flush 和 close 放在同一个所有权边界。写式 open 原子获取单写者，活跃 owner 存在时第二个写 open 拒绝；只读 handle 不取得所有权且禁止变更。<code>close()</code> 按文档幂等、异步且不可取消，负责最后排空与释放；调用方仍要等待它，不应在释放过程中强行丢弃依赖。</p>
+    <p>每会话的写句柄把读取、追加、flush 和 close 放在同一个所有权边界。写式 open 原子获取单写者，活跃 owner 存在时第二个写 open 拒绝；只读 handle 不取得所有权且禁止变更。close 应幂等、异步且不可取消，负责最后排空与释放；调用方仍要等待它，不应在释放过程中强行丢弃依赖。</p>
     <div class="codeblock">
       <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 存储 seam 的契约摘要，不是完整类型定义</div>
-      <pre data-lang="log">ctx.sessionPersistence: create / open / stat / list / flush
-SessionHandle:          read / append / flush / close
+      <pre data-lang="log">persistence:          create / open / stat / list / flush
+session handle:       read / append / flush / close
 write ownership:        第二个活动写者被拒绝；只读 handle 不得变更
 seq:                    新批次必须连续接在已有逻辑末尾
 append:                 best-effort durability；已接受与可见
@@ -1639,7 +1599,7 @@ close:                  最后排空并释放所有权；幂等、不可取消</
     <p>分布式存储中的单写者需要存储端可验证的所有权或版本条件。本进程 mutex 无法覆盖网络分区，租约到期也未必阻止旧 owner 继续提交。这是更换存储后端时新增的设计责任，不能由本地 JSONL 文件的所有权规则直接推出。</p>
 
     <h2>日志代际与格式迁移</h2>
-    <p>固定提交文档讨论 v0–v3 的已发布格式；实际版本由 <code>packages/core/session/src/types.ts</code> 的 <code>SESSION_FORMAT_VERSION</code> 定义。迁移保留前代，在旁边发布后继，每个包只拥有一步 <code>vN → vN+1</code>。</p>
+    <p>持久格式通常有已发布的代际；实际版本由代码中的格式常量定义。迁移保留前代，在旁边发布后继，每个版本只拥有一步 <code>vN → vN+1</code>。</p>
     <div class="gen-tape reveal">
       <div class="gen-file">session.jsonl<span class="gf-tag">v0 已发布代际</span></div>
       <span class="gen-arrow">── v0→v1 ─▶</span>
@@ -1665,9 +1625,9 @@ close:                  最后排空并释放所有权；幂等、不可取消</
     <p>快照实验可以截断 checkpoint 写入、替换前缀摘要，或在日志 flush 与快照发布之间终止进程，检查能否退回可信前缀；再用 P8 撤权后的配置恢复 P7 任务，观察历史是否可读、写动作是否被拒。全量 fold 与 checkpoint 加尾部重放的比较应覆盖模型投影、未决集合和预算余额。旧配置被清理会破坏重建依赖，未计费尝试则仍需保留占用，直到对账或按保守上界结算，与 <a href="#/loop">第 15 章的取消与预算约束</a>保持一致。</p>
 
     <h2>附件的 persist-before-event 顺序</h2>
-    <p>固定提交的 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/subsystems/attachment.md" target="_blank" rel="noopener">附件文档</a> 要求 persist-before-event：先发布持久不可变对象，再追加引用它的消息。先记引用再写对象，崩溃后可能留下完整日志和缺失图片；先写对象则可能留下孤儿对象，后者可以通过保守回收处理。</p>
-    <p><code>AttachmentId</code> 是不透明标识，本地后端的 <code>sha256:&lt;digest&gt;</code> 表示不授权消费者自行拼路径。对象位于独立存储，权威读取重新核对摘要、媒体与尺寸；<code>readImageRequest()</code> 再按路由生成请求版本。固定提交文档的本地图片准入上限为每消息 20 张、源编码合计 200 MiB，单源 20 MiB / 6400 万像素 / 单边 8192 px；默认归一化长边 2048 px、编码 4 MiB。它们是该版本后端约束，不是所有存储或模型的通用容量。</p>
-    <p>fork/resume 可能共享附件，删除某会话不能直接删除其所有对象。该文档明确服务 retention-neutral、引用感知 GC 延后，因此会话删除与对象回收需要分别处理。改为远程 Provider 时，还要核对对象权限，以及当前工具执行环境能否读取宿主路径。</p>
+    <p>附件等二进制对象要求 persist-before-event：先发布持久不可变对象，再追加引用它的消息。先记引用再写对象，崩溃后可能留下完整日志和缺失内容；先写对象则可能留下孤儿对象，后者可以通过保守回收处理。</p>
+    <p>附件 ID 是不透明标识，不授权消费者自行拼路径。对象位于独立存储，权威读取重新核对摘要、媒体与尺寸；准入上限（如每消息数量、总编码大小、像素限制）是具体后端的约束，不是所有存储或模型的通用容量。</p>
+    <p>fork/resume 可能共享附件，删除某会话不能直接删除其所有对象。服务保持 retention-neutral、引用感知 GC 延后时，会话删除与对象回收需要分别处理。改为远程 Provider 时，还要核对对象权限，以及当前工具执行环境能否读取宿主路径。</p>
 
     <h2>RepoOps 的 trial 级恢复</h2>
     <p><code>runner.py</code> 用 <code>(run_id, task_id, repeat)</code> 唯一键跳过已提交 trial；结果和完整轨迹在一次 SQLite 事务中可见。<code>run_agent</code> 的动作与观察在内存中累积，结束后才交给 runner。进程在 trial 中途退出，未提交 trial 会整体重跑，无法从最后一个工具事件继续。当前只读 search/read/finish 降低了重跑风险；迁移到修复工具后，还需要处理重复写入和未知结果。</p>
@@ -1677,9 +1637,9 @@ close:                  最后排空并释放所有权；幂等、不可取消</
   <!-- ============ 17 包版图 ============ -->
   <section class="chapter" id="ch-packages">
     <span class="ch-kicker">工程 / 17 · 包与边界</span>
-    <h1>包选型：<span class="grad">按依赖边界组织能力</span></h1>
+    <h1>包案例：<span class="grad">按依赖边界组织能力</span></h1>
     <p class="lead">仓库修复助手从本机执行迁到远程环境时，文件、进程、终端与语言服务必须一起迁移。Provider 的替换成本取决于包边界：接口由谁定义，执行环境由谁管理，消费者依赖哪些行为。本章以这次迁移为例，讨论包组合、接口兼容性与权限之间的关系。</p>
-    <div class="callout info"><span class="t">历史清单与案例范围</span>下面的 <span data-count="groups">54</span> 个分组、<span data-count="packages">288</span> 个包来自本站保留的 DSH 历史清单，未保存生成时的上游 commit；不代表当前版本的包数量、可安装性或依赖图。原入口 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/README.md" target="_blank" rel="noopener">packages/README.md</a> 会随上游变化。实际选型以目标版本的包名、注入方式与构建命令为准；本章迁移案例用于分析设计，未在 DSH 中部署验证。</div>
+    <div class="callout info"><span class="t">案例范围</span>本章以 DeepSeek Harness 的历史包清单为案例，讨论包组合、接口兼容性与权限之间的关系。<span data-count="groups">54</span> 个分组、<span data-count="packages">288</span> 个包来自本站保留的历史清单，未保存生成时的上游 commit；不代表当前版本的包数量、可安装性或依赖图。实际选型以目标版本的包名、注入方式与构建命令为准。迁移案例用于分析设计，未在运行时验证。</div>
 
     <h2>从产品约束确定包组合</h2>
     <p>设输入为任务 <code>repair-42</code>、仓库提交 <code>base-A</code> 与补丁 <code>patch-B</code>。任务需要修改工作副本并运行指定测试，但不能接触宿主凭据、不能改评测器，结果必须能绑定到这两个版本。一个功能齐全的 bundle 可能便于安装，却带入任务不需要的工具和权限。</p>
@@ -1722,10 +1682,10 @@ close:                  最后排空并释放所有权；幂等、不可取消</
     <span class="ch-kicker">工程 / 18 · 工具系统</span>
     <h1>工具契约：<span class="grad">授权、执行与副作用</span></h1>
     <p class="lead">仓库修复 agent 请求把 <code>src/config.ts</code> 的超时从 5 秒改成 10 秒。审批人点了允许，工具却在超时后继续写文件，下一次重试又应用了一遍补丁。这个故障跨越了参数、授权和执行三个边界：批准必须绑定具体操作，执行方必须管理副作用，结果必须区分已完成、未执行与尚不能确认的状态。</p>
-    <div class="callout info"><span class="t">接口来源与案例范围</span>本章 ToolDefinition、事件名、工具探索器与图来自本站保留的 DSH 历史接口整理，清单未保存上游 commit。输入与故障案例用于分析契约，未在 DSH 上运行。实际对接以锁定版本的字段、分发模式和取消实现为准；下方工具骨架仅展示结构。</div>
+    <div class="callout info"><span class="t">本章范围</span>本章讨论工具契约的通用设计：参数形状、授权绑定、流水线时机与副作用边界不绑定某个产品。一个固定版本的工具清单案例见 <a href="#/packages">第 17 章</a>。</div>
 
     <h2>Capability Seam：定义 / 提供 / 消费</h2>
-    <p>模型表达操作意图，系统提供实际能力。历史 seam 结构将这两端连接为三种角色：Service Definition 声明接口，Provider 实现能力，Consumer 把能力包装成模型工具。以 shell 为例，工具接收请求并呈现结果，执行 Provider 管理进程、工作区和生命周期；两者依赖同一个契约，工具无需直接导入某个本地实现。</p>
+    <p>模型表达操作意图，系统提供实际能力。将这两端连接为三种角色：Service Definition 声明接口，Provider 实现能力，Consumer 把能力包装成模型工具。以 shell 为例，工具接收请求并呈现结果，执行 Provider 管理进程、工作区和生命周期；两者依赖同一个契约，工具无需直接导入某个本地实现。</p>
     <div class="seam-fig reveal">
       <svg viewBox="0 0 560 330" role="img" aria-label="能力接缝三角图">
         <defs>
@@ -1739,28 +1699,27 @@ close:                  最后排空并释放所有权；幂等、不可取消</
         <g>
           <rect x="185" y="28" width="190" height="58" rx="14" fill="url(#sg1)" opacity="0.92"/>
           <text x="280" y="52" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">Service Definition</text>
-          <text x="280" y="72" text-anchor="middle" fill="#e6ebff" font-size="11" font-family="monospace">dsh-shell · 拥有 ctx.shell 与词汇类型</text>
+          <text x="280" y="72" text-anchor="middle" fill="#e6ebff" font-size="11" font-family="monospace">shell · 拥有执行接口与词汇类型</text>
         </g>
         <g>
           <rect x="28" y="238" width="210" height="58" rx="14" fill="rgba(77,107,254,0.16)" stroke="#4d6bfe"/>
           <text x="133" y="262" text-anchor="middle" fill="currentColor" font-size="13" font-weight="700">Service Provider(可多个)</text>
-          <text x="133" y="282" text-anchor="middle" fill="#8fa0cc" font-size="11" font-family="monospace">dsh-bash-local / dsh-bash-sandbox</text>
+          <text x="133" y="282" text-anchor="middle" fill="#8fa0cc" font-size="11" font-family="monospace">本地 / 沙箱 / 远程</text>
         </g>
         <g>
           <rect x="330" y="238" width="204" height="58" rx="14" fill="rgba(34,211,238,0.12)" stroke="#22d3ee"/>
           <text x="432" y="262" text-anchor="middle" fill="currentColor" font-size="13" font-weight="700">Consumer(常为模型工具)</text>
-          <text x="432" y="282" text-anchor="middle" fill="#8fa0cc" font-size="11" font-family="monospace">dsh-tool-bash</text>
+          <text x="432" y="282" text-anchor="middle" fill="#8fa0cc" font-size="11" font-family="monospace">bash 工具</text>
         </g>
         <text x="165" y="152" fill="#8fa0cc" font-size="11">实现接口</text>
-        <text x="352" y="152" fill="#8fa0cc" font-size="11">inject 服务</text>
+        <text x="352" y="152" fill="#8fa0cc" font-size="11">注入服务</text>
         <text x="280" y="250" text-anchor="middle" fill="#8fa0cc" font-size="11">互不直接依赖</text>
       </svg>
     </div>
-    <p>如果每个工具各带一个沙箱，Bash、文件、PTY 与 LSP 就会分别维护路径、凭据与生命周期，容易出现“读的是沙箱文件，测的是宿主副本”。共享能力接缝让组合层能够统一执行环境。隔离是否有效仍取决于实际绑定和权限；替代 Provider 的取消或文件原子性一旦变化，消费者也可能需要适配。</p>
+    <p>如果每个工具各带一个沙箱，Bash、文件、PTY 与 LSP 就会分别维护路径、凭据与生命周期，容易出现"读的是沙箱文件，测的是宿主副本"。共享能力接缝让组合层能够统一执行环境。隔离是否有效仍取决于实际绑定和权限；替代 Provider 的取消或文件原子性一旦变化，消费者也可能需要适配。</p>
 
-    <h2>工具探索器</h2>
-    <p>下面按历史来源分组保留工具索引。工具名是入口，资源的读写范围、所有权、审批要求和失败后的副作用则由完整执行路径决定。工具出现在模型 schema 中，仅表示模型可以提出相应请求，执行权限仍由宿主检查。</p>
-    <div id="toolExplorer"></div>
+    <h2>工具面的常见类别</h2>
+    <p>工具名是入口，资源的读写范围、所有权、审批要求和失败后的副作用则由完整执行路径决定。工具出现在模型 schema 中，仅表示模型可以提出相应请求，执行权限仍由宿主检查。常见的工具面按资源类型分组：文件与搜索、命令执行、持久终端、网络访问、会话管理与评测辅助。每组的授权粒度、取消语义和副作用边界各不相同；一个真实实现的清单见 <a href="#/packages">第 17 章的历史包索引</a>。</p>
 
     <h2>参数形状与资源授权</h2>
     <div class="codeblock">
@@ -1770,28 +1729,27 @@ close:                  最后排空并释放所有权；幂等、不可取消</
   description: '读 UTF-8 文本文件', // 引导模型选择工具，不是安全控制
   parameters: { /* JSON Schema */ },// 模型侧参数契约
   execute: async (args, ctx) => {…},// 宿主侧实现，不投影到模型 schema
-  finalizeContent: (v) => …,        // 自定义落账形态(可选)
+  finalize: (v) => …,              // 自定义落账形态(可选)
   // 策略字段(超时/审批标签/可见性)同样只在宿主侧
 }</pre>
-    </div>
     <p><code>{"path":"../../secrets","encoding":"utf8"}</code> 可以满足“path 为字符串”的 schema，却不应得到访问权。description 引导工具选择，schema 定义参数形状；对象权限、根目录、符号链接与执行环境必须在宿主可信边界处理。参数缺字段属于契约错误，字段合法但资源无权访问属于授权拒绝，区分两者有助于调用方决定如何处理失败。</p>
-    <p>历史 <code>ctx.tools.schemas()</code> 只投影白名单字段，execute、超时与审批标签留在宿主侧。宿主仍需验证模型输入，并保持审批与执行的一致性：<code>tool/call</code> 落账后，假如审批的是路径 A，执行前却被策略改成 B，历史、UI 和执行就会指向不同的行为。默认值解析和目标规范化应在明确的契约阶段生成执行规格，再让审批绑定最终目标。</p>
+    <p>模型侧 schema 只投影白名单字段，execute、超时与审批标签留在宿主侧。宿主仍需验证模型输入，并保持审批与执行的一致性：调用落账后，假如审批的是路径 A，执行前却被策略改成 B，历史、UI 和执行就会指向不同的行为。默认值解析和目标规范化应在明确的契约阶段生成执行规格，再让审批绑定最终目标。</p>
 
     <h2>拒绝发生在副作用之前</h2>
     <p>历史工具生命周期包含多个策略挂点，它们的执行时机不同。文件意图门禁发生在 execute 内部、实际文件操作之前；结果过滤发生在操作之后，两者不可互换。</p>
     <div class="codeblock">
       <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> tools 流水线</div>
-      <pre data-lang="log">tool/call(先落账)
-  → tools/pre-execute   allow / deny / cancel / ask
-                          ask 需审批服务返回 allowed-once,缺通道即拒绝
+      <pre data-lang="log">tool call(先落账)
+  → pre-execute   allow / deny / cancel / ask
+                    ask 需审批服务返回 allowed-once,缺通道即拒绝
   → 单调守卫            只能拒绝、无 allow 结果、顺序无法翻案
-  → tools/execute       around 包装:超时/重试/指标;可替换 signal
-  → tools/post-execute  accept / 替换 content|value / block(纠正→isError)
-  → finalizeContent     定义自带的落账整形
-  → tools/result        冻结通报
-  → tool/result(落账)</pre>
+  → execute       around 包装:超时/重试/指标;可替换 signal
+  → post-execute  accept / 替换 content|value / block(纠正→isError)
+  → finalize     定义自带的落账整形
+  → result        冻结通报
+  → tool result(落账)</pre>
     </div>
-    <p><code>timeout-policy</code> 在 <code>tools/execute</code> 做包装；审批服务处理 pre-execute 的 ask 分支；<code>fs-observation-policy</code> 在 <code>fs/write-intent</code> / <code>fs/edit-intent</code> 拦截未观察就写的行为。单调守卫的意义是先前的拒绝不能被后一个监听器翻成允许，而不是监听顺序从此无关。会修改执行上下文的 around 包装仍需定义组合顺序。</p>
+    <p>超时策略在执行包装层做包装；审批服务处理准入的 ask 分支；文件意图门禁在写/编辑意图上拦截未观察就写的行为。单调守卫的意义是先前的拒绝不能被后一个监听器翻成允许，而不是监听顺序从此无关。会修改执行上下文的 around 包装仍需定义组合顺序。</p>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>事件顺序：修改 src/config.ts</th><th>要成立的事实</th><th>故障注入与预期边界</th></tr></thead><tbody>
       <tr><td>记录调用 → 审批</td><td>调用标识、作用域、目标、变更内容与获准操作绑定</td><td>批准后更换参数或作用域：旧批准不能复用；缺审批通道时不执行</td></tr>
       <tr><td>读取版本 A → 意图检查 → 写入</td><td>写入基于获准观察的版本，检查与写入之间的并发变化有明确策略</td><td>其他进程先写成 B：拒绝冲突或重新读取、重新决策，不能盲目覆盖</td></tr>
@@ -1799,8 +1757,8 @@ close:                  最后排空并释放所有权；幂等、不可取消</
     </tbody></table></div>
     <p>“曾经读过这个路径”无法排除内容版本变化，也无法排除路径在检查后被换成符号链接。所需防线取决于威胁模型：协作编辑可使用版本前置条件；不可信并发进程还需要可信文件边界和抗竞争的访问方式。一次字符串前缀检查无法替代操作系统级约束，历史观察策略本身也未提供上述全部保证的实现依据。</p>
 <figure class="fig">
-  <div class="fig-scroll" tabindex="0" role="region" aria-label="图：工具调用守卫流水线与策略挂点，可横向滚动"><img src="assets/figures/fig-tools-pipeline.svg" alt="tool/call 先落账冻结参数，再过 pre-execute 的 allow/deny/cancel/ask 分支、只许拒绝的单调守卫、execute 包装、post-execute 修正、finalizeContent 整形，最后 tools/result 冻结通报并 tool/result 落账；write/edit 工具在 execute 内声明 fs/write-intent 或 edit-intent，经 fs-observation-policy 门禁后才实际写入；timeout-policy 挂 execute，审批服务应答 pre-execute 的 ask。" loading="lazy" decoding="async" width="840" height="470"></div>
-  <figcaption>图 · 策略不在工具内部：timeout-policy、审批应答、文件意图门禁都是挂在流水线事件上的独立插件；参数在 tool/call 落账后不再改写，历史/审计/执行看到同一份。</figcaption>
+  <div class="fig-scroll" tabindex="0" role="region" aria-label="图：工具调用守卫流水线与策略挂点，可横向滚动"><img src="assets/figures/fig-tools-pipeline.svg" alt="调用先落账冻结参数，再批准/拒绝/取消/询问分支、只许拒绝的单调守卫、执行包装、后处理修正、结果整形，最后结果通报并落账；写/编辑工具在执行内声明写意图，经文件观察策略门禁后才实际写入；超时策略挂执行包装，审批服务应答准入的询问。" loading="lazy" decoding="async" width="840" height="470"></div>
+  <figcaption>图 · 策略不在工具内部：超时策略、审批应答、文件意图门禁都是挂在流水线事件上的独立层；参数在调用落账后不再改写，历史/审计/执行看到同一份。</figcaption>
 </figure>
 
     <h2>超时后的状态与重试</h2>
@@ -1823,14 +1781,14 @@ t5  只有接口明确支持时，携带稳定幂等键重试或执行补偿</pr
   <!-- ============ 19 工程规范 ============ -->
   <section class="chapter" id="ch-conventions">
     <span class="ch-kicker">工程 / 19 · 工程规范</span>
-    <h1>工程契约：<span class="grad">资源、错误与持久格式</span></h1>
+    <h1>契约案例：<span class="grad">资源、错误与持久格式</span></h1>
     <p class="lead">一个插件增加了“后台验证补丁”功能：启动进程、订阅完成事件，再把结果写进会话。代码只有几十行，却同时改变了资源生命周期、错误语义和持久格式。插件卸载需要终止它拥有的进程，重复完成需要避免重复落账，新事件还会影响旧版本的读取与恢复。这些跨组件行为需要由明确的工程契约约束。</p>
-    <div class="callout info"><span class="t">历史约定与案例范围</span>守则卡片、API 名称与防御模式来自本站保留的 DSH 历史整理，未绑定可复核的上游 commit。当前规范以目标版本的 AGENTS、接口声明、持久格式与复盘为准。下文生命周期与迁移案例是设计示例，未在运行时验证。</div>
+    <div class="callout info"><span class="t">本章范围</span>本章讨论资源所有权、错误语义与持久格式迁移的通用契约；一个固定版本的历史守则索引在 <a href="#/packages">第 17 章</a>保留。下文生命周期与迁移案例是设计示例，不绑定某个产品。</div>
 
     <h2>资源所有权与卸载过程</h2>
     <p>设插件接受任务 <code>job-9</code>，启动一个测试子进程，同时注册结果监听与工具入口。如果它把进程句柄存在模块全局，插件卸载只移除 UI 卡片，旧进程仍会完成并发布结果；重新加载后还可能有两个监听器同时消费一次事件。“页面看起来卸载了”不是生命周期终止。</p>
-    <p>历史约定要求注册通过 <code>ctx.effect()</code> / <code>ctx.on()</code> 归属于作用域，注册表的 <code>register()</code> 返回 disposer。背后的原则是<strong>创建资源的作用域拥有结束它的责任</strong>。disposer 只是清理入口，不自动证明子进程已经停止；异步资源还要等待终止。</p>
-    <div class="codeblock"><div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 生命周期示例：状态和方法名为示意，非 DSH API</div><pre data-lang="text">状态：active → closing → closed；不能从 closing 返回 active
+    <p>合理的约定要求注册归属于作用域，注册表返回 disposer。背后的原则是<strong>创建资源的作用域拥有结束它的责任</strong>。disposer 只是清理入口，不自动证明子进程已经停止；异步资源还要等待终止。</p>
+    <div class="codeblock"><div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 生命周期示例：状态和方法名为示意，非特定 API</div><pre data-lang="text">状态：active → closing → closed；不能从 closing 返回 active
 start(job-9)：登记任务所有权，启动进程，订阅完成
 unload：
   1. 标记 closing，拒绝新任务，停止对外注册与完成通知
@@ -1852,23 +1810,13 @@ unload：
     <p>校验的位置取决于输入的可信边界。同进程已验证的静态类型数据不必层层重复校验；配置、持久文件、模型 JSON、网络和进程输出则需要在进入系统时解析。品牌类型防止编译期串线，运行时授权、资源路径的安全打开和环境变量隔离仍需要各自的实现。</p>
 
     <h2>持久格式迁移与读写兼容性</h2>
-    <p>继续 <code>job-9</code>：旧格式只有最终结果，新格式增加 <code>verification/started</code> 与 <code>verification/completed</code>。如果 started 会改变模型上下文或恢复后的调度决策，旧版本跳过它后继续运行，得到的不是同一个会话。历史守则要求 SessionEventMap 默认“读时必认”，未知事件只有明确允许忽略时才可跳过；结构变化才涉及 <code>SESSION_FORMAT_VERSION</code>。事件名和版本号不是语义兼容性的替代物。</p>
+    <p>继续 <code>job-9</code>：旧格式只有最终结果，新格式增加 <code>verification/started</code> 与 <code>verification/completed</code>。如果 started 会改变模型上下文或恢复后的调度决策，旧版本跳过它后继续运行，得到的不是同一个会话。合理的规则要求事件默认"读时必认"，未知事件只有明确允许忽略时才可跳过；结构变化才涉及格式版本号。事件名和版本号不是语义兼容性的替代物。</p>
     <div class="codeblock"><div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 迁移示例：事件名用于演示，非仓库现有定义</div><pre data-lang="json">{"format":1,"type":"verification/result","job":"job-9","ok":true}
 {"format":2,"type":"verification/completed","job":"job-9","status":"passed"}</pre></div>
     <p>对于 v1 → v2，可以将 <code>ok:true</code> 确定性映射为 passed。但不能凭空补出旧日志从未记录的开始时间、测试套件版本或耗时；应保留缺失语义，或明确拒绝需要这些事实的功能。若 v2 新增 cancelled，反向映射为 <code>ok:false</code> 会把取消变成测试失败，改变报告含义。<strong>存在向前迁移不蕴含存在无损回退。</strong></p>
     <p>历史相邻迁移规则让每一步只拥有 vN → vN+1，已发布代际不覆盖、不删除。这样旧输入在相同迁移链上不会因一次代码修改悄悄变义。迁移检查需要固定旧格式样本、逐步验证转换并重建模型可见内容；支持执行重试时，还需要版本前置条件和提交机制防止双重转换。它与转换函数本身的幂等性是不同要求：vN → vN+1 的输出未必仍是该函数的合法输入。</p>
     <p>滚动升级可能需要双读双写的兼容窗口，但每多一个写入者就多一条一致性链。支持的读写版本矩阵、窗口终点与退出条件共同限定了迁移的复杂度；能够停写后一次切换的系统，通常不必永久维护两套数据表示。发布与数据恢复的衔接见工作流章。</p>
 
-    <h2>历史工程守则索引</h2>
-    <p>下面的历史守则覆盖资源注册、事件分发、包边界、持久化和协作，各条规则都有对应的输入或时序前提。例如，封闭联合的 assertNever 能抓遗漏分支，可扩展联合却需要显式定义未知分支的行为；waterfall 的 next 控制是否短路，省略调用会改变事件传播。适用条件决定了规则如何落在具体实现上。</p>
-    <div id="ruleCards"></div>
-    <h2>防御性模式的适用条件</h2>
-    <p>错误隔离需要区分通知与决策。通知订阅者的失败可以隔离并记录，负责否决操作的策略失败却不能自动变成允许。环境处理也有类似边界：清洗环境变量名称只能处理名称问题，派生进程仍需最小环境与隔离。路径删除必须区分链接与实体目录，不能对来源不明的路径直接递归删除。这些模式只有在各自前提成立时才能阻止对应故障。</p>
-    <div id="defPatterns"></div>
-<figure class="fig">
-  <div class="fig-scroll" tabindex="0" role="region" aria-label="图：历史工程约定分层与防御性模式，可横向滚动"><img src="assets/figures/fig-conventions-layers.svg" alt="历史工程守则按架构、事件与类型、代码卫生、流程协作分层，防御模式横切这些层；数量与分类是历史整理，不是当前上游规范。" loading="lazy" decoding="async" width="840" height="470"></div>
-  <figcaption>图 · 保留历史约定地图作为检索入口。具体防线要落到资源所有权、失败语义与迁移兼容性；历史复盘提示风险，不替代目标版本源码证据。</figcaption>
-</figure>
     <h2>生命周期与迁移实验</h2>
     <p>生命周期实验可以从一项真实任务开始：任务未完成时卸载插件，再释放迟到的完成通知并重复卸载，观察结果流与进程状态；重新加载后，再检查一次任务是否只发布一次完成。迁移实验则固定 v1 输入与预期 v2 输出，加入未知事件，并让旧版本读取新日志。没有兼容承诺时，应明确拒绝读取，避免遗漏事件后继续运行。这两组实验分别检查资源是否真正结束，以及持久信息是否保持原有语义。</p>
   </section>
@@ -1878,11 +1826,11 @@ unload：
     <span class="ch-kicker">工程 / 20 · 测试体系</span>
     <h1>测试设计：<span class="grad">最小反例与真实执行路径</span></h1>
     <p class="lead">PR 中的测试全部通过，应用启动后却找不到工具。如果故障发生在包加载阶段，增加 execute 单测也无法覆盖它；一个经过真实 Loader 的用例反而可能直接复现问题。测试的价值取决于它保留了哪段因果链。覆盖率记录代码是否执行过，而测试入口决定了哪些装配错误有机会暴露。</p>
-    <div class="callout info"><span class="t">历史案例与实验范围</span>保留的 DSH postmortem 0001 摘要记载了“178 个单测全绿、100% 行覆盖，真实 Loader 仍失败”的案例。该摘要未绑定上游 commit，事故也未在此复现；数字仅作历史线索。下文 Loader、快照与门禁名称按历史接口讨论，具体行为以目标版本为准。实验部分描述测试设计，不包含 DSH 或 RepoOps 的运行结果。</div>
+    <div class="callout info"><span class="t">本章范围</span>本章讨论测试设计的通用原则：最小反例、真实路径覆盖与行为不变量不绑定某个产品。一个历史事故摘要（178 个单测全绿、真实 Loader 仍失败）在 <a href="#/packages">第 17 章</a>作为案例保留；实验部分描述测试设计，不包含运行结果。</div>
 
     <h2>从可见故障定位测试入口</h2>
-    <p>设 profile 应提供一个只读工具 <code>read</code>。测试直接导入插件实现并调用 <code>ctx.plugin()</code>，随后断言 read 能返回文本。真实应用先解析包入口、处理 exports、建立 inject 拓扑、选择 isolate realm、计算 disabled，再注册工具。如果包导出形状不符合 Loader 约定，单测完全可以通过；它从失败点后面才开始执行。</p>
-    <div class="codeblock"><div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 最小反例的构造：示意，不是现成 DSH 测试代码</div><pre data-lang="text">输入：一个 profile + 一个工具插件 + 必要 Provider + 固定模型请求
+    <p>设某组合应提供一个只读工具 <code>read</code>。测试直接导入插件实现并手工注册，随后断言 read 能返回文本。真实应用先解析包入口、处理 exports、建立依赖拓扑、选择隔离域、计算启用状态，再注册工具。如果包导出形状不符合加载器约定，单测完全可以通过；它从失败点后面才开始执行。</p>
+    <div class="codeblock"><div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 最小反例的构造：示意，不是现成测试代码</div><pre data-lang="text">输入：一个组合 + 一个工具插件 + 必要 Provider + 固定模型请求
 单测捷径：直接导入 apply → 手工注册 → 调用 read → 得到内容
 真实路径：包入口 → Loader 导出解析 → inject → 工具注册 → 调用 read
 故障注入：只改变包入口导出形状，不改 apply / execute
@@ -1892,7 +1840,7 @@ unload：
 
     <h2>三种验证层次的覆盖范围</h2>
     <div class="grid cols3">
-      <div class="card reveal d1"><h3>包内单元测试</h3><p>用 vitest 或同层测试检查纯转换、明确的错误和局部状态转移。手工 ctx.plugin() 可以覆盖服务与事件行为，但通常不经过包入口解析、注入拓扑和真实 realm。它适合检查最小输入到输出的关系，完整装配需要另外覆盖。</p></div>
+      <div class="card reveal d1"><h3>包内单元测试</h3><p>用同层测试检查纯转换、明确的错误和局部状态转移。手工注册可以覆盖服务与事件行为，但通常不经过包入口解析、依赖拓扑和真实隔离域。它适合检查最小输入到输出的关系，完整装配需要另外覆盖。</p></div>
       <div class="card reveal d2"><h3>会话快照回放</h3><p>历史 snapshots/session、sdk、acp、web 用录制输入与模型响应驱动回放。它验证固定轨迹下的模型可见、持久或用户可见结果；是否覆盖真实 Loader，要看具体回放入口。固定模型响应不证明新提示词在真实模型上仍能成功。</p></div>
       <div class="card reveal d3"><h3>真实组合与进程验证</h3><p>以测试 profile 经 Loader 启动真实应用或子进程，只替换外部、非确定性输入。无密钥可验证启动、注册和固定响应链路；真实模型调用另设有密钥场景。跳过模型测试不是这些测试已经通过。</p></div>
     </div>
@@ -1922,26 +1870,26 @@ unload：
     <p>每类故障的复现材料包括输入脚本、屏障释放顺序、预期不变量与实际观察。同一条轨迹在缺少对应防护时应能暴露故障，在修复后则满足原有契约。如果实验只有进程内回放，其覆盖范围不包括进程崩溃与真实外部工具。这些确定性测试对应 <a href="#/capstone-agent">P2 的 Harness 责任划分</a>；模型质量与消融见 <a href="#/capstone-experiments">P7</a>，两者分别衡量执行可靠性与策略效果。</p>
 
     <h2>快照差异与行为契约</h2>
-    <p>快照变化可能来自有意的契约调整，也可能来自故障。例如 UNKNOWN_TOOL 从错误变成一段固定文本，直接更新快照会把断开的工具链固化为预期。历史 <code>dsh-session-snapshot</code> 对这类结果设拒绝门禁，防止将坏运行录成标准答案。门禁只覆盖它识别的错误，其他差异仍需结合行为契约审查。</p>
+    <p>快照变化可能来自有意的契约调整，也可能来自故障。例如未知工具从错误变成一段固定文本，直接更新快照会把断开的工具链固化为预期。快照门禁应对这类结果设拒绝规则，防止将坏运行录成标准答案。门禁只覆盖它识别的错误，其他差异仍需结合行为契约审查。</p>
     <p>对比时需要区分允许变化的字段与必须保持的行为。运行标识可以按契约规范化，模型输入、工具结果和审批决定则可能影响真实语义。将错误文本、调用顺序和退出码一并抹去，会让快照失去发现回归的能力。绑定旧实现细节的断言也需要替换为可观察行为断言，而非逐字接受所有新输出。</p>
 
     <h2>静态门禁与运行验证</h2>
-    <p>历史 scripts/ 中的 verify / gen 家族把约定转成可执行约束：<code>verify-application-entrypoints</code> 检查入口分类，避免绕开 CLI + profile；<code>verify-cordis-config</code> 限制表达式出现位置，历史规则只允许在 config / disabled 使用 <code>!!js</code>；<code>gen-doc-graphs</code> 生成事件生产/消费图并核对 JSDoc <code>@mode</code>；benchmarks 提供性能检查入口。</p>
+    <p>静态门禁把约定转成可执行约束：入口分类检查避免绕开正常启动路径；配置规则限制表达式出现位置；文档生成核对事件生产/消费图与声明的一致性；性能检查固定环境、工作负载、并发和测量口径。</p>
     <p>结构门禁检查声明与规定形状是否一致，组合验证观察实际输入下的行为。声明正确的系统仍可能死锁，快照稳定的运行仍可能超预算。性能检查还需要固定环境、工作负载、并发和测量口径，才能区分实现变化与测量波动。</p>
 <figure class="fig">
   <div class="fig-scroll" tabindex="0" role="region" aria-label="图：历史测试分层与真实路径，可横向滚动"><img src="assets/figures/fig-testing-layers.svg" alt="历史示意比较手工插件单测、快照回放和真实 Loader 验证；实际覆盖由测试入口决定，图中历史事故数字不是本站复现结果。" loading="lazy" decoding="async" width="840" height="480"></div>
   <figcaption>图 · 阅读时以真实测试入口为准：不是所有回放都经过 Loader，也不是所有无密钥 e2e 都覆盖全部表达式与隔离组合。图中的旧事故数字只保留为历史线索。</figcaption>
 </figure>
     <h2>Loader 故障的回归实验</h2>
-    <p>以导出问题为例，固定目标版本与 profile，让一个工具调用经过真实 Loader；比较修复前后的模型可见结果与持久结果，并记录外部模型是否由回放替代。错误导出形状可以保留为回归输入，确保后续变更仍能识别装配失败。执行 <code>pnpm run test:snapshot</code> 或 <code>pnpm run test:e2e</code> 时，脚本定义、过滤方式与无密钥跳过范围均以目标 DSH 版本为准；这两个历史命令不属于本站前端测试流程。</p>
+    <p>以导出问题为例，固定目标版本与组合，让一个工具调用经过真实加载路径；比较修复前后的模型可见结果与持久结果，并记录外部模型是否由回放替代。错误导出形状可以保留为回归输入，确保后续变更仍能识别装配失败。快照录制与端到端测试的脚本定义、过滤方式与跳过范围均以目标版本为准；这些命令不属于本站前端测试流程。</p>
   </section>
 
   <!-- ============ 21 开发工作流 ============ -->
   <section class="chapter" id="ch-workflow">
     <span class="ch-kicker">工程 / 21 · 开发工作流</span>
-    <h1>变更发布：<span class="grad">从评审到停写与恢复</span></h1>
+    <h1>变更案例：<span class="grad">从评审到停写与恢复</span></h1>
     <p class="lead">候选插件在回放中修复了更多任务，上线后却开始写入新格式会话，后台还留着测试进程。回退代码无法同时恢复这些状态：旧进程可能继续写入，新数据可能不被旧版本识别，已提交的外部动作也不会随 Git 倒退。本章沿一次并行测试插件的变更，讨论评审、制品验证、发布和恢复之间的衔接。</p>
-    <div class="callout info"><span class="t">历史索引与发布案例</span>下方 DSH 命令表、文档地图与运行要求未绑定上游 commit，具体脚本以目标仓库的 package.json、锁文件与文档为准。发布协议是设计案例，未作为 DSH 部署功能实现或运行。这些 pnpm 命令也不属于本站的构建流程。</div>
+    <div class="callout info"><span class="t">本章范围</span>本章讨论变更发布的通用设计：评审维度、制品验证、状态转移与恢复路线不绑定某个产品。一个固定版本的文档与命令索引在 <a href="#/packages">第 17 章</a>保留。</div>
 
     <h2>界定变更与比较条件</h2>
     <p>设候选 <code>candidate-B</code> 为仓库修复助手加入并行测试执行，基线为 <code>base-A</code>。并行可能减少等待，也会增加进程、改变结果顺序，并引入新的持久完成事件。性能比较需要固定测试集和资源预算，并保留失败与遗漏结果，否则少跑测试也会表现为耗时下降。</p>
@@ -1955,27 +1903,21 @@ unload：
     <p>在 RSI 系统中，提出改进的 agent 与验收规则还需要分开。候选、评测器、任务集和批准权分别固定，候选的自评结果不能直接授予发布许可；评分器修改应作为另一项变更独立审查。固定回放上的功能与性能结果支持当前任务集内的比较，对新任务的泛化仍需另外评估。</p>
 
     <h2>从变更范围定位文档与实现</h2>
-    <p>目标版本的 <code>docs/architecture.md</code> 用于定位行为的拥有者。已有扩展点能承载的行为通常无需修改主循环；接口契约发生变化时，则需要显式修改接口和消费者。对应的 <code>docs/subsystems/&lt;name&gt;.md</code> 说明服务与事件，<code>docs/glossary.md</code> 统一术语，<code>docs/cookbook/</code> 提供实现配方，<code>docs/postmortem/</code> 记录事故。旧 Agent Note 可以解释当时的选择，现行契约仍以当前定义为准。</p>
-    <div class="grid cols3" id="docmapGrid"></div>
+    <p>目标版本的架构文档用于定位行为的拥有者。已有扩展点能承载的行为通常无需修改主循环；接口契约发生变化时，则需要显式修改接口和消费者。对应的子系统文档说明服务与事件，术语表统一词汇，配方文档提供实现模板，事故复盘记录教训。旧设计笔记可以解释当时的选择，现行契约仍以当前定义为准。</p>
+    <p>文档路由通常包括：架构总览（组合、核心包、循环、扩展点）、子系统文档（服务与事件）、术语表、实现配方与事故复盘。变更涉及哪一层，就先读哪一层的现行契约；旧笔记解释历史选择，不替代当前定义。</p>
     <p>例如，并行结果从提交序改为完成序，会影响依赖旧顺序的消费者，也可能改变持久回放。顺序契约需要在实现前确定，测试才能据此选择断言，调用方、记录和展示层也才能一起迁移。如果只按最终代码补文档，偶然的实现顺序可能被误写成规范。</p>
 
     <h2>从源码到可运行制品</h2>
-    <div class="tbl-wrap">
-      <table class="tbl">
-        <thead><tr><th>历史命令</th><th>历史用途，目标版本需复核</th><th>类别</th></tr></thead>
-        <tbody id="cmdTable"></tbody>
-      </table>
-    </div>
-    <p>安装和 typecheck 分别检查依赖环境与静态契约；包内测试检查局部行为，真实 profile 检查装配，快照对照固定轨迹。build 产出的制品还需要通过实际入口启动：tsconfig paths 指向 src 时，测试通过也可能掩盖 lib 导出错误。安装脚本本身会执行代码，因此锁文件与安装行为审查应先于受控环境中的安装。</p>
-    <div class="codeblock"><div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> DSH 历史命令示意：仅在核对后的目标 DSH 仓库运行</div><pre data-lang="bash">pnpm install
-pnpm run typecheck
-pnpm run test
-pnpm run test:snapshot
-pnpm run test:e2e
-pnpm run build
-pnpm run hygiene
-pnpm run doc-sync</pre></div>
-    <p>历史表中的 test:e2e 包含需密钥场景，缺密钥造成的跳过与通过需要分别记录。test:snapshot:record 会重录预期，失败原因未经分析就录制，可能覆盖真正的回归。clean 会移除构建产物，录制与真实 API 运行还可能产生费用或外部副作用，因此这组命令不能作为无条件批处理。完整质量、覆盖率和文档门禁以目标版本 CI 为准。</p>
+    <p>安装和类型检查分别检查依赖环境与静态契约；包内测试检查局部行为，真实组合检查装配，快照对照固定轨迹。构建产出的制品还需要通过实际入口启动：类型路径指向源码时，测试通过也可能掩盖产物导出错误。安装脚本本身会执行代码，因此锁文件与安装行为审查应先于受控环境中的安装。</p>
+    <div class="codeblock"><div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 典型验证阶段：顺序与跳过条件按目标版本确定</div><pre data-lang="bash">install        # 锁定依赖，记录 lockfile 摘要
+typecheck      # 静态契约
+test           # 包内单元测试
+test:snapshot  # 固定轨迹回放
+test:e2e       # 真实组合（可能需密钥，跳过≠通过）
+build          # 产物
+hygiene        # 结构门禁
+doc-sync       # 文档一致性</pre></div>
+    <p>需要密钥的测试场景因缺少密钥而跳过时，应与通过分别记录。快照录制会重录预期，失败原因未经分析就录制，可能覆盖真正的回归。clean 会移除构建产物，录制与真实 API 运行还可能产生费用或外部副作用，因此这组命令不能作为无条件批处理。完整质量、覆盖率和文档门禁以目标版本 CI 为准。</p>
 
     <h2>发布的状态转移</h2>
     <p>candidate-B 的发布设计需要同时描述正常推进和停止路径。制品摘要、配置、profile、数据格式与评测记录共同标识一个发布；仅有源代码 commit 无法唯一确定运行行为，配置或模型服务变化也可能改变结果。</p>
@@ -2008,13 +1950,13 @@ recover：确认静止 → 按兼容矩阵回退制品 / 处理数据 → 再开
   <section class="chapter" id="ch-glossary">
     <span class="ch-kicker">参考 / 22 · 术语表</span>
     <h1>术语表：定义、运行边界与评测口径</h1>
-    <p class="lead">Agent 的运行涉及多个层级：step 与 turn 描述执行过程，outcome 描述任务结果，grader 决定结果是否满足任务契约。它们的边界不同，不能用一个层级的成功替代另一个。本表的 DSH 词条依据上游 <code>docs/glossary.md</code> 的版本快照；框架外概念与项目操作定义分别标注来源，适用范围随来源而定。</p>
+    <p class="lead">Agent 的运行涉及多个层级：step 与 turn 描述执行过程，outcome 描述任务结果，grader 决定结果是否满足任务契约。它们的边界不同，不能用一个层级的成功替代另一个。本表的词条按运行骨架、配置堆叠、时间单位与评测口径四条主线组织；框架外概念与项目操作定义分别标注来源，适用范围随来源而定。</p>
 <figure class="fig">
   <div class="fig-scroll" tabindex="0" role="region" aria-label="图：术语依赖主线，可横向滚动"><img src="assets/figures/fig-glossary-deps.svg" alt="45 条术语按定义中的引用关系排成四条主线：运行骨架 seam 挂到 scope 再到 scope key 与限制；配置堆叠 profile 叠 bundle 再被 patch 覆盖；时间单位 step 组成 turn 再被 round 计数；评测口径从 outcome 与 transcript 之分到 grader、pass@k 与饱和毕业。箭头指向被定义引用的一方。" loading="lazy" decoding="async" width="840" height="520"></div>
   <figcaption>图 · 术语的引用关系分为运行骨架、配置堆叠、时间单位与评测口径四条主线，箭头指向定义依赖的概念。</figcaption>
 </figure>
     <h2>step、turn 与 outcome：过程单位和外部结果</h2>
-    <p>设一次用户输入已经准入：模型先要求搜索，再要求读取手册，最后提交建议。按照本表的 DSH 用语，每次模型请求及其引发的工具执行构成一个 step；这次输入排空构成一个 turn，而不是“每调一次工具就是一个 turn”。外层策略是否把它计为 round，由那个策略定义，不能直接拿会话 turn 数代替。</p>
+    <p>设一次用户输入已经准入：模型先要求搜索，再要求读取手册，最后提交建议。每次模型请求及其引发的工具执行构成一个 step；这次输入排空构成一个 turn，而不是"每调一次工具就是一个 turn"。外层策略是否把它计为 round，由那个策略定义，不能直接拿会话 turn 数代替。</p>
     <p>搜索工具返回成功，只说明对应调用按协议结束。若最终建议依据旧版手册，任务仍可能失败。对于数据库修改任务，模型提交“完成”文本之后，还需要查询数据库的最终状态。<strong>transcript 记录过程中的动作与观察，outcome 表示外部结果，grader 按任务契约判断是否通过。</strong>安全约束还可能要求检查过程：即使最终状态正确，途中越权读取或外传数据也会导致任务不满足约束。</p>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>词汇边界</th><th>对应观测</th><th>常见混淆</th></tr></thead><tbody>
       <tr><td>工具调用 / 运行终态</td><td>请求 ID、状态转换、真实返回值或异常；异步工具还需等待终态。</td><td>把 accepted / starting 当作激活成功。</td></tr>
@@ -2025,7 +1967,7 @@ recover：确认静止 → 按兼容矩阵回退制品 / 处理数据 → 再开
     <p>最后两行采用本项目实验与平台的操作定义。具体字段与状态转换见 <a href="#/capstone-agent">P2 的运行终态</a>、<a href="#/capstone-platform">P5 的重试身份</a>和<a href="#/eval">评测口径</a>。</p>
 
     <h2>seam 与 scope：能力组合和可见范围</h2>
-    <p>DSH 的 seam 指完整可替换能力：Service Definition 约定键与词汇类型，Provider 实现能力，Consumer 使用它。以 shell 为例，替换 Provider 可以改变执行位置；实际隔离程度则取决于挂载的 Provider、工作目录、网络与凭据暴露。接口可替换性与执行隔离是两个独立属性。</p>
+    <p>seam 指完整可替换能力：Service Definition 约定接口与词汇类型，Provider 实现能力，Consumer 使用它。以 shell 为例，替换 Provider 可以改变执行位置；实际隔离程度则取决于挂载的 Provider、工作目录、网络与凭据暴露。接口可替换性与执行隔离是两个独立属性。</p>
     <p>scope 描述贡献对哪个 agent 可见，scope key 是不透明身份；它既非文件系统沙箱，也不按名字形成权限继承树。假如子 agent 看不到某个工具，却能通过共享服务读到敏感文件，贡献可见性仍未阻止能力泄漏。能力组合详见<a href="#/tools">工具与能力接缝</a>，访问与执行限制详见<a href="#/safety">安全与护栏</a>。</p>
 
     <h2>多次尝试中的求解率与重复可靠性</h2>
@@ -2083,11 +2025,11 @@ python labs/eval_lab.py compare lab-output/tie.input.json</pre></div>
   <section class="chapter" id="ch-practice">
     <span class="ch-kicker">项目 / 24 · 项目实验</span>
     <h1>项目任务书：知识助手、仓库修复与评测平台</h1>
-    <p class="lead">知识助手、仓库修复 Agent 与评测平台面对三种不同的工程问题：答案是否有当前证据支持，执行能否修复故障且不越权，运行结果能否形成可靠比较。本章分别给出输入输出、实现路径与失败实验，再介绍可用于承载这些机制的 DSH 插件练习。</p>
-    <div class="callout warn"><span class="t">项目范围</span>仓库提供教学 runner、检索与租约机制实验及统计比较程序。生产鉴权、真实模型接入、Harbor 修复任务、分布式控制面和发布服务属于下文的扩展实现。候选不得修改审批规则、权威评分器或未经授权的工作区；DSH 的审批与 Provider 边界见<a href="#/safety">安全与护栏</a>。</div>
+    <p class="lead">知识助手、仓库修复 Agent 与评测平台面对三种不同的工程问题：答案是否有当前证据支持，执行能否修复故障且不越权，运行结果能否形成可靠比较。本章分别给出输入输出、实现路径与失败实验，再介绍可用于承载这些机制的通用 harness 练习。</p>
+    <div class="callout warn"><span class="t">项目范围</span>仓库提供教学 runner、检索与租约机制实验及统计比较程序。生产鉴权、真实模型接入、Harbor 修复任务、分布式控制面和发布服务属于下文的扩展实现。候选不得修改审批规则、权威评分器或未经授权的工作区；审批与 Provider 边界见<a href="#/safety">安全与护栏</a>。</div>
 
     <h2>共同的运行底座</h2>
-    <p>三个项目都需要版本身份、执行轨迹、外部评分与状态恢复。本章后半部分的五项 DSH 练习依次处理组合检视、插件加载、日志持久化、评测接入与策略替换。也可以采用其他运行载体；项目契约中的记录与权限要求保持不变。</p>
+    <p>三个项目都需要版本身份、执行轨迹、外部评分与状态恢复。本章后半部分的五项练习依次处理组合检视、插件加载、日志持久化、评测接入与策略替换。也可以采用其他运行载体；项目契约中的记录与权限要求保持不变。</p>
 <figure class="fig">
   <div class="fig-scroll" tabindex="0" role="region" aria-label="图：五关产物接力阶梯，可横向滚动"><img src="assets/figures/fig-practice-ladder.svg" alt="五个插件练习按产物依赖排成阶梯：01 的组合清单供 02 定位注册层，02 的挂载经验供 03 写持久日志，03 的日志 schema 供 04 关联评分，04 的 eval 最小实现供 05 验证策略替换，再接到第 25 章的评测管线与 R1 的冻结策略对照。勾选进度存在浏览器。" loading="lazy" decoding="async" width="840" height="520"></div>
   <figcaption>图 · 五项练习按产物依赖衔接：组合清单帮助定位注册层，持久日志关联评分，评分与调用记录支撑策略比较。</figcaption>
@@ -2147,33 +2089,31 @@ python labs/eval_lab.py compare lab-output/improvement.input.json</pre></div>
     </ol>
     <p>当任务从只读扩展到写生产配置时，身份传递、审批绑定、执行时再授权、隔离、未决结果查证与人工接管都成为执行前提。无法处理“已发生但未确认”的动作时，系统应保持只读，避免重试扩大副作用。</p>
 
-    <h2>五项 DSH 插件练习</h2>
+    <h2>五项通用练习</h2>
     <p>勾选进度保存在当前浏览器。各项练习的组合清单、版本、日志和评测结果可另存为实验记录，便于在后续项目中复用。</p>
 
-    <div class="exp-progress"><div class="ep-bar"><div id="expBarFill"></div></div><span id="expBarTxt" class="muted small"></span></div>
-    <div id="expList"></div>
 
     <h2>练习01 · 检视配置与运行时组合</h2>
     <p>配置文件描述计划加载的能力，运行时检视显示实际提供的能力。对照两者，可以发现 bundle、patch 与服务注册之间的差异，并确定后续插件的注册层。</p>
     <p><strong>故障定位：</strong></p>
     <ul>
-      <li><code>dsh --profile web --dump-config</code> 无输出或报错 → 确认 profile 名存在、Node ≥22.19；dump 是引导时打印，不是运行中查询。</li>
-      <li><code>cordis_inspect_list</code> 返回空或工具不存在 → 当前 preset 没挂检视工具链（Host 侧检视注册表由 cordis-host-runner 提供，Creator 组合才有）；这是组合问题，不是权限问题。</li>
-      <li>Client 侧 query 一直 pending → Client 检视要等连着的浏览器页面应答；页面没开就没有答案。</li>
-      <li>“找不到某服务” → ctx 键与包名可能不同；<code>Service.listService</code> 提供签名目录，可用于定位确切服务。</li>
+      <li>配置导出无输出或报错 → 确认 profile 名存在、运行时版本匹配；dump 是引导时打印，不是运行中查询。</li>
+      <li>检视工具返回空或不存在 → 当前组合没挂检视工具链；这是组合问题，不是权限问题。</li>
+      <li>查询一直 pending → 客户端检视要等连着的页面应答；页面没开就没有答案。</li>
+      <li>"找不到某服务" → 接口键与包名可能不同；服务目录可用于定位确切服务。</li>
     </ul>
-    <p class="small muted">记录当前组合清单：加载的 bundle/patch、最终配置与 cordis_* 工具可用性。练习02 用它确定插件的注册目标。</p>
+    <p class="small muted">记录当前组合清单：加载的 bundle/patch、最终配置与检视工具可用性。练习02 用它确定插件的注册目标。</p>
 
     <h2>练习02 · 加载运行时插件</h2>
-    <p>定义并加载一个插件，观察可调用工具或服务的变化，再停止插件，检查注册是否回收。审批行为、加载时机和卸载范围依实际使用的 DSH 版本确定。</p>
+    <p>定义并加载一个插件，观察可调用工具或服务的变化，再停止插件，检查注册是否回收。审批行为、加载时机和卸载范围依实际使用的版本确定。</p>
     <p><strong>故障定位：</strong></p>
     <ul>
-      <li><code>cordis_define</code> 成功但什么都没发生 → define 只校验并记录源码，不执行 apply；必须 <code>cordis_run</code>。</li>
-      <li><code>cordis_run</code> 返回 awaiting-approval → 审批请求在 UI 上等人点，不是卡住，不要重发。</li>
-      <li>返回 starting → 只是"进入异步激活"，不是成功；等 Run 卡报终态，失败就 <code>cordis_inspect_self</code> 读该包的 message/stack。</li>
-      <li>apply 里 <code>ctx.xxx</code> 是 undefined → 没声明 <code>inject</code> 的服务不许从 ctx 属性读；可选服务用 <code>ctx.get('xxx')</code> 并处理 undefined。</li>
-      <li>卸载后副作用还在（同事件触发两次、工具残留）→ 有注册没走 <code>ctx.effect()</code>/<code>ctx.on()</code>；裸注册不归 fiber 管，stop 不会回收。</li>
-      <li>审批被拒 → 该授权请求已终结，不应重复发送同一 package；代码调整后需 define 新 package 并重新申请审批。</li>
+      <li>define 成功但什么都没发生 → define 只校验并记录源码，不执行 apply；必须 run。</li>
+      <li>run 返回 awaiting-approval → 审批请求在 UI 上等人点，不是卡住，不要重发。</li>
+      <li>返回 starting → 只是"进入异步激活"，不是成功；等终态，失败就读该包的诊断。</li>
+      <li>apply 里服务是 undefined → 没声明注入的服务不许从上下文读；可选服务用可选获取并处理缺失。</li>
+      <li>卸载后副作用还在（同事件触发两次、工具残留）→ 有注册没走作用域绑定；裸注册不归生命周期管，stop 不会回收。</li>
+      <li>审批被拒 → 该授权请求已终结，不应重复发送同一包；代码调整后需 define 新包并重新申请审批。</li>
     </ul>
     <p class="small muted">记录 pluginId、packageId 与挂载/停止的完整状态。练习03 在同一加载流程中加入跨会话日志。</p>
 
@@ -2181,10 +2121,10 @@ python labs/eval_lab.py compare lab-output/improvement.input.json</pre></div>
     <p>保存改动、版本与结果，才能重建下一轮使用了什么反馈。跨会话读回还需要明确的检索路径，数据落盘并不意味着自动进入模型上下文。</p>
     <p><strong>故障定位：</strong></p>
     <ul>
-      <li>storage 服务不可用 → 用 <code>ctx.get('storage')</code> 判断 undefined；当前组合可能未挂载 storage-sqlite 后端，可改用 session event。</li>
-      <li>写了自定义 session event 却读不回 → SessionEventMap 读时必认：不认识的事件类型会被拒绝读日志，除非标 <code>ignorable</code>；动态插件更稳的路径是写 storage 或复用已声明的事件域。</li>
-      <li>fork/resume 后 agent"忘了"持续干活 → 这是特性：goal 激活（armed）故意不进持久日志，恢复后要人再授权才能自动续跑。</li>
-      <li>日志落了账但下一轮看不到 → 落账不等于自动可见；要经 session 检索工具或投影读回，把"读回路径"也做成插件的一部分。</li>
+      <li>存储服务不可用 → 检查当前组合是否挂载了存储后端，可改用会话事件。</li>
+      <li>写了自定义事件却读不回 → 事件映射读时必认：不认识的事件类型会被拒绝读日志，除非标 ignorable；动态插件更稳的路径是写存储或复用已声明的事件域。</li>
+      <li>fork/resume 后 agent"忘了"持续干活 → 这是特性：目标激活故意不进持久日志，恢复后要人再授权才能自动续跑。</li>
+      <li>日志落了账但下一轮看不到 → 落账不等于自动可见；要经检索工具或投影读回，把"读回路径"也做成插件的一部分。</li>
     </ul>
     <p class="small muted">记录自改日志 schema：pluginId/packageId/意图/结果/时间。练习04 加入评分字段，第 25 章继续关联比较裁决。</p>
 
@@ -2192,8 +2132,8 @@ python labs/eval_lab.py compare lab-output/improvement.input.json</pre></div>
     <p>给旧、新插件使用相同任务与评分规则，观察一次好改动和一次故意注入的坏改动。裁决写入候选无权覆盖的记录；两个不同插件名本身不构成隔离。代码指针恢复后，还要检查外部状态。</p>
     <p><strong>故障定位：</strong></p>
     <ul>
-      <li>eval 没在挂载后触发 → <code>cordis_run</code> 的返回不是终态；监听 Run 的最终状态，或挂载后显式调用 eval 服务，别在工具调用里等浏览器侧结果。</li>
-      <li>回滚未发生 → 回滚需要显式 <code>cordis_run</code> 到 currentPackageId；update 失败不会自动退回旧版，回滚由裁决门触发。</li>
+      <li>eval 没在挂载后触发 → run 的返回不是终态；监听最终状态，或挂载后显式调用 eval 服务，别在工具调用里等浏览器侧结果。</li>
+      <li>回滚未发生 → 回滚需要显式 run 到旧版本；update 失败不会自动退回，回滚由裁决门触发。</li>
       <li>eval 结果被被测改动污染 → 工具限制与任务集只读只是局部控制；若评测仍在候选可修改的进程/文件域内，就没有独立评分边界。需要把权威观测与判定放到候选无权覆盖的控制域。</li>
       <li>"分数涨了"但不可复现 → eval 输入要记 version 加任务集 hash；题目变了分数就不可比。</li>
     </ul>
@@ -2203,9 +2143,9 @@ python labs/eval_lab.py compare lab-output/improvement.input.json</pre></div>
     <p>将候选生成策略抽成可替换服务，并验证下一轮真的调用新版本。手动替换只能证明可修改性；若要检验元改进，需要记录策略如何产生，并与冻结策略在同一起点和预算下比较。</p>
     <p><strong>故障定位：</strong></p>
     <ul>
-      <li>策略仍写死在宿主代码中 → 检查能否通过 <code>cordis_run</code> update 将策略换成另一个 packageId。</li>
+      <li>策略仍写死在宿主代码中 → 检查能否通过运行时更新将策略换成另一个版本。</li>
       <li>替换后行为不变 → 检查回路是否每轮重新读取策略服务；仅在启动时读取会继续使用旧引用。</li>
-      <li>策略绕过审批 → 策略插件同样受 <code>cordis_run</code> 审批约束；绕过意味着权限边界失效，详见第 11 章。</li>
+      <li>策略绕过审批 → 策略插件同样受运行时审批约束；绕过意味着权限边界失效，详见第 11 章。</li>
     </ul>
     <p class="small muted">产物：一个可替换的策略服务与使用记录。接下来按 R1 设计共同起点、完整成本和冻结策略对照。</p>
 
@@ -2215,16 +2155,15 @@ python labs/eval_lab.py compare lab-output/improvement.input.json</pre></div>
       <table class="tbl">
         <thead><tr><th>步</th><th>动作</th><th>看什么</th></tr></thead>
         <tbody>
-          <tr><td>1</td><td><code>cordis_inspect_self(pluginId)</code></td><td>版本指针：currentPackageId / nextPackageId 各指哪；next 卡住多半是审批未完</td></tr>
-          <tr><td>2</td><td><code>cordis_inspect_self(pluginId, packageId)</code></td><td>该包源码与 message/stack——技术失败的唯一权威出处</td></tr>
-          <tr><td>3</td><td>看 Run 卡状态</td><td>awaiting-approval＝等人；starting＝Client 激活中；failed＝读第 2 步的诊断</td></tr>
-          <tr><td>4</td><td>审批被拒</td><td>不要重发同一 package；改代码 → define 新 package → run</td></tr>
-          <tr><td>5</td><td>副作用未回收的征兆</td><td>stop 后同事件仍触发、工具重复出现 → 有注册没走 effect/fiber</td></tr>
-          <tr><td>6</td><td>全绿但行为没变</td><td>监听器挂在从未分发的事件上：用 Event.listEvents 确认事件存在与分发模式</td></tr>
+          <tr><td>1</td><td>检视自身(pluginId)</td><td>版本指针：current / next 各指哪；next 卡住多半是审批未完</td></tr>
+          <tr><td>2</td><td>检视自身(pluginId, packageId)</td><td>该包源码与诊断——技术失败的唯一权威出处</td></tr>
+          <tr><td>3</td><td>看运行状态</td><td>awaiting-approval＝等人；starting＝激活中；failed＝读第 2 步的诊断</td></tr>
+          <tr><td>4</td><td>审批被拒</td><td>不要重发同一包；改代码 → define 新包 → run</td></tr>
+          <tr><td>5</td><td>副作用未回收的征兆</td><td>stop 后同事件仍触发、工具重复出现 → 有注册没走作用域绑定</td></tr>
+          <tr><td>6</td><td>全绿但行为没变</td><td>监听器挂在从未分发的事件上：确认事件存在与分发模式</td></tr>
         </tbody>
       </table>
     </div>
-
     <p>换用其他载体时，保留版本、观测、评估与策略使用记录，再按目标版本实现加载和恢复。是否能改提示、代码或运行时组件，要检查具体接口；这些实现选择不直接决定递归收益。</p>
   </section>
 
@@ -2232,7 +2171,7 @@ python labs/eval_lab.py compare lab-output/improvement.input.json</pre></div>
   <section class="chapter" id="ch-evalproject">
     <span class="ch-kicker">评测 / 25 · 平台设计</span>
     <h1>评测平台：在重试、迟到与预算下作出可信裁决</h1>
-    <p class="lead">候选版本的成功率依赖平台接受了哪些观测。worker 重领可能产生重复执行，失败记录缺失会改变分母，迟到提交还可能覆盖新结果。本章从任务身份、提交协议与成本账本出发，设计从执行到比较、再到发布的管线。仓库已有串行教学 runner、统计与租约实验；Go 服务、真实候选执行沙箱、DSH 适配器、确认集隔离及发布服务属于扩展实现。</p>
+    <p class="lead">候选版本的成功率依赖平台接受了哪些观测。worker 重领可能产生重复执行，失败记录缺失会改变分母，迟到提交还可能覆盖新结果。本章从任务身份、提交协议与成本账本出发，设计从执行到比较、再到发布的管线。仓库已有串行教学 runner、统计与租约实验；Go 服务、真实候选执行沙箱、适配器、确认集隔离及发布服务属于扩展实现。</p>
     <h2>平台契约与状态不变量</h2>
     <p>平台接收冻结的实验规格，而非随时变化的任务列表；输出完整的 trial 账本、配对报告与裁决，不直接相信候选自报的分数。一个逻辑 trial 由实验、版本、任务与重复序号确定；重试产生新的 attempt，不增加独立任务数。失败、超时、崩溃都必须保留在预定矩阵中。</p>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>非功能要求</th><th>可检查的不变量</th><th>取舍与限制</th></tr></thead><tbody>
@@ -2276,7 +2215,7 @@ else:
 </figure>
     <h2>Phase 3 · 统计裁决与发布策略</h2>
     <p>用预先规定的统计、成本和约束条件输出 keep / reject / inconclusive。平均成功率的增加不能抵消严重违规；证据不足时保持 incumbent，不等于已经证明两版等效。探索档案可以保留弱候选供后续搜索，用户可用版本只提升通过确认与发布策略的候选。两者不能共用一个指针。</p>
-    <p>DSH 适配器的 define/run/stop 精确 API 依目标版本文档确定。候选在独立环境中挂载和评测，控制域在通过裁决后提升版本，避免评测前就改变真实会话。恢复代码指针无法撤销已发出的邮件、支付或已提交的数据库事务；这些副作用需要单独的禁止、幂等或补偿策略。</p>
+    <p>适配器的 define/run/stop 精确 API 依目标版本文档确定。候选在独立环境中挂载和评测，控制域在通过裁决后提升版本，避免评测前就改变真实会话。恢复代码指针无法撤销已发出的邮件、支付或已提交的数据库事务；这些副作用需要单独的禁止、幂等或补偿策略。</p>
 
     <h2>工作负载扩展与架构变化</h2>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>变更</th><th>原方案的限制</th><th>新增机制与验证</th></tr></thead><tbody>
@@ -2665,7 +2604,7 @@ P(不合格 | judge 接受) = π f / (π f + (1−π) t)
   <p>再看那条没有进入汇总的失败运行。它可能只是采集故障，单凭遗漏还不能推断候选作弊；但如果候选能删除日志，完整性就取决于它是否愿意保留不利记录。可将候选执行域与控制域分开：前者拿任务输入、允许的工具和临时工作区；后者保管评分器、确认数据、预算、版本发布指针和完整审计记录，并以独立身份从候选产物计算分数。</p>
   <p>例如支付工具调用与响应由控制域留存，候选输出的 <code>agent.reported_score</code> 只是一段待核查内容，不是最终分数。超时也由控制域计时、终止相应工作负载并记入结果；在输出 JSON 中增加一个 timeout 字段，并不会停止仍在执行的进程。只追加审计记录还需由候选无法修改的权限维护，否则“只追加”只是调用习惯。</p>
   <p>同一进程、同一账号下的不同 <code>packageId</code> 可以组织代码，却不自动隔离权限。只读挂载防写，不防读取答案；hash 可以标识内容并辅助核验是否变化，不能单独证明内容来自可信评分器。这些机制分别提供代码组织、写保护与内容核验能力，部署时仍需落实独立的身份和授权。</p>
-  <p>DSH 的 <code>SAFETY.md</code> 明确指出它尚未经安全审计，不能视为安全或生产就绪。<cite data-source="dsh-safety"><a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/SAFETY.md" target="_blank" rel="noopener">[dsh-safety]</a></cite>采用该项目时，评分服务的身份、挂载和日志权限仍需在实际部署中检查；这份声明本身不是隔离有效性的证据。</p>
+  <p>任何运行时框架的安全声明都需要对应版本核对：developer preview 或未审计的实现不能作为不可信工作负载的唯一安全控制。采用具体项目时，评分服务的身份、挂载和日志权限仍需在实际部署中检查；声明本身不是隔离有效性的证据。</p>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>隔离环境中的故障注入</th><th>需要观察的控制域证据</th><th>仅凭什么还不够</th></tr></thead><tbody>
     <tr><td>候选提交自报高分，并试图覆盖评分器或确认数据</td><td>评分身份独立重算；禁止的写入被实际权限拒绝，原工件可核验</td><td>提示词写“不要改测试”、输出一个 hash</td></tr>
     <tr><td>候选不返回结果，或试图删除失败记录</td><td>外部计时器结束工作负载；请求仍有 timeout 或失败终态，汇总分母不减少</td><td>候选自己承诺记日志，或仅返回 timeout 字段</td></tr>

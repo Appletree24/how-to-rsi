@@ -1,8 +1,8 @@
 <section class="chapter" id="ch-cordis">
-    <span class="ch-kicker">运行时 / 13 · Cordis 核心</span>
+    <span class="ch-kicker">运行时 / 13 · 案例：Cordis</span>
     <h1><span class="grad">Cordis</span>：依赖与插件生命周期</h1>
     <p class="lead">一个检索插件依赖数据库服务。重载配置时，如果数据库先关闭，旧工具可能仍在处理请求；如果只撤销注册，已经开始的调用又未必停止。依赖注入决定插件何时可以启动，生命周期管理还需要处理停止入口、收尾调用与释放依赖之间的顺序。</p>
-    <p class="small muted">Cordis 机制与事故案例依据固定提交的 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/cordis-primer.md" target="_blank" rel="noopener">Cordis primer</a> 及下文复盘。活动调用的 drain、取消与资源所有权是本文分析的设计责任；框架的可逆注册不涵盖任意异步任务或外部副作用回滚。示例省略导入、工具定义与类型细节，交互组件仅模拟分发规则。<cite data-source="dsh-runtime-contracts"></cite></p>
+    <p class="small muted">本章以 DeepSeek Harness 固定提交的 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/cordis-primer.md" target="_blank" rel="noopener">Cordis primer</a> 及复盘为案例，讨论依赖注入与生命周期的通用问题。活动调用的 drain、取消与资源所有权是本文分析的设计责任；框架的可逆注册不涵盖任意异步任务或外部副作用回滚。示例省略导入、工具定义与类型细节，交互组件仅模拟分发规则。<cite data-source="dsh-runtime-contracts"></cite></p>
 
     <h2>服务可用期间的注册与调用</h2>
     <p>设工具消费者 C 需要服务 P。C 未激活时不应接单；P 可用后才能发布注册；停止时先关入口，再处理飞行中的调用，最后释放 P。服务键让 C 不依赖 P 的具体类，<code>inject</code> 表达所需服务，事件承载协作，effect/disposer 记录需要撤销的注册。五个概念都服务于这个时间窗口，而不是五种独立语法。</p>

@@ -1,9 +1,9 @@
 <section class="chapter" id="ch-intro">
     <span class="ch-kicker">运行时 / 12 · Harness 职责</span>
     <h1>Harness：<span class="grad">一次执行的责任边界</span></h1>
-    <p class="lead">模型已经返回“修改 README”的工具调用，编辑器这时断线，用户又按了取消。文件可能已改，界面却没收到结果。重连后的处理取决于执行端留下了什么：尚未派发的动作可以停止，已完成的动作需要核对，结果未知的动作不能盲目重试。DeepSeek Harness（DSH）的运行时结构，可以从这个失败窗口开始理解。</p>
+    <p class="lead">模型已经返回“修改 README”的工具调用，编辑器这时断线，用户又按了取消。文件可能已改，界面却没收到结果。重连后的处理取决于执行端留下了什么：尚未派发的动作可以停止，已完成的动作需要核对，结果未知的动作不能盲目重试。Harness 的职责，可以从这个失败窗口开始理解。</p>
 
-    <div class="callout info"><span class="t">版本与来源</span>DSH 部分依据提交 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/architecture.md" target="_blank" rel="noopener"><code>ddefc45fbc7f</code> 的架构文档</a>及子系统文档。文中的通用设计、代码骨架和故障时序为分析示例；本地 RepoOps 的实现范围在后文单独说明。<cite data-source="dsh-runtime-contracts"></cite></div>
+    <div class="callout info"><span class="t">本章范围</span>本章按职责边界组织 Harness 的通用设计：上下文、派发、预算与恢复的责任划分不依赖某个具体产品。一个固定版本的运行时案例在 <a href="#/cordis">第 13 章</a>与<a href="#/architecture">第 14 章末节</a>单独讨论；本地 RepoOps 的实现范围在后文说明。</div>
 
     <h2>模型输出、工具结果与任务完成</h2>
     <p>“模型说改好了”只能证明它生成了文字；“工具返回成功”说明一次调用给了结果；“文件内容符合要求且结果可恢复”才接近用户的完成条件。取消与断线让这三个事实分离：网络响应丢失不代表写入没发生，回合结束也不自动代表日志已越过持久化屏障。</p>
@@ -44,19 +44,19 @@
     <p>子 Agent 的收益来自可独立推进的任务分支。任务依赖图决定哪些分支可以并行，每支还需要明确预算、产物格式与合并责任。若三支都修改同一文件且没有可独立检查的产物，增加协调器可能只会增加冲突。父任务取消后，子任务尚未退出，资源所有权就仍须保留；具体调度与故障处理见 <a href="#/testing">Harness 故障注入</a>。</p>
     <p>正常轨迹只能展示各组件如何协作。审批期间撤权、动作完成后丢失回包、父任务取消后子进程仍在运行，这三条故障轨迹分别暴露授权、结果核对与资源释放的边界。比较架构时，可以记录这些切点上的权威状态、恢复动作和用户可见结果，再按 <a href="#/capstone-experiments">P7 的 Harness 消融实验</a> 衡量各机制的实际收益。</p>
 
-    <h2>DSH 的插件化执行循环</h2>
-    <p>固定提交的架构文档把模型适配器、工具注册表、会话日志和 Agent Loop 都定义为可配置插件。服务定义是消费者依赖的接口，Provider 是实现，Consumer 通常是工具或宿主。替换实现的范围由这三类角色之间的契约确定：消费者不必知道具体 Provider，但仍依赖它的错误、取消和生命周期语义。</p>
+    <h2>接口可替换性与行为契约</h2>
+    <p>把模型适配器、工具注册表、会话日志和回合驱动器分别定义成可替换接口，可以让不同实现共享同一个执行骨架。服务定义是消费者依赖的接口，Provider 是实现，Consumer 通常是工具或宿主。替换实现的范围由这三类角色之间的契约确定：消费者不必知道具体 Provider，但仍依赖它的错误、取消和生命周期语义。</p>
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>职责与文档中的接口</th><th>可替换什么</th><th>不能借替换丢掉什么</th></tr></thead>
+      <thead><tr><th>可替换的职责</th><th>可以换什么</th><th>不能借替换丢掉什么</th></tr></thead>
       <tbody>
-        <tr><td><code>ctx.systemPrompt</code> / <code>ctx.tools</code></td><td>上下文提供者、工具集合</td><td>模型所见与日志重建一致；执行端仍须对已暴露的工具做授权检查</td></tr>
-        <tr><td><code>ctx.agents</code> / <code>ctx.agentLoop</code></td><td>Agent 接口背后的默认驱动器</td><td>输入领取、取消传播、结束状态与清理责任</td></tr>
-        <tr><td><code>ctx.llm</code></td><td>模型路由与适配器</td><td>流协议、实际用量的未知值、错误与取消语义</td></tr>
-        <tr><td><code>ctx.sessions</code> / <code>ctx.sessionPersistence</code></td><td>日志的存储后端</td><td>单写者、连续事件序号、flush 后的持久承诺</td></tr>
-        <tr><td><code>tools/*</code> 能力扩展点</td><td>审批、观察与执行包装</td><td>不能用后处理“撤销”已发生的外部副作用</td></tr>
+        <tr><td>上下文与工具提供</td><td>提示词组装、可见工具集合</td><td>模型所见与日志重建一致；执行端仍须对已暴露的工具做授权检查</td></tr>
+        <tr><td>回合驱动</td><td>Agent 接口背后的默认驱动器</td><td>输入领取、取消传播、结束状态与清理责任</td></tr>
+        <tr><td>模型适配</td><td>模型路由与协议适配器</td><td>流协议、实际用量的未知值、错误与取消语义</td></tr>
+        <tr><td>持久化后端</td><td>日志的存储实现</td><td>单写者、连续事件序号、flush 后的持久承诺</td></tr>
+        <tr><td>工具执行包装</td><td>审批、观察与度量钩子</td><td>不能用后处理“撤销”已发生的外部副作用</td></tr>
       </tbody>
     </table></div>
-    <p>一个进程、一个类持有全部依赖，是固定、只读、短任务中较容易理解和验证的方案。多个载体、不同执行环境与独立生命周期出现后，插件化才有明确收益，同时也引入服务查找、配置合成和卸载顺序等故障面。第 13 章讨论依赖失效，第 14 章讨论执行环境替换与跨会话隔离。</p>
+    <p>一个进程、一个类持有全部依赖，是固定、只读、短任务中较容易理解和验证的方案。多个载体、不同执行环境与独立生命周期出现后，插件化才有明确收益，同时也引入服务查找、配置合成和卸载顺序等故障面。<a href="#/cordis">第 13 章</a>用一个真实的插件框架讨论依赖失效；<a href="#/architecture">第 14 章</a>讨论执行环境替换与跨会话隔离。</p>
 
     <h2>三类产品中的运行时约束</h2>
     <div class="grid cols3">
@@ -64,42 +64,9 @@
       <div class="card reveal d2"><h3>仓库修复：再守副作用</h3><p>编辑、命令与子进程让取消变得不可逆。需要隔离工作区、可检查的差异、进程退出与产物断言；返回一个取消标记不会回滚文件。</p></div>
       <div class="card reveal d3"><h3>评测平台：再守恢复身份</h3><p>重复投递、worker 失联、评分版本变化要求稳定 trial 身份与提交规则。任务跑完和成绩可晋级是两条不同的状态线。</p></div>
     </div>
-    <p>本仓库 RepoOps 是一个只读实现：<code>projects/repoops/agent.py</code> 提供 <code>search/read/finish</code> 协议；<code>runner.py</code> 串行执行 trial，并把结果与完整轨迹放入同一 SQLite 提交。它尚未接入 DSH，也没有文件修复工具、会话级恢复或强制进程取消。扩展为仓库修复工具时，写入所有权、执行中持久化和取消收尾会成为新增的实现责任。</p>
+    <p>本仓库 RepoOps 是一个只读实现：<code>projects/repoops/agent.py</code> 提供 <code>search/read/finish</code> 协议；<code>runner.py</code> 串行执行 trial，并把结果与完整轨迹放入同一 SQLite 提交。它没有文件修复工具、会话级恢复或强制进程取消。扩展为仓库修复工具时，写入所有权、执行中持久化和取消收尾会成为新增的实现责任。</p>
 
-    <h2>固定版本与启动入口</h2>
-    <p>试用入口和固定版本源码回答不同的问题。第一条命令解析当时的 npm 版本，适合了解产品入口；分析本文契约则需要锁定对应提交。运行前应检查该提交的运行时要求、锁文件和安全说明，并使用可丢弃环境。</p>
-    <div class="codeblock">
-      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 试用入口，不是版本锁</div>
-      <pre data-lang="sh">npx @deepseek-ai/dsh web
-# 未指定 npm 版本；启动参数、端口及浏览器行为以该版本 --help 为准</pre>
-    </div>
-    <div class="codeblock">
-      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 固定文档对应的源码，再按该版本 README 核对命令</div>
-      <pre data-lang="sh">git clone https://github.com/deepseek-ai/deepseek-harness.git
-cd deepseek-harness
-git checkout ddefc45fbc7f8e46dd73185e68295696d1297887
-# 先检查 package.json 的 engines/packageManager 与该提交的 README
-pnpm install --frozen-lockfile
-pnpm run typecheck
-pnpm run build
-pnpm dsh web
-pnpm dsh --profile headless "修掉 README 错别字"
-# 此处是待执行路线；不要在持有敏感资料的工作目录试运行</pre>
-    </div>
-    <div class="callout warn"><span class="t">插件生命周期与安全隔离</span>固定提交的 SAFETY.md 明确：DSH 是未安全审计的实验性 developer preview；沙箱、审批和权限控制不能保证隔离，更不能保护已授权访问的资源。最小权限、可丢弃环境、备份与凭据隔离仍由部署方负责。<cite data-source="dsh-safety"></cite></div>
-
-    <h2>沿执行路径定位源码</h2>
-    <div class="tree reveal">deepseek-harness/
-├─ <b>vendor/</b>        Cordis 生命周期与 Loader 的定位入口
-├─ <b>packages/</b>      插件与能力服务
-│  ├─ core/          session / tools / agent / agent-loop / scope
-│  ├─ llm/ fs/ shell/ sandbox/ subagent/…   定义、实现与消费者
-│  └─ bundle/        组合层；与 profile / patch 一起决定启动树
-├─ <b>apps/</b>          载体，不应另造一份循环契约
-├─ <b>python/</b>        SDK 载体；固定提交文档描述其启动同一 dsh CLI
-├─ <b>snapshots/</b>     回放线索，不是实模型能力或安全证明
-├─ <b>docs/</b>          架构 → 子系统 → API 声明 → 事故复盘
-└─ <b>scripts/</b>       文档生成与静态门禁的定位入口</div>
-    <p>固定提交文档要求受支持的 Node 应用通过命名 profile 启动：<code>web</code>、<code>headless</code>、<code>sdk</code>、<code>sdk-minimal</code>、<code>acp</code>。这是该项目的载体契约，不是所有插件框架的普遍定律。手工 <code>ctx.plugin()</code> 可用于单元测试，却不能据此宣称真实 Loader 路径已经验证。</p>
-    <p>一次工具调用跨越请求、准入、执行、结算和持久化五个边界。文档规定契约，源码调用点决定顺序，运行观测说明具体环境中的行为，三者提供不同层次的依据。RSI 实验同样依赖这些边界：若候选改动改变了执行方式或评测责任，即使提升数字不变，实验之间也可能失去可比性。</p>
+    <h2>比较实现时的核对方法</h2>
+    <p>不同 harness 产品的能力差异不在功能列表，而在上述边界上的具体行为。比较时可以沿三条路径取证：文档与版本固定的契约声明、源码中决策点的调用顺序，以及受控环境下的运行观测。三者提供不同层次的依据——文档规定意图，调用点决定顺序，观测说明具体环境中的实际行为。</p>
+    <p>一次工具调用至少跨越请求组装、准入、执行、结算和持久化五个边界。候选实现若改变了其中任一边界的责任归属，即使外部指标不变，两次执行也不在同一契约下。<a href="#/cordis">Cordis 案例</a>展示一个真实框架如何把这些边界组织为插件生命周期；<a href="#/testing">故障注入</a>给出比较这些边界的实验方法。</p>
   </section>

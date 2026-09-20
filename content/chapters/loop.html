@@ -2,17 +2,17 @@
     <span class="ch-kicker">运行时 / 15 · Agent Loop</span>
     <h1>Agent Loop：调度、预算与取消</h1>
     <p class="lead">一次工具调用已经写入日志，文件也改了一半，取消信号才到。立即返回会留下未结算调用，继续派发又会扩大副作用。回合循环需要在任意中断点区分已领取的输入、已发出的请求、已发生的副作用与仍待核对的结果，并为每一类状态安排收尾路径。</p>
-    <p class="small muted">DSH 的正常顺序来自固定提交的 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/architecture.md#turn-flow" target="_blank" rel="noopener">Turn flow</a>，工具阶段来自同提交的 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/tool-execution-pipeline.md" target="_blank" rel="noopener">执行流水线</a>。调度分类、根预算账本和停止协议属于通用设计方案；播放器与时序展示其工作过程，不是 DSH 实跑轨迹。末节说明 RepoOps 的同步循环及其限制。<cite data-source="dsh-runtime-contracts"></cite></p>
+    <p class="small muted">本章讨论通用设计方案：回合边界、调度分类、根预算账本和停止协议不绑定某个产品。播放器与时序展示其工作过程，不是某个实现的运行轨迹。末节说明 RepoOps 的同步循环及其限制。</p>
 
     <h2>step、turn 与 round 的边界</h2>
     <div class="grid cols3">
       <div class="card reveal d1"><h3>step：一次逻辑工作段</h3><p>一次模型请求及其触发的工具执行。失败请求可在同一逻辑 step 中重试，因此 step 数不一定等于网络尝试数。</p></div>
-      <div class="card reveal d2"><h3>turn：输入排空的边界</h3><p>在首次领取输入前记录 <code>turn/start</code>；可能零个 step，也可能多个。拒绝、空输入与取消都可以让它不进入模型请求就结束。</p></div>
+      <div class="card reveal d2"><h3>turn：输入排空的边界</h3><p>在首次领取输入前记录回合开始；可能零个 step，也可能多个。拒绝、空输入与取消都可以让它不进入模型请求就结束。</p></div>
       <div class="card reveal d3"><h3>round：外层策略的计数</h3><p>目标推进、改进器或重试搜索的策略迭代。它拥有自己的预算；不能拿一个 turn 的结束当作整个 RSI 搜索结束。</p></div>
     </div>
     <p>已记录的工具调用需要结果或明确的中断解释；已打开的回合/step 必须最终结算，或由恢复逻辑识别为开放状态；模型请求内容需要能从日志重建。这些约束使逻辑状态可解释，但外部写入次数与内存事件的持久性仍分别依赖执行协议和存储屏障。</p>
     <figure class="fig">
-      <div class="fig-scroll" tabindex="0" role="region" aria-label="图：回合内事件序列，可横向滚动"><img src="assets/figures/fig-loop-turn.svg" alt="回合从 turn/start 和输入领取开始，经 step、请求准备、日志重建、模型输出及工具结果后结束；持久事件与进程内拦截点分开" loading="lazy" decoding="async" width="840" height="520"></div>
+      <div class="fig-scroll" tabindex="0" role="region" aria-label="图：回合内事件序列，可横向滚动"><img src="assets/figures/fig-loop-turn.svg" alt="回合从开启和输入领取开始，经 step、请求准备、日志重建、模型输出及工具结果后结束；持久事件与进程内拦截点分开" loading="lazy" decoding="async" width="840" height="520"></div>
       <figcaption>图 · 正常时序中的“模型可见 ⇒ 可从日志重建”是单向关系。turn、attempt 等日志项不进入模型历史，持久性还需由存储屏障确认。</figcaption>
     </figure>
 
@@ -20,11 +20,11 @@
     <p>播放器以“修改 README 错别字”为例，展示输入领取、模型请求、工具执行和结果落账四个边界。工具调用与结果之间的间隙，正是取消或崩溃可能留下未知状态的窗口。</p>
     <div class="loop-player" id="loopPlayer"></div>
     <ol>
-      <li><strong>打开回合、领取输入：</strong>先有 <code>turn/start</code>，再从 inbox 领取待办。<code>agent/pre-step</code> 可以拒绝或改写准入内容；拒绝或首个 enter 变空会以零 step 关闭回合。不能把“收到输入”和“输入已进入模型”合成一个状态。</li>
-      <li><strong>准备实际请求：</strong><code>step/start</code> 后通过 <code>agent/request</code> 与 <code>prepareCall()</code> 解析实际路由。固定提交架构文档明确：在这两个异步阶段取消，不提交 system 或 user 消息；先前的回合/step 边界并不因此消失。</li>
-      <li><strong>记录后再投影：</strong>用准备好的调用能力对账 <code>system/message</code>，首次尝试追加准入的 <code>user/message</code>，按需记录 <code>request/header</code> 和 <code>request/context</code>，再 <code>deriveMessages()</code> 并冻结请求。不要在最后发 HTTP 时偷偷追加日志中没有的提示词。</li>
-      <li><strong>流输出到结算：</strong>实时 <code>agent/assistant-stream</code> 帧是进程内通知。完整成功输出结算为 <code>assistant/message</code>；无表面消息的已结算失败尝试写 <code>assistant/attempt</code>。硬崩溃发生在结算前，不能假定 UI 看见的每个 chunk 都能恢复。</li>
-      <li><strong>执行工具，再判断是否继续：</strong>先记录 <code>tool/call</code>，经准入、守卫、执行、后处理和最终结果后记录 <code>tool/result</code>。工具反馈或新 next-step 输入可能要求下一 step；<code>agent/turn-stopping</code> 收尾后才关闭 turn。</li>
+      <li><strong>打开回合、领取输入：</strong>先记录回合开始，再从待办队列领取输入。准入检查可以拒绝或改写内容；拒绝或输入为空会以零 step 关闭回合。不能把"收到输入"和"输入已进入模型"合成一个状态。</li>
+      <li><strong>准备实际请求：</strong>step 开始后解析模型路由与调用参数。若在这两个异步阶段取消，不提交 system 或 user 消息；先前的回合/step 边界并不因此消失。</li>
+      <li><strong>记录后再投影：</strong>对账系统提示、首次尝试追加准入的用户消息，按需记录请求配置与上下文元数据，再投影为模型历史并冻结请求。不要在最后发请求时偷偷追加日志中没有的提示词。</li>
+      <li><strong>流输出到结算：</strong>实时流帧是进程内通知。完整成功输出结算为正式消息；无表面消息的已结算失败尝试保留为 attempt。硬崩溃发生在结算前，不能假定 UI 看见的每个 chunk 都能恢复。</li>
+      <li><strong>执行工具，再判断是否继续：</strong>先记录调用，经准入、守卫、执行、后处理和最终结果后记录结果。工具反馈或新 next-step 输入可能要求下一 step；收尾事件完成后才关闭回合。</li>
     </ol>
 
     <h2>取消后的结算与资源释放</h2>
@@ -33,29 +33,29 @@
       <tbody>
         <tr><td>请求路由准备中</td><td>已开回合，但尚未提交准入消息；不应继续派发</td><td>不能说“整个日志没有变化”</td></tr>
         <tr><td>模型流已输出一段</td><td>正常取消可结算已交付前缀，并标 interrupted；无表面消息则保留 attempt</td><td>硬杀进程会跳过合作式收尾，未结算前缀可能丢失</td></tr>
-        <tr><td>已记 tool/call，工具体尚未开始</td><td>产生未派发/取消结算，避免把它当作执行成功</td><td>调用存在不证明副作用发生</td></tr>
+        <tr><td>已记调用，工具体尚未开始</td><td>产生未派发/取消结算，避免把它当作执行成功</td><td>调用存在不证明副作用发生</td></tr>
         <tr><td>工具已经修改外部状态</td><td>尝试停止继续工作，等资源退出，并记录所知状态</td><td>AbortSignal 不会恢复原文件、撤回邮件或回滚远端请求</td></tr>
         <tr><td>副作用完成，结果未落账便崩溃</td><td>动作状态未决；恢复先查证或按幂等协议处理</td><td>缺少 result 时，执行与未执行均有可能，不能盲目重试</td></tr>
       </tbody>
     </table></div>
-    <p>旧版教学接口可写作 <code>agent.cancel(cause, { keepInbox })</code>，并把调用结果区分为 <code>ABORTED_BEFORE_DISPATCH</code> / <code>ABORTED</code>。这些具体签名和错误码在此仅保留为源码定位线索，接入时需核对 <code>core/agent</code> 与 <code>core/agent-loop</code> 的声明、派发点和消费者。产品层还要选择取消是否保留待办、是否停止后台子任务、何时向用户确认“已停止”。</p>
-    <p>停止协议可以分为“停止接单 → 发出取消 → 等待活动执行退出 → 结算日志 → 按需求 flush → 释放依赖”。界面的 stopped 状态需要与相应阶段对应。对不合作的子进程，监督器负责超时与进程树终止；AbortSignal 只传递取消意图，无法自行完成这些动作。</p>
+    <p>取消接口需要区分"尚未派发"与"已在执行"两种结果：前者可以安全放弃，后者需要等待执行退出或核对副作用。产品层还要选择取消是否保留待办、是否停止后台子任务、何时向用户确认"已停止"。</p>
+    <p>停止协议可以分为"停止接单 → 发出取消 → 等待活动执行退出 → 结算日志 → 按需求 flush → 释放依赖"。界面的 stopped 状态需要与相应阶段对应。对不合作的子进程，监督器负责超时与进程树终止；取消信号只传递意图，无法自行完成这些动作。</p>
 
     <h2>请求重试复用已领取的输入</h2>
-    <p>假设第一次模型请求遇到临时错误，第二次成功。如果每次重试都从“领取输入”开始，会重复消费 inbox、重复跑可能有副作用的准入逻辑，甚至把同一用户指令追加两遍。固定提交文档描述的边界是：重试复用同一份已渲染组装，不重跑 pre-step，只有首次尝试追加 user；失败尝试保留为 attempt，不冒充新的成功回答。</p>
+    <p>假设第一次模型请求遇到临时错误，第二次成功。如果每次重试都从"领取输入"开始，会重复消费待办、重复跑可能有副作用的准入逻辑，甚至把同一用户指令追加两遍。合理的边界是：重试复用同一份已渲染组装，不重跑准入，只有首次尝试追加 user；失败尝试保留为 attempt，不冒充新的成功回答。</p>
     <div class="codeblock">
       <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 逻辑 step 与尝试计数（教学时序，不是运行输出）</div>
-      <pre data-lang="log">turn/start
-  step/start
-  user/message       # 本次准入一次
-  request/header
-  assistant/attempt  # attempt 1 失败，不新增用户输入
-  assistant/message  # attempt 2 成功
-  tool/call          # callId=c1；工具是否重试是另一份契约
-  tool/result        # 对 c1 的模型可见结算
-  step/end
-turn/end
-# 模型调用成本 = 失败尝试 + 成功尝试，不能只数 assistant/message</pre>
+      <pre data-lang="log">turn begin
+  step begin
+  user msg           # 本次准入一次
+  request header
+  assistant attempt  # attempt 1 失败，不新增用户输入
+  assistant msg      # attempt 2 成功
+  tool call          # callId=c1；工具是否重试是另一份契约
+  tool result        # 对 c1 的模型可见结算
+  step end
+turn end
+# 模型调用成本 = 失败尝试 + 成功尝试，不能只数 assistant msg</pre>
     </div>
     <p>模型请求重试仍可能产生费用，已输出的部分内容和 Provider 接收状态也可能不确定，因此每次尝试都受预算与截止时间约束。工具重试还取决于幂等性：读取文档通常可重试，写文件可用版本前置条件，外部动作往往需要幂等键与状态查询。这些条件来自工具与目标系统的协议，无法仅凭工具名判断。</p>
 
@@ -86,15 +86,15 @@ retry_allowed =
     <p>并发预算预留与取消后的派发关闭需要各自的原子状态转换。若取消和派发同时发生，这个转换点决定调用属于“尚未发出”还是“在途待结算”。流中断后仍可能计费，相关占用也不能提前释放。硬退出期限与可靠完成通知冲突时，系统只能保留未决状态并交给恢复路径，不能将强制退出记为成功收尾。</p>
 
     <h2>工具流水线中的单调守卫</h2>
-    <p>文档给出的顺序是：<code>tool/call</code> → <code>tools/pre-execute</code> → 单调守卫 → <code>tools/execute</code> → <code>tools/post-execute</code> → 工具定义的 <code>finalizeContent</code> → <code>tools/result</code> → <code>tool/result</code>。ask 需要审批通道返回一次性允许；通道缺失或无法回答应拒绝，不应“为了可用性默认同意”。</p>
-    <p>普通 waterfall 可以短路或包装，单调守卫只拒绝或弃权，用来保护不能被后续 allow 翻案的约束。<code>tools/execute</code> 可包装超时和度量；<code>post-execute</code> 能阻断/替换模型所见结果，<strong>不能阻止已经执行过的副作用</strong>。如果敏感信息已经发送到外网，在 result 阶段抹掉文本也不算防泄露成功。</p>
-    <p>未知工具应形成可检查的结构化失败，而不是假装正常输出；确定性出现 <code>UNKNOWN_TOOL</code> 的轨迹也不能被简单刷新为“正确快照”。审计需要保留调用身份、原始参数、实际执行与模型可见结果的对应关系，避免策略层暗改参数后让历史描述另一个动作。</p>
+    <p>一次工具调用的典型流水线是：调用落账 → 准入决策（允许/拒绝/取消/询问）→ 单调守卫 → 执行包装 → 后处理 → 结果整形 → 结果通报 → 结果落账。ask 分支需要审批通道返回一次性允许；通道缺失或无法回答应拒绝，不应"为了可用性默认同意"。</p>
+    <p>普通 waterfall 可以短路或包装，单调守卫只拒绝或弃权，用来保护不能被后续 allow 翻案的约束。执行包装可挂超时和度量；后处理能阻断/替换模型所见结果，<strong>不能阻止已经执行过的副作用</strong>。如果敏感信息已经发送到外网，在结果阶段抹掉文本也不算防泄露成功。</p>
+    <p>未知工具应形成可检查的结构化失败，而不是假装正常输出；确定性出现未知工具错误的轨迹也不能被简单刷新为"正确快照"。审计需要保留调用身份、原始参数、实际执行与模型可见结果的对应关系，避免策略层暗改参数后让历史描述另一个动作。</p>
 
     <h2>输入注入与回合收尾的竞态</h2>
-    <p>单一 inbox 将 next-turn 与 next-step 意图区分开。文档明确注入上下文要等待唤醒消息；旧教学 API 中 <code>followup</code>、<code>steer</code>、<code>inject</code> 对应不同路由/唤醒组合，移植时按版本确认签名。若每条注入都自动唤醒，后台文件通知可能制造自激循环；若所有新输入只看回合开始时的快照，又会漏掉收尾期间的新工作。</p>
-    <p><code>agent/turn-stopping</code> 是 serial 而非 waterfall，没有 <code>next()</code>。把收尾监听器误写成异步递归调用下一回合，可能产生重入；更可解释的设计是提交新的待办，让驱动器在一个明确点重新检查。预算必须覆盖这种 continuation，否则“永远再检查一次”就成了无限回合。</p>
+    <p>单一待办队列将 next-turn 与 next-step 意图区分开。注入上下文通常要等待唤醒消息；不同的注入方式对应不同路由与唤醒组合。若每条注入都自动唤醒，后台文件通知可能制造自激循环；若所有新输入只看回合开始时的快照，又会漏掉收尾期间的新工作。</p>
+    <p>回合收尾监听器是串行而非瀑布式，没有 next() 链。把收尾误写成异步递归调用下一回合，可能产生重入；更可解释的设计是提交新的待办，让驱动器在一个明确点重新检查。预算必须覆盖这种 continuation，否则"永远再检查一次"就成了无限回合。</p>
 
     <h2>RepoOps 的同步循环与时间预算</h2>
-    <p><code>projects/repoops/agent.py:run_agent</code> 在调用前计算 remaining，传入 <code>policy.generate</code>，返回后再次检查时钟；它有步数与时间预算，但不是强制墙钟终止。如果 policy 不返回，主循环没有机会检查超时。轨迹在内存中累积，runner 在 trial 结束后提交；因此这里没有 DSH 式逐事件恢复，也没有文件写入、tool call/result 取消结算或进程树清理。</p>
+    <p><code>projects/repoops/agent.py:run_agent</code> 在调用前计算 remaining，传入 <code>policy.generate</code>，返回后再次检查时钟；它有步数与时间预算，但不是强制墙钟终止。如果 policy 不返回，主循环没有机会检查超时。轨迹在内存中累积，runner 在 trial 结束后提交；因此这里没有逐事件恢复，也没有文件写入、调用结算或进程树清理。</p>
     <p>向异步执行扩展时，可以用受控 Provider 分别暂停在路由准备、流中段、工具派发前和副作用后，再发出取消。每个切点同时观察日志、外部状态与退出结果：用户输入应只领取一次，失败尝试仍计入预算，取消后停止新派发，已有副作用则保留真实结果或未知状态。这些观测覆盖同步循环目前尚未承担的责任。</p>
   </section>

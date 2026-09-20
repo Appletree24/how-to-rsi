@@ -1,8 +1,8 @@
 <section class="chapter" id="ch-packages">
     <span class="ch-kicker">工程 / 17 · 包与边界</span>
-    <h1>包选型：<span class="grad">按依赖边界组织能力</span></h1>
+    <h1>包案例：<span class="grad">按依赖边界组织能力</span></h1>
     <p class="lead">仓库修复助手从本机执行迁到远程环境时，文件、进程、终端与语言服务必须一起迁移。Provider 的替换成本取决于包边界：接口由谁定义，执行环境由谁管理，消费者依赖哪些行为。本章以这次迁移为例，讨论包组合、接口兼容性与权限之间的关系。</p>
-    <div class="callout info"><span class="t">历史清单与案例范围</span>下面的 <span data-count="groups">54</span> 个分组、<span data-count="packages">288</span> 个包来自本站保留的 DSH 历史清单，未保存生成时的上游 commit；不代表当前版本的包数量、可安装性或依赖图。原入口 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/README.md" target="_blank" rel="noopener">packages/README.md</a> 会随上游变化。实际选型以目标版本的包名、注入方式与构建命令为准；本章迁移案例用于分析设计，未在 DSH 中部署验证。</div>
+    <div class="callout info"><span class="t">案例范围</span>本章以 DeepSeek Harness 的历史包清单为案例，讨论包组合、接口兼容性与权限之间的关系。<span data-count="groups">54</span> 个分组、<span data-count="packages">288</span> 个包来自本站保留的历史清单，未保存生成时的上游 commit；不代表当前版本的包数量、可安装性或依赖图。实际选型以目标版本的包名、注入方式与构建命令为准。迁移案例用于分析设计，未在运行时验证。</div>
 
     <h2>从产品约束确定包组合</h2>
     <p>设输入为任务 <code>repair-42</code>、仓库提交 <code>base-A</code> 与补丁 <code>patch-B</code>。任务需要修改工作副本并运行指定测试，但不能接触宿主凭据、不能改评测器，结果必须能绑定到这两个版本。一个功能齐全的 bundle 可能便于安装，却带入任务不需要的工具和权限。</p>

@@ -2,10 +2,10 @@
     <span class="ch-kicker">工程 / 18 · 工具系统</span>
     <h1>工具契约：<span class="grad">授权、执行与副作用</span></h1>
     <p class="lead">仓库修复 agent 请求把 <code>src/config.ts</code> 的超时从 5 秒改成 10 秒。审批人点了允许，工具却在超时后继续写文件，下一次重试又应用了一遍补丁。这个故障跨越了参数、授权和执行三个边界：批准必须绑定具体操作，执行方必须管理副作用，结果必须区分已完成、未执行与尚不能确认的状态。</p>
-    <div class="callout info"><span class="t">接口来源与案例范围</span>本章 ToolDefinition、事件名、工具探索器与图来自本站保留的 DSH 历史接口整理，清单未保存上游 commit。输入与故障案例用于分析契约，未在 DSH 上运行。实际对接以锁定版本的字段、分发模式和取消实现为准；下方工具骨架仅展示结构。</div>
+    <div class="callout info"><span class="t">本章范围</span>本章讨论工具契约的通用设计：参数形状、授权绑定、流水线时机与副作用边界不绑定某个产品。一个固定版本的工具清单案例见 <a href="#/packages">第 17 章</a>。</div>
 
     <h2>Capability Seam：定义 / 提供 / 消费</h2>
-    <p>模型表达操作意图，系统提供实际能力。历史 seam 结构将这两端连接为三种角色：Service Definition 声明接口，Provider 实现能力，Consumer 把能力包装成模型工具。以 shell 为例，工具接收请求并呈现结果，执行 Provider 管理进程、工作区和生命周期；两者依赖同一个契约，工具无需直接导入某个本地实现。</p>
+    <p>模型表达操作意图，系统提供实际能力。将这两端连接为三种角色：Service Definition 声明接口，Provider 实现能力，Consumer 把能力包装成模型工具。以 shell 为例，工具接收请求并呈现结果，执行 Provider 管理进程、工作区和生命周期；两者依赖同一个契约，工具无需直接导入某个本地实现。</p>
     <div class="seam-fig reveal">
       <svg viewBox="0 0 560 330" role="img" aria-label="能力接缝三角图">
         <defs>
@@ -19,28 +19,27 @@
         <g>
           <rect x="185" y="28" width="190" height="58" rx="14" fill="url(#sg1)" opacity="0.92"/>
           <text x="280" y="52" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">Service Definition</text>
-          <text x="280" y="72" text-anchor="middle" fill="#e6ebff" font-size="11" font-family="monospace">dsh-shell · 拥有 ctx.shell 与词汇类型</text>
+          <text x="280" y="72" text-anchor="middle" fill="#e6ebff" font-size="11" font-family="monospace">shell · 拥有执行接口与词汇类型</text>
         </g>
         <g>
           <rect x="28" y="238" width="210" height="58" rx="14" fill="rgba(77,107,254,0.16)" stroke="#4d6bfe"/>
           <text x="133" y="262" text-anchor="middle" fill="currentColor" font-size="13" font-weight="700">Service Provider(可多个)</text>
-          <text x="133" y="282" text-anchor="middle" fill="#8fa0cc" font-size="11" font-family="monospace">dsh-bash-local / dsh-bash-sandbox</text>
+          <text x="133" y="282" text-anchor="middle" fill="#8fa0cc" font-size="11" font-family="monospace">本地 / 沙箱 / 远程</text>
         </g>
         <g>
           <rect x="330" y="238" width="204" height="58" rx="14" fill="rgba(34,211,238,0.12)" stroke="#22d3ee"/>
           <text x="432" y="262" text-anchor="middle" fill="currentColor" font-size="13" font-weight="700">Consumer(常为模型工具)</text>
-          <text x="432" y="282" text-anchor="middle" fill="#8fa0cc" font-size="11" font-family="monospace">dsh-tool-bash</text>
+          <text x="432" y="282" text-anchor="middle" fill="#8fa0cc" font-size="11" font-family="monospace">bash 工具</text>
         </g>
         <text x="165" y="152" fill="#8fa0cc" font-size="11">实现接口</text>
-        <text x="352" y="152" fill="#8fa0cc" font-size="11">inject 服务</text>
+        <text x="352" y="152" fill="#8fa0cc" font-size="11">注入服务</text>
         <text x="280" y="250" text-anchor="middle" fill="#8fa0cc" font-size="11">互不直接依赖</text>
       </svg>
     </div>
-    <p>如果每个工具各带一个沙箱，Bash、文件、PTY 与 LSP 就会分别维护路径、凭据与生命周期，容易出现“读的是沙箱文件，测的是宿主副本”。共享能力接缝让组合层能够统一执行环境。隔离是否有效仍取决于实际绑定和权限；替代 Provider 的取消或文件原子性一旦变化，消费者也可能需要适配。</p>
+    <p>如果每个工具各带一个沙箱，Bash、文件、PTY 与 LSP 就会分别维护路径、凭据与生命周期，容易出现"读的是沙箱文件，测的是宿主副本"。共享能力接缝让组合层能够统一执行环境。隔离是否有效仍取决于实际绑定和权限；替代 Provider 的取消或文件原子性一旦变化，消费者也可能需要适配。</p>
 
-    <h2>工具探索器</h2>
-    <p>下面按历史来源分组保留工具索引。工具名是入口，资源的读写范围、所有权、审批要求和失败后的副作用则由完整执行路径决定。工具出现在模型 schema 中，仅表示模型可以提出相应请求，执行权限仍由宿主检查。</p>
-    <div id="toolExplorer"></div>
+    <h2>工具面的常见类别</h2>
+    <p>工具名是入口，资源的读写范围、所有权、审批要求和失败后的副作用则由完整执行路径决定。工具出现在模型 schema 中，仅表示模型可以提出相应请求，执行权限仍由宿主检查。常见的工具面按资源类型分组：文件与搜索、命令执行、持久终端、网络访问、会话管理与评测辅助。每组的授权粒度、取消语义和副作用边界各不相同；一个真实实现的清单见 <a href="#/packages">第 17 章的历史包索引</a>。</p>
 
     <h2>参数形状与资源授权</h2>
     <div class="codeblock">
@@ -50,28 +49,27 @@
   description: '读 UTF-8 文本文件', // 引导模型选择工具，不是安全控制
   parameters: { /* JSON Schema */ },// 模型侧参数契约
   execute: async (args, ctx) => {…},// 宿主侧实现，不投影到模型 schema
-  finalizeContent: (v) => …,        // 自定义落账形态(可选)
+  finalize: (v) => …,              // 自定义落账形态(可选)
   // 策略字段(超时/审批标签/可见性)同样只在宿主侧
 }</pre>
-    </div>
     <p><code>{"path":"../../secrets","encoding":"utf8"}</code> 可以满足“path 为字符串”的 schema，却不应得到访问权。description 引导工具选择，schema 定义参数形状；对象权限、根目录、符号链接与执行环境必须在宿主可信边界处理。参数缺字段属于契约错误，字段合法但资源无权访问属于授权拒绝，区分两者有助于调用方决定如何处理失败。</p>
-    <p>历史 <code>ctx.tools.schemas()</code> 只投影白名单字段，execute、超时与审批标签留在宿主侧。宿主仍需验证模型输入，并保持审批与执行的一致性：<code>tool/call</code> 落账后，假如审批的是路径 A，执行前却被策略改成 B，历史、UI 和执行就会指向不同的行为。默认值解析和目标规范化应在明确的契约阶段生成执行规格，再让审批绑定最终目标。</p>
+    <p>模型侧 schema 只投影白名单字段，execute、超时与审批标签留在宿主侧。宿主仍需验证模型输入，并保持审批与执行的一致性：调用落账后，假如审批的是路径 A，执行前却被策略改成 B，历史、UI 和执行就会指向不同的行为。默认值解析和目标规范化应在明确的契约阶段生成执行规格，再让审批绑定最终目标。</p>
 
     <h2>拒绝发生在副作用之前</h2>
     <p>历史工具生命周期包含多个策略挂点，它们的执行时机不同。文件意图门禁发生在 execute 内部、实际文件操作之前；结果过滤发生在操作之后，两者不可互换。</p>
     <div class="codeblock">
       <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> tools 流水线</div>
-      <pre data-lang="log">tool/call(先落账)
-  → tools/pre-execute   allow / deny / cancel / ask
-                          ask 需审批服务返回 allowed-once,缺通道即拒绝
+      <pre data-lang="log">tool call(先落账)
+  → pre-execute   allow / deny / cancel / ask
+                    ask 需审批服务返回 allowed-once,缺通道即拒绝
   → 单调守卫            只能拒绝、无 allow 结果、顺序无法翻案
-  → tools/execute       around 包装:超时/重试/指标;可替换 signal
-  → tools/post-execute  accept / 替换 content|value / block(纠正→isError)
-  → finalizeContent     定义自带的落账整形
-  → tools/result        冻结通报
-  → tool/result(落账)</pre>
+  → execute       around 包装:超时/重试/指标;可替换 signal
+  → post-execute  accept / 替换 content|value / block(纠正→isError)
+  → finalize     定义自带的落账整形
+  → result        冻结通报
+  → tool result(落账)</pre>
     </div>
-    <p><code>timeout-policy</code> 在 <code>tools/execute</code> 做包装；审批服务处理 pre-execute 的 ask 分支；<code>fs-observation-policy</code> 在 <code>fs/write-intent</code> / <code>fs/edit-intent</code> 拦截未观察就写的行为。单调守卫的意义是先前的拒绝不能被后一个监听器翻成允许，而不是监听顺序从此无关。会修改执行上下文的 around 包装仍需定义组合顺序。</p>
+    <p>超时策略在执行包装层做包装；审批服务处理准入的 ask 分支；文件意图门禁在写/编辑意图上拦截未观察就写的行为。单调守卫的意义是先前的拒绝不能被后一个监听器翻成允许，而不是监听顺序从此无关。会修改执行上下文的 around 包装仍需定义组合顺序。</p>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>事件顺序：修改 src/config.ts</th><th>要成立的事实</th><th>故障注入与预期边界</th></tr></thead><tbody>
       <tr><td>记录调用 → 审批</td><td>调用标识、作用域、目标、变更内容与获准操作绑定</td><td>批准后更换参数或作用域：旧批准不能复用；缺审批通道时不执行</td></tr>
       <tr><td>读取版本 A → 意图检查 → 写入</td><td>写入基于获准观察的版本，检查与写入之间的并发变化有明确策略</td><td>其他进程先写成 B：拒绝冲突或重新读取、重新决策，不能盲目覆盖</td></tr>
@@ -79,8 +77,8 @@
     </tbody></table></div>
     <p>“曾经读过这个路径”无法排除内容版本变化，也无法排除路径在检查后被换成符号链接。所需防线取决于威胁模型：协作编辑可使用版本前置条件；不可信并发进程还需要可信文件边界和抗竞争的访问方式。一次字符串前缀检查无法替代操作系统级约束，历史观察策略本身也未提供上述全部保证的实现依据。</p>
 <figure class="fig">
-  <div class="fig-scroll" tabindex="0" role="region" aria-label="图：工具调用守卫流水线与策略挂点，可横向滚动"><img src="assets/figures/fig-tools-pipeline.svg" alt="tool/call 先落账冻结参数，再过 pre-execute 的 allow/deny/cancel/ask 分支、只许拒绝的单调守卫、execute 包装、post-execute 修正、finalizeContent 整形，最后 tools/result 冻结通报并 tool/result 落账；write/edit 工具在 execute 内声明 fs/write-intent 或 edit-intent，经 fs-observation-policy 门禁后才实际写入；timeout-policy 挂 execute，审批服务应答 pre-execute 的 ask。" loading="lazy" decoding="async" width="840" height="470"></div>
-  <figcaption>图 · 策略不在工具内部：timeout-policy、审批应答、文件意图门禁都是挂在流水线事件上的独立插件；参数在 tool/call 落账后不再改写，历史/审计/执行看到同一份。</figcaption>
+  <div class="fig-scroll" tabindex="0" role="region" aria-label="图：工具调用守卫流水线与策略挂点，可横向滚动"><img src="assets/figures/fig-tools-pipeline.svg" alt="调用先落账冻结参数，再批准/拒绝/取消/询问分支、只许拒绝的单调守卫、执行包装、后处理修正、结果整形，最后结果通报并落账；写/编辑工具在执行内声明写意图，经文件观察策略门禁后才实际写入；超时策略挂执行包装，审批服务应答准入的询问。" loading="lazy" decoding="async" width="840" height="470"></div>
+  <figcaption>图 · 策略不在工具内部：超时策略、审批应答、文件意图门禁都是挂在流水线事件上的独立层；参数在调用落账后不再改写，历史/审计/执行看到同一份。</figcaption>
 </figure>
 
     <h2>超时后的状态与重试</h2>

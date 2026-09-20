@@ -24,8 +24,8 @@
     },
     {
       "id": "dsh",
-      "name": "Harness 与工程",
-      "desc": "执行循环、上下文、工具、生命周期与恢复；以 DSH 为运行时案例",
+      "name": "Harness 工程",
+      "desc": "通用的执行循环、上下文、工具与恢复设计；附可核对的运行时案例",
       "icon": "wrench"
     }
   ],
@@ -143,16 +143,16 @@
       "num": "12",
       "title": "Harness：一次执行的责任边界",
       "short": "Harness 职责",
-      "blurb": "一次执行的责任边界、固定版本文档与实现限制。",
+      "blurb": "一次执行的责任边界、设计分层与协调规模。",
       "icon": "info",
       "module": "dsh"
     },
     {
       "id": "cordis",
       "num": "13",
-      "title": "Cordis：依赖与插件生命周期",
-      "short": "Cordis 核心",
-      "blurb": "依赖消失、活动调用与资源清理的时序。",
+      "title": "Cordis 案例：依赖与插件生命周期",
+      "short": "案例：Cordis",
+      "blurb": "依赖失效、活动调用与清理时序的固定版本案例。",
       "icon": "puzzle",
       "module": "dsh"
     },
@@ -161,7 +161,7 @@
       "num": "14",
       "title": "Harness 架构：上下文、能力与执行环境",
       "short": "架构总览",
-      "blurb": "远程执行与文件系统一致性、配置与能力契约。",
+      "blurb": "配置合成、上下文编译、执行环境一致性与扩展点。",
       "icon": "layers",
       "module": "dsh"
     },
@@ -186,9 +186,9 @@
     {
       "id": "packages",
       "num": "17",
-      "title": "包选型：按依赖边界组织能力",
-      "short": "包与边界",
-      "blurb": "从工作区一致性判断依赖边界与替换条件。",
+      "title": "包案例：按依赖边界组织能力",
+      "short": "案例：包边界",
+      "blurb": "以历史包清单讨论 Provider 替换与执行环境一致性。",
       "icon": "boxes",
       "module": "dsh"
     },
@@ -204,9 +204,9 @@
     {
       "id": "conventions",
       "num": "19",
-      "title": "工程契约：资源、错误与持久格式",
-      "short": "工程规范",
-      "blurb": "卸载到静止、默认值归属与无损迁移条件。",
+      "title": "契约案例：资源、错误与持久格式",
+      "short": "案例：工程契约",
+      "blurb": "资源所有权、错误语义与迁移规则的历史约定。",
       "icon": "ruler",
       "module": "dsh"
     },
@@ -222,9 +222,9 @@
     {
       "id": "workflow",
       "num": "21",
-      "title": "变更发布：从评审到停写与恢复",
-      "short": "开发工作流",
-      "blurb": "制品批准、排空、灰度与三类状态的恢复。",
+      "title": "变更案例：从评审到停写与恢复",
+      "short": "案例：变更发布",
+      "blurb": "制品批准、排空、灰度与三类状态的恢复路线。",
       "icon": "git",
       "module": "dsh"
     },
@@ -627,14 +627,14 @@
   ],
   "loopSteps": [
     {
-      "name": "turn/start",
+      "name": "turn begin",
       "badge": "d",
       "title": "回合开启",
-      "desc": "回合在领取第一份输入之前就已开启(turn/start 先于 claim),直到不再\"欠\"任何工作才以 turn/end 关闭——拒绝、空输入、取消都可能让它无 step 收尾。",
-      "narr": "用户发来一句话：<b>\"把 README 里的错别字改掉\"</b>。followup() 把它投进 inbox 的 next-turn 列表并唤醒驱动器;循环先写 turn/start。",
+      "desc": "回合在领取第一份输入之前就已开启,直到不再\"欠\"任何工作才关闭——拒绝、空输入、取消都可能让它无 step 收尾。",
+      "narr": "用户发来一句话：<b>\"把 README 里的错别字改掉\"</b>。驱动器被唤醒,循环先记录回合开始。",
       "log": [
         {
-          "n": "turn/start",
+          "n": "turn begin",
           "t": "d"
         }
       ]
@@ -643,50 +643,50 @@
       "name": "claim + assemble",
       "badge": "l",
       "title": "领取输入并组装",
-      "desc": "step 边界取走全部 next-step 输入,回合边界再加一条 next-turn(inbox 以纯删除 splice 移除,逐条发 agent/inbox/claimed);组装 prompt sections + 工具 schema 并投影运行时上下文。inject() 的上下文不唤醒,只随下一次领取同行。",
+      "desc": "step 边界取走全部 next-step 输入,回合边界再加一条 next-turn;组装系统提示、工具 schema 并投影运行时上下文。注入的上下文不唤醒,只随下一次领取同行。",
       "narr": "系统提示词的各 section、可见工具的 schema 被组装成本次请求的蓝图。",
       "log": [
         {
-          "n": "agent/inbox/claimed",
+          "n": "input claimed",
           "t": "l"
         }
       ]
     },
     {
-      "name": "agent/pre-step",
+      "name": "admission",
       "badge": "l",
       "title": "准入决策(waterfall)",
-      "desc": "监听器返回 { kind:'reject' } 或 { kind:'enter', messages, startsRequestSeries? }:reject 或首个 enter 被改写为空 ⇒ 不产生 step,直接关闭这个持久回合。包裹型监听器必须用 {...decision, messages} 保留下游声明。",
-      "narr": "策略插件(权限、plan-mode、compaction-basic、hooks 双桥…)在此审查即将进入模型的消息——本例放行。",
+      "desc": "监听器返回拒绝或准入:拒绝或首个准入被改写为空 ⇒ 不产生 step,直接关闭这个持久回合。包裹型监听器必须保留下游声明。",
+      "narr": "策略层(权限、计划模式、压缩、自定义钩子)在此审查即将进入模型的消息——本例放行。",
       "log": [
         {
-          "n": "agent/pre-step",
+          "n": "admission",
           "t": "l"
         }
       ]
     },
     {
-      "name": "step/start",
+      "name": "step begin",
       "badge": "d",
       "title": "步骤开始",
-      "desc": "一个 step = 一次模型请求 + 它引发的工具执行。step/start 写入会话日志。",
+      "desc": "一个 step = 一次模型请求 + 它引发的工具执行。step 边界写入会话日志。",
       "narr": "第一个 step 正式开始。",
       "log": [
         {
-          "n": "step/start",
+          "n": "step begin",
           "t": "d"
         }
       ]
     },
     {
-      "name": "agent/request → prepareCall",
+      "name": "route resolution",
       "badge": "l",
       "title": "解析路由(waterfall)",
-      "desc": "await next() 拿到机器本来要用的 LlmCallConfig(首次请求=agent options,之后=已记录的 header);返回替换值即换路由。这里或 prepareCall() 期间取消 ⇒ system 与 user 都不提交;waterfall 不能改消息——模型可见内容必须走已记录的通道。",
+      "desc": "拿到默认的调用配置(首次请求=初始配置,之后=已记录的请求头);返回替换值即换路由。这里取消 ⇒ system 与 user 都不提交;waterfall 不能改消息——模型可见内容必须走已记录的通道。",
       "narr": "决定这一步真正要调用哪个模型、哪条通道。",
       "log": [
         {
-          "n": "agent/request",
+          "n": "route resolution",
           "t": "l"
         }
       ]
@@ -695,23 +695,23 @@
       "name": "commit messages",
       "badge": "d",
       "title": "提交消息与请求头",
-      "desc": "用准备好的调用能力对账 system/message(提示词只以历史形式旅行,空渲染清空全部活跃节点);仅首次尝试追加 user/message;按需记 request/header(reason: initial/resume/change/series)与 request/context。重试不重新组装、不重跑 pre-step。",
+      "desc": "对账系统提示(只以历史形式旅行);仅首次尝试追加用户消息;按需记请求配置与上下文元数据。重试不重新组装、不重跑准入。",
       "narr": "系统提示词与用户消息作为持久事件入帐。",
       "log": [
         {
-          "n": "system/message",
+          "n": "system msg",
           "t": "d"
         },
         {
-          "n": "user/message",
+          "n": "user msg",
           "t": "d"
         },
         {
-          "n": "request/header",
+          "n": "request header",
           "t": "o"
         },
         {
-          "n": "request/context",
+          "n": "request context",
           "t": "o"
         }
       ]
@@ -720,36 +720,36 @@
       "name": "derive + freeze",
       "badge": "l",
       "title": "从日志派生并冻结历史",
-      "desc": "模型历史不是内存里的聊天数组,而是由 deriveMessages() 从会话日志投影而来、再被冻结——循环发送不可变请求,同时保持取消能力;冻结证据只在完整冻结的身份上复用。",
+      "desc": "模型历史不是内存里的聊天数组,而是由日志投影而来、再被冻结——循环发送不可变请求,同时保持取消能力;冻结证据只在完整冻结的身份上复用。",
       "narr": "\"模型看到的 = 日志里有的\"在这一步被具体化。",
       "log": []
     },
     {
-      "name": "llm/stream",
+      "name": "model stream",
       "badge": "l",
       "title": "流式模型响应",
-      "desc": "绑定的调用经 llm/stream(waterfall)开始流式传输;agent/assistant-stream 发布进程内 start / chunk* / end 帧(Web UI 增量渲染与 session-follow 远程消费就来自它)。",
+      "desc": "绑定的调用开始流式传输;进程内通知发布 start / chunk* / end 帧(UI 增量渲染与远程消费来自它)。",
       "narr": "模型开始逐 token 输出：\"好的,我先读取 README…\"",
       "log": [
         {
-          "n": "llm/stream",
+          "n": "model stream",
           "t": "l"
         },
         {
-          "n": "agent/assistant-stream",
+          "n": "stream frames",
           "t": "l"
         }
       ]
     },
     {
-      "name": "assistant/message",
+      "name": "assistant msg",
       "badge": "d",
       "title": "沉淀助手消息",
-      "desc": "完整的紧凑计时流(含 usage)作为一条 assistant/message 在 committed end 帧之前提交;失败/重试/取消/流错误则沉淀为 assistant/attempt(不进模型历史),中途取消落成 interrupted:true 的前缀。",
+      "desc": "完整的紧凑计时流(含 usage)作为一条助手消息在结束前提交;失败/重试/取消/流错误则沉淀为 attempt(不进模型历史),中途取消落成 interrupted:true 的前缀。",
       "narr": "完整回复(含工具调用意图)永久写入日志,重启后可完整重建。",
       "log": [
         {
-          "n": "assistant/message",
+          "n": "assistant msg",
           "t": "d"
         }
       ]
@@ -758,57 +758,57 @@
       "name": "tools pipeline",
       "badge": "d",
       "title": "工具执行流水线",
-      "desc": "tool/call 先落账再执行 ⇒ tools/pre-execute(allow/deny/cancel/ask)⇒ 单调守卫 ⇒ tools/execute(around:超时/重试)⇒ tools/post-execute(accept/替换/block)⇒ finalizeContent ⇒ tools/result ⇒ tool/result 落账。守卫、审批、超时策略都挂在这些扩展点上。",
+      "desc": "调用先落账再执行 ⇒ 准入(allow/deny/cancel/ask)⇒ 单调守卫 ⇒ 执行包装(超时/重试)⇒ 后处理(accept/替换/block)⇒ 结果整形 ⇒ 结果通报 ⇒ 结果落账。守卫、审批、超时策略都挂在这些扩展点上。",
       "narr": "模型调用 <b>read</b> 读 README,再调用 <b>edit</b> 修正错别字;每次调用都走一遍流水线。",
       "log": [
         {
-          "n": "tool/call",
+          "n": "tool call",
           "t": "d"
         },
         {
-          "n": "tools/pre-execute",
+          "n": "pre-execute",
           "t": "l"
         },
         {
-          "n": "tools/execute",
+          "n": "execute",
           "t": "l"
         },
         {
-          "n": "tools/post-execute",
+          "n": "post-execute",
           "t": "l"
         },
         {
-          "n": "tool/result",
+          "n": "tool result",
           "t": "d"
         }
       ]
     },
     {
-      "name": "step/end",
+      "name": "step end",
       "badge": "d",
       "title": "步骤结束,也许再来一步",
-      "desc": "工具结果\"欠\"着下一次模型请求,或新的 next-step 输入到达 ⇒ 领取 → 下一个 step(回到 agent/pre-step 之后)。带 concludesTurn 的工具结果可在本 step 终结回合,但绝不截断已提交的 next-step 工作。",
+      "desc": "工具结果\"欠\"着下一次模型请求,或新的 next-step 输入到达 ⇒ 领取 → 下一个 step(回到准入之后)。带回合结束标记的工具结果可在本 step 终结回合,但绝不截断已提交的 next-step 工作。",
       "narr": "工具结果需要回传给模型确认——于是开启第二个 step,模型汇报\"已修正 3 处\"。",
       "log": [
         {
-          "n": "step/end",
+          "n": "step end",
           "t": "d"
         }
       ]
     },
     {
-      "name": "turn-stopping → turn/end",
+      "name": "turn-stopping → turn end",
       "badge": "d",
       "title": "回合收尾",
-      "desc": "agent/turn-stopping 是 serial 事件(没有 next()):监听器若反对关闭就 agent.steer(),机器重读 inbox——数据决定,监听顺序改变不了结果。随后 turn/end 写入日志。",
+      "desc": "收尾是串行事件(没有 next()):监听器若反对关闭就提交新的待办,机器重读 inbox——数据决定,监听顺序改变不了结果。随后回合结束写入日志。",
       "narr": "任务完成,回合落帐。整段历史可从日志完整重放、fork、导出。",
       "log": [
         {
-          "n": "agent/turn-stopping",
+          "n": "turn-stopping",
           "t": "l"
         },
         {
-          "n": "turn/end",
+          "n": "turn end",
           "t": "d"
         }
       ]
@@ -817,83 +817,83 @@
   "extGoals": [
     {
       "g": "新增一个模型提供商",
-      "m": "在 ctx.llm 上注册它的适配器;增删经 llm/adapters-updated 广播"
+      "m": "在模型适配接口上注册适配器;增删经适配器更新事件广播"
     },
     {
       "g": "新增一个模型可见能力(工具)",
-      "m": "在 ctx.tools 上注册 ToolDefinition;其 schema 经显式白名单加入提示词组装"
+      "m": "在工具注册接口上注册工具定义;其 schema 经显式白名单加入提示词组装"
     },
     {
       "g": "让某个会话拥有不同的能力集",
-      "m": "组合一个 agent preset(preset cordis.yml);其中的 service 行需要 isolate realm"
+      "m": "组合一个会话预设;其中的服务行需要隔离域支持"
     },
     {
       "g": "新增 shell 执行后端",
-      "m": "注册 ctx.shell 后端;本地实现通过 ctx.subprocess 派生进程"
+      "m": "注册进程执行后端;本地实现通过子进程接口派生"
     },
     {
       "g": "新增持久终端执行",
-      "m": "注册 ctx.terminals 后端,搭配 dsh-tool-terminal"
+      "m": "注册终端后端,搭配终端工具入口"
     },
     {
       "g": "新增一个人类命令(/命令)",
-      "m": "在 ctx.commands 上注册;不经过模型回合直接分发"
+      "m": "在命令注册接口上注册;不经过模型回合直接分发"
     },
     {
       "g": "新增后台任务",
-      "m": "在 ctx.jobs 上注册;job_* 工具负责收集输出或停止它"
+      "m": "在任务注册接口上注册;配套工具负责收集输出或停止它"
     },
     {
       "g": "由外部 webhook 拉起会话",
-      "m": "在 ctx.webhookRuntime 注册可信规则,并挂载 Provider 适配器"
+      "m": "在入口运行时注册可信规则,并挂载 Provider 适配器"
     },
     {
       "g": "新增文件系统访问或策略",
-      "m": "注册 ctx.fs Provider,或监听 fs/* 事件(读前编辑门禁 = fs-observation-policy 挂在 fs/write-intent / fs/edit-intent 上)"
+      "m": "注册文件系统 Provider,或监听文件系统意图事件(写前门禁挂在写/编辑意图上)"
     },
     {
       "g": "限制派生进程(沙箱)",
-      "m": "使用 ctx.sandbox 后端;消费方在 spawn 前包装 argv"
+      "m": "使用沙箱后端;消费方在派生前包装参数"
     },
     {
       "g": "拦截请求/工具/回合",
-      "m": "用对应的 agent/* 或 tools/* 事件;agent/turn-stopping 的反对票 = 注入 steering,数据决定关不关闭"
+      "m": "用对应的拦截事件;回合收尾的反对票 = 注入待办,数据决定关不关闭"
     },
     {
       "g": "注入模型可见上下文",
-      "m": "调用 agent.inject();它落在下一个被准入的请求里(不唤醒驱动器)"
+      "m": "调用注入接口;它落在下一个被准入的请求里(不唤醒驱动器)"
     },
     {
       "g": "新增 UI 或编辑器集成",
-      "m": "驱动 ctx.agents,并从 session/event 渲染(该 emit 现有约 29 个监听包)"
+      "m": "驱动 Agent 接口,并从会话事件渲染"
     },
     {
       "g": "新增 Web 客户端 Chat 节点",
-      "m": "注册 ConversationNodeDefinition + 按键渲染器"
+      "m": "注册会话节点定义 + 按键渲染器"
     },
     {
       "g": "新增持久会话状态",
-      "m": "扩展 SessionEventMap(声明合并);从日志渲染与重放"
+      "m": "扩展事件映射(声明合并);从日志渲染与重放"
     },
     {
       "g": "管理同会话目标",
-      "m": "用 ctx.goals;继续回合经 agent/* 域推进(goal round 是 goal 源的 turn)"
+      "m": "用目标接口;继续回合经 Agent 域推进(目标轮次是目标源的回合)"
     },
     {
       "g": "生成会话标题",
-      "m": "注册唯一的 ctx.sessionTitle Provider"
+      "m": "注册唯一的标题 Provider"
     },
     {
       "g": "在回合边界 fork 会话",
-      "m": "ctx.agents.create({ sessionId, seed, meta: { parentSession, seedLength } })——只有 agent-loop 发布的会话才持久"
+      "m": "创建带父会话元数据的新会话——只有持久化路径发布的会话才可恢复"
     },
     {
       "g": "把会话存到新后端",
-      "m": "实现 SessionPersistence(create/open/stat/list/flush + 每会话 handle 的 read/append/flush/close),过共享契约套件"
+      "m": "实现持久化接口(create/open/stat/list/flush + 每会话 handle 的 read/append/flush/close),过共享契约套件"
     },
     {
       "g": "把注册限定到单个 agent",
-      "m": "使用那个 agent 的 agent.ctx——作用域可见且作用域同寿命"
+      "m": "使用那个 agent 的作用域上下文——作用域可见且作用域同寿命"
     }
   ],
   "buckets": [

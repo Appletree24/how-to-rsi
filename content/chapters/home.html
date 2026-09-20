@@ -21,7 +21,7 @@
     </div>
     <h2>Harness：模型之外的执行系统</h2>
     <p>模型请求由哪些材料组成，工具何时获准执行，取消后还有哪些工作未结束，崩溃后如何处理结果未知的动作——这些问题决定了 Agent 的运行行为。</p>
-    <p>相关章节从<a href="#/intro">职责与架构选择</a>展开，进入<a href="#/architecture">上下文编译</a>、<a href="#/loop">调度与预算</a>、<a href="#/session">会话恢复</a>和<a href="#/testing">故障测试</a>。其中既有 DeepSeek Harness 固定版本的文档分析，也有通用设计方案；来源和适用范围随具体内容说明。</p>
+    <p>相关章节从<a href="#/intro">职责与架构选择</a>展开，进入<a href="#/architecture">上下文编译</a>、<a href="#/loop">调度与预算</a>、<a href="#/session">会话恢复</a>和<a href="#/testing">故障测试</a>。设计原则不绑定某个产品；<a href="#/cordis">Cordis 案例</a>与<a href="#/packages">包索引</a>保留了一个固定版本运行时的具体形态，供对照参考。</p>
     <h2>自改与元改进</h2>
     <p>修改提示词或代码后表现提高，说明这个候选在相应条件下更有效。若连产生候选的方法也被修改，还需要单独比较改进器。<a href="#/paper-lab">论文机制</a>介绍相关研究的控制流程，<a href="#/capstone-improve">候选搜索</a>讨论反馈驱动的版本迭代，<a href="#/capstone-meta">元改进实验</a>比较冻结与更新改进器的过程。</p>
     <h2>本地实验</h2>

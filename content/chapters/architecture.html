@@ -2,47 +2,40 @@
     <span class="ch-kicker">运行时 / 14 · 架构总览</span>
     <h1>Harness 架构：<span class="grad">上下文、能力与执行环境</span></h1>
     <p class="lead">同一套 Agent 可以服务只读知识问答和有写权限的仓库修复，但两者对执行环境的要求不同。如果修复任务的 Bash 已切到远程沙箱，文件读取仍走本机，模型分析的代码与命令修改的就可能是两份仓库。Provider 替换因此涉及一组相互约束的工作区、身份和生命周期。</p>
-    <p class="small muted">DSH 的分层、能力 seam 与事件域依据 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/architecture.md" target="_blank" rel="noopener">固定提交 architecture.md</a>。上下文编译和远程部署小节讨论通用设计方案，未提供 DSH 运行结果；末节说明 RepoOps 现有实现与接入差异。<cite data-source="dsh-runtime-contracts"></cite></p>
+    <p class="small muted">本章讨论通用设计方案：配置合成、上下文编译与执行环境一致性不绑定某个产品。一个固定版本的插件框架案例见 <a href="#/cordis">第 13 章</a>；RepoOps 现有实现与接入差异在末节说明。</p>
 
-    <h2>Profile 与 Bundle 合成最终插件树</h2>
-    <p>线上和本地行为的差异可能来自最终生效的配置组合。文档中 <strong>Profile</strong> 是 Harness home 内的具名组合，声明 bundle 并持有用户补丁与仓外插件；<strong>Bundle</strong> 分发配置行及所挂载代码。<code>package.json</code> 的 <code>dsh.profile</code>、<code>dsh.bundle</code> 描述两者身份。执行树由这些配置合成，单个 YAML 文件只能描述其中一层。</p>
+    <h2>组合配置决定实际行为</h2>
+    <p>线上和本地行为的差异可能来自最终生效的配置组合。常见结构是：基础层提供共享默认，应用层按载体叠加能力，用户层持有补丁，命令行做临时覆盖。执行树由这些层合成，单个配置文件只能描述其中一层。</p>
     <div class="layerstack">
-      <div class="layer reveal d1"><span class="ln">1</span><div><div class="lt">Bundles：按 profile 的声明顺序</div><div class="ld"><code>dsh-base</code> 提供共享基础；web/headless/sdk/acp 的应用 bundle 增加各自载体。<code>sdk-minimal</code> 是不叠 base、自己拥有完整树的例外。</div></div><span class="arrow-down">↓</span></div>
-      <div class="layer reveal d2"><span class="ln">2</span><div><div class="lt">Profile 的 cordis.patch.yml</div><div class="ld">这个具名组合的选择，不代表全局默认。</div></div><span class="arrow-down">↓</span></div>
-      <div class="layer reveal d3"><span class="ln">3</span><div><div class="lt">Home 层 cordis.patch.yml</div><div class="ld">同一用户环境的全局补丁，可能改变多个 profile。</div></div><span class="arrow-down">↓</span></div>
-      <div class="layer reveal d4"><span class="ln">4</span><div><div class="lt">--patch 覆盖层</div><div class="ld">临时叠加；按 id 定位行，替换整个 config 或插入行。</div></div></div>
+      <div class="layer reveal d1"><span class="ln">1</span><div><div class="lt">基础与应用层：按组合顺序</div><div class="ld">共享基础提供默认能力；web / headless / sdk 等载体层增加各自入口与工具面。也有载体不叠基础层、自己拥有完整树的设计。</div></div><span class="arrow-down">↓</span></div>
+      <div class="layer reveal d2"><span class="ln">2</span><div><div class="lt">具名组合（profile）的补丁层</div><div class="ld">这个具名组合的选择，不代表全局默认。</div></div><span class="arrow-down">↓</span></div>
+      <div class="layer reveal d3"><span class="ln">3</span><div><div class="lt">用户环境的全局补丁</div><div class="ld">同一用户环境的全局补丁，可能改变多个 profile。</div></div><span class="arrow-down">↓</span></div>
+      <div class="layer reveal d4"><span class="ln">4</span><div><div class="lt">启动参数覆盖层</div><div class="ld">临时叠加；按 id 定位行，替换整个 config 或插入行。</div></div></div>
     </div>
     <figure class="fig">
       <div class="fig-scroll" tabindex="0" role="region" aria-label="图：四层引导顺序，可横向滚动"><img src="assets/figures/fig-architecture-layers.svg" alt="有序 bundle、profile 补丁、home 补丁和命令行覆盖层依次合成插件树；后层可替换前层配置" loading="lazy" decoding="async" width="840" height="430"></div>
       <figcaption>图 · 合成顺序是行为输入。只保留最上层 patch，不足以复原当时的执行树。</figcaption>
     </figure>
-    <p>例如，底层某行的配置为 <code>{ timeout: 30, policy: 'deny-write' }</code>，上层只写 <code>{ timeout: 60 }</code>。按“整个 config 替换”的契约，<code>policy</code> 已从该行消失，最终策略取决于 Provider 默认值，不能假定 deny-write 被继承。这两个键用于说明替换语义；实际字段由目标 Provider 的 schema 决定。</p>
-    <div class="codeblock">
-      <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 在隔离环境查看最终配置</div>
-      <pre data-lang="sh">dsh --profile web --dump-config
-# 同时记录 dsh/插件版本、profile、补丁顺序与最终配置的身份
-# 输出可能含配置敏感值；进入报告前按字段脱敏，不发布凭据</pre>
-    </div>
-    <p>固定提交文档称 base 默认启用仅配置 HMR，headless/SDK/ACP 禁用，sdk-minimal 不挂该行；profile 补丁仍可改变选择。这个默认反映生命周期取舍，不保证所有热更新都无损：一次性 runner 中途替换存储或策略，可能让一次任务跨越两套行为契约。做评测时更合适的选择常常是锁住整次 run 的组合。</p>
+    <p>例如，底层某行的配置为 <code>{ timeout: 30, policy: 'deny-write' }</code>，上层只写 <code>{ timeout: 60 }</code>。若合并契约是"整个 config 替换"，<code>policy</code> 已从该行消失，最终策略取决于实现默认值，不能假定 deny-write 被继承。这两个键用于说明替换语义；实际字段由目标实现的 schema 决定。</p>
+    <p>组合是否允许运行中替换也影响行为。仅配置热更新改变行为边界，却不必重启进程；一次性 runner 中途替换存储或策略，可能让一次任务跨越两套行为契约。做评测时更合适的选择常常是锁住整次 run 的组合；是否需要运行中替换，取决于产品语义而非实现便利。</p>
 
     <h2>服务接口中的所有权契约</h2>
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>包与服务</th><th>负责的事实</th><th>消费者依赖的契约</th></tr></thead>
+      <thead><tr><th>职责</th><th>负责的事实</th><th>消费者依赖的契约</th></tr></thead>
       <tbody>
-        <tr><td><code>core/session → ctx.sessions</code></td><td>追加式日志、内存会话</td><td>事件连续与投影语义，而不只是相同方法名</td></tr>
-        <tr><td><code>core/system-prompt → ctx.systemPrompt</code></td><td>提示词与工具 schema 组装</td><td>请求里没有未记录的模型可见补丁</td></tr>
-        <tr><td><code>core/tools → ctx.tools</code></td><td>作用域注册、守卫与执行流水线</td><td>未授权调用不能因绕过某个 UI 而放行</td></tr>
-        <tr><td><code>core/agent → ctx.agents</code></td><td>Agent 接口与存活注册</td><td>消费者不依赖某个具体驱动器的内部状态</td></tr>
-        <tr><td><code>core/agent-loop → ctx.agentLoop</code></td><td>默认回合驱动</td><td>初始化、取消、结算、释放仍满足接口约定</td></tr>
-        <tr><td><code>core/scope</code>（库，无 ctx 键）</td><td>按 agent 作用域注册</td><td>会话 A 的注册不泄漏到 B</td></tr>
-        <tr><td><code>llm/llm → ctx.llm</code></td><td>适配器与流词汇</td><td>取消与错误有稳定映射，未知 usage 不伪造为零</td></tr>
-        <tr><td><code>webhook/webhook → ctx.webhookRuntime</code></td><td>已验证投递与会话创建</td><td>入口身份与重放策略不由模型自行判断</td></tr>
+        <tr><td>会话日志</td><td>追加式事件、内存会话</td><td>事件连续与投影语义，而不只是相同方法名</td></tr>
+        <tr><td>提示词组装</td><td>系统提示与工具 schema 的合成</td><td>请求里没有未记录的模型可见补丁</td></tr>
+        <tr><td>工具注册与执行</td><td>作用域注册、守卫与执行流水线</td><td>未授权调用不能因绕过某个 UI 而放行</td></tr>
+        <tr><td>回合驱动</td><td>默认回合的初始化、取消、结算、释放</td><td>消费者不依赖某个具体驱动器的内部状态</td></tr>
+        <tr><td>作用域隔离</td><td>按 agent 或会话注册能力</td><td>会话 A 的注册不泄漏到 B</td></tr>
+        <tr><td>模型适配</td><td>协议适配与流式词汇</td><td>取消与错误有稳定映射，未知 usage 不伪造为零</td></tr>
+        <tr><td>入口接入</td><td>外部投递的验证与会话创建</td><td>入口身份与重放策略不由模型自行判断</td></tr>
       </tbody>
     </table></div>
     <p>服务定义、Provider、Consumer 构成能力 seam，将替换时需要保持的行为集中到接口契约。路径、错误码和取消语义都属于这个契约；两个 Provider 即使具有相同类型签名，也可能在这些行为上不兼容。</p>
 
     <h2>将上下文编译为有版本的请求</h2>
-    <p>上下文编译把任务、证据和能力约束组织为一次不可变输入。产物包括实际消息、可见工具 schema、证据来源清单、裁剪记录，以及配置与授权快照身份。这样，请求的来源与转换过程都能被追踪。接入 DSH 时，system prompt、tools 与 session seam 提供相应位置，完整的编译产物契约还需要额外实现。</p>
+    <p>上下文编译把任务、证据和能力约束组织为一次不可变输入。产物包括实际消息、可见工具 schema、证据来源清单、裁剪记录，以及配置与授权快照身份。这样，请求的来源与转换过程都能被追踪；实现接缝时，提示词组装、工具注册与会话记录提供相应位置，完整的编译产物契约仍需显式定义。</p>
     <div class="tbl-wrap"><table class="tbl">
       <thead><tr><th>输入与信任层</th><th>编译时如何处理</th><th>不能越过的边界</th></tr></thead>
       <tbody>
@@ -62,28 +55,28 @@
     <p>编译器的故障实验可以覆盖三类变化：检索正文中的伪系统指令、请求冻结后的写权限撤销，以及超过窗口的输入。分别检查低信任标记与外发拒绝、派发时的授权决定、裁剪清单和实际 token 量。策略热更新需要在后续执行前重新判断准入；若更换分词器或摘要版本，也应记录编译版本并区分新的请求身份。历史请求的授权摘要只能解释过去的决定，当前执行仍依赖服务端校验；版本衔接见 <a href="#/session">第 16 章</a>。</p>
 
     <h2>文件系统与子进程共享一个执行环境</h2>
-    <p>文档把文件系统与子进程 Provider 放在同一“执行世界”中考虑：<code>ctx.fs</code>、<code>ctx.subprocess</code> 以及消费它们的 shell、终端、LSP 必须针对同一工作区。假设模型在本地读到版本 A，命令在远程版本 B 打补丁，工具返回的 diff 即使合法，也不是它分析过的输入。</p>
+    <p>设计时应把文件系统与子进程 Provider 放在同一个"执行世界"中考虑：文件读写、进程执行、终端与语言服务必须针对同一工作区。假设模型在本地读到版本 A，命令在远程版本 B 打补丁，工具返回的 diff 即使合法，也不是它分析过的输入。</p>
     <p>环境切换首先需要固定任务的工作区/仓库快照与执行主体，让模型读取、命令 cwd 和产物收集指向同一基线。fs、subprocess、PTY、LSP 和后台任务都是这份映射的消费者；任何本机回退都应显式记录或拒绝，静默回退会把环境错误伪装成正常结果。</p>
     <p>取消同样跨越这些消费者。终端、子进程和输出流停止后，工作区才能释放；提前删除目录会与仍在运行的写入竞争。断开远程连接的故障实验可以检查各条读写路径是否一致失败、有无任务转到本机，以及尚未完整收集的产物是否被误标完成。</p>
-    <p>替代方案是在本机生成 patch、在独立环境只做验证。它减少远程交互，但要求验证使用同一个基线并显式应用该 patch；否则“远程验证通过”与交付的内容仍可能脱节。DSH 的插件树本身不提供这份外部环境一致性证明。</p>
+    <p>替代方案是在本机生成 patch、在独立环境只做验证。它减少远程交互，但要求验证使用同一个基线并显式应用该 patch；否则"远程验证通过"与交付的内容仍可能脱节。插件框架本身不提供这份外部环境一致性证明。</p>
 
     <h2>持久事实、活体决策与能力边界</h2>
     <div class="grid cols3">
-      <div class="card domain-card reveal d1"><h3>Session：重启后仍应知道</h3><p>模型输入、工具结果与回合边界进入会话事实。<code>session/event</code> 广播通知观察者，持久性另由 flush 屏障确认。重放读取事实，不重新执行副作用。</p></div>
-      <div class="card domain-card dm2 reveal d2"><h3>Agent：存活执行中的决策</h3><p><code>agent/pre-step</code>、请求路由、取消和收尾依赖当前 Agent。初始化 <code>agent/created</code> 按文档需等待完成才让排队工作启动；失败应回滚创建。</p></div>
-      <div class="card domain-card dm3 reveal d3"><h3>能力：所有调用者都应受约束</h3><p>写前检查应靠近 <code>fs/*</code>，工具执行包装在 <code>tools/*</code>。只在聊天 UI 禁用按钮，拦不住 SDK 或另一个工具路径。</p></div>
+      <div class="card domain-card reveal d1"><h3>Session：重启后仍应知道</h3><p>模型输入、工具结果与回合边界进入会话事实。事件广播通知观察者，持久性另由 flush 屏障确认。重放读取事实，不重新执行副作用。</p></div>
+      <div class="card domain-card dm2 reveal d2"><h3>Agent：存活执行中的决策</h3><p>请求路由、取消和收尾依赖当前 Agent。初始化需等待完成才让排队工作启动；失败应回滚创建。</p></div>
+      <div class="card domain-card dm3 reveal d3"><h3>能力：所有调用者都应受约束</h3><p>写前检查应靠近文件系统接缝，工具执行包装在工具流水线。只在聊天 UI 禁用按钮，拦不住 SDK 或另一个工具路径。</p></div>
     </div>
     <p>用“批准一次写入”检验域划分：审批对话是活体交互，审批结果若影响恢复审计需要持久记录，最终约束要在真正的写入路径执行。把全部逻辑塞进 Session 观察者，可能事后才看见已经发生的写入；把它只放 Agent 钩子，又可能漏掉无需模型回合的人类命令。还要确认是否存在直接 Node 文件调用等旁路；能力层守卫不是操作系统安全边界。</p>
 
     <h2>按状态归属选择扩展点</h2>
     <p>下面的查询表按三项条件组织扩展点：状态是否必须重启可见、处理过程是否需要活体 Agent、约束是否覆盖全部能力消费者。具体 API 仍以目标版本为准。当现有事件无法表达必需的原子顺序时，修改循环本身也可能是合理选择。</p>
     <div id="extPicker"></div>
-    <p>知识助手的新检索工具挂到 <code>ctx.tools</code>；会话之间的不同能力集合由作用域与隔离服务区分；模型可见上下文进入可记录路径；新存储实现 SessionPersistence 的 handle 契约。这些共用边界使多个载体可以复用同一执行循环，减少取消、恢复和策略实现的分叉。</p>
+    <p>知识助手的新检索工具挂到工具注册接口；会话之间的不同能力集合由作用域与隔离服务区分；模型可见上下文进入可记录路径；新存储实现持久化契约。这些共用边界使多个载体可以复用同一执行循环，减少取消、恢复和策略实现的分叉。</p>
 
     <h2>独立载体的数据与版本兼容性</h2>
-    <p>固定提交文档描述 Electron 携带自己的生产运行时，CLI 与 Desktop 共享产品数据但执行包、激活选择和 lockfile 分离，公开 CLI 不管理 Desktop 的保留 profile。这个例子揭示一个常见误判：<strong>共享同一个 home 目录，不意味着两套运行时支持同一个日志格式</strong>。旧载体遇到未来格式应显式拒绝，不能悄悄打开旧代继续写；第 16 章继续推导。</p>
+    <p>不同载体（如桌面应用与 CLI）可能共享同一配置目录，却各自携带运行时与持久格式。这个组合揭示一个常见误判：<strong>共享同一个 home 目录，不意味着两套运行时支持同一个日志格式</strong>。旧载体遇到未来格式应显式拒绝，不能悄悄打开旧代继续写；<a href="#/session">第 16 章</a>继续推导代际与恢复。</p>
 
     <h2>RepoOps 接入时的实验身份</h2>
-    <p><code>projects/repoops/runner.py</code> 的 manifest 已记录数据集、模型修订、系统提示、步数/时间预算与 agent/runner 源码摘要，但它没有 DSH 插件树、远程工作区或 Provider 身份。接入后，这些配置也会影响行为，需要纳入实验身份。将 <code>RulePolicy</code> 换成远程 Agent 已经改变了执行条件，原有 manifest 尚不足以描述两次实验的差异。</p>
-    <p>可以让两个 profile 只在执行 Provider 上不同，对同一任务比较模型所见证据、工具权限和产物基线，再加入一层覆盖，定位最终插件树的变化。双会话实验则交换创建顺序、关闭其中一个，检查工具注册与会话状态是否互相污染。这两组实验分别检查 Provider 替换和作用域隔离，也为后续结果比较保留配置依据。</p>
+    <p><code>projects/repoops/runner.py</code> 的 manifest 已记录数据集、模型修订、系统提示、步数/时间预算与 agent/runner 源码摘要，但它没有插件树、远程工作区或 Provider 身份。接入真实 harness 后，这些配置也会影响行为，需要纳入实验身份。将 <code>RulePolicy</code> 换成远程 Agent 已经改变了执行条件，原有 manifest 尚不足以描述两次实验的差异。</p>
+    <p>可以让两组配置只在执行 Provider 上不同，对同一任务比较模型所见证据、工具权限和产物基线，再加入一层覆盖，定位最终组合的变化。双会话实验则交换创建顺序、关闭其中一个，检查工具注册与会话状态是否互相污染。这两组实验分别检查 Provider 替换和作用域隔离，也为后续结果比较保留配置依据。</p>
   </section>

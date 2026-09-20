@@ -37,8 +37,8 @@
   <p>隔离的失败路径同样影响实际权限。沙箱初始化失败后若自动转为宿主执行，这次操作便不再受预期边界约束；通用网络代理或宿主 socket 也可能绕过文件系统隔离。运行记录需要保存实际隔离模式与拒绝事件，无法建立规定边界时记为配置失败。否则，更宽权限带来的成功会被误计为搜索算法的收益。</p>
 
   <h2>公开实现的版本范围</h2>
-  <p>DSH 提供了一个运行时扩展案例：后文沿 <a href="#/cordis">Cordis 生命周期</a>、<a href="#/architecture">组合层</a> 与 <a href="#/tools">工具执行</a> 讨论其具体机制。固定 commit <code>ddefc45fbc7f8e46dd73185e68295696d1297887</code> 的 SAFETY.md 将它标为 developer preview，明确说明未经安全审计、不能视为安全或生产就绪，也不能作为不可信工作负载的唯一安全控制。<cite data-source="dsh-safety"></cite>本章的机制分析不构成 DSH 安全审计。</p>
-  <p>DSH 包与工具清单缺少生成时的 commit，因此只能作为导航，不能作为已验证的 API 快照。实际适配需要记录安装版本、commit、依赖锁、profile 与叠加配置；define/run/stop 的参数、异步终态和卸载范围均受具体版本约束。Git commit、镜像 digest 或内容寻址包都可标识候选，记录结构无需依赖某个固定字段名。</p>
+    <p>DSH 提供了一个运行时扩展案例：其固定 commit 的 SAFETY.md 将它标为 developer preview，明确说明未经安全审计、不能视为安全或生产就绪，也不能作为不可信工作负载的唯一安全控制。<cite data-source="dsh-safety"></cite>插件框架的具体机制见 <a href="#/cordis">第 13 章</a>；包索引见 <a href="#/packages">第 17 章</a>。</p>
+    <p>DSH 包与工具清单缺少生成时的 commit，因此只能作为导航，不能作为已验证的 API 快照。实际适配需要记录安装版本、commit、依赖锁、profile 与叠加配置；define/run/stop 的参数、异步终态和卸载范围均受具体版本约束。Git commit、镜像 digest 或内容寻址包都可标识候选，记录结构无需依赖某个固定字段名。</p>
   <p>Claude Code 官方沙箱文档的 2026-09-20 页面介绍了 sandboxed Bash 的文件系统与网络隔离，并区分平台支持、权限模式与非沙箱重试。<cite data-source="claude-sandbox"></cite>这说明产品提供内置沙箱能力，但不能推广为所有工具和扩展默认获得同样隔离。复现需要记录实际 CLI 版本与系统，并确定沙箱不可用时的行为、非沙箱重试权限与排除项。本节依据在线文档，不包含本机产品运行验证。</p>
 
   <h2>切换开销与固定预算下的比较</h2>

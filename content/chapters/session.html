@@ -2,12 +2,12 @@
     <span class="ch-kicker">运行时 / 16 · 会话与持久化</span>
     <h1>会话恢复：事件日志、未知结果与 Checkpoint</h1>
     <p class="lead">日志最后一条是“请求编辑文件”，没有工具结果。这个尾部可能来自几种完全不同的情况：日志写到一半，工具尚未执行，或文件早已修改但结果还没落盘。恢复协议需要分别处理物理完整性、逻辑完整性与外部副作用；仅凭缺失结果，无法决定是否可以重新编辑。</p>
-    <p class="small muted">DSH 的会话与存储契约依据固定提交的 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/subsystems/session.md" target="_blank" rel="noopener">session 文档</a>、<a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/subsystems/persistence.md" target="_blank" rel="noopener">persistence 文档</a>。恢复决策表、工单示例与 checkpoint 身份字段属于通用协议设计，故障场景是实验方法，未提供 DSH 崩溃恢复实测。末节对照 RepoOps 的 trial 级持久化。<cite data-source="dsh-runtime-contracts"></cite></p>
+    <p class="small muted">本章讨论通用恢复协议设计：事件日志、持久化屏障、未决副作用与 checkpoint 身份不绑定某个产品。恢复决策表、工单示例与 checkpoint 字段属于协议设计；故障场景是实验方法。末节对照 RepoOps 的 trial 级持久化。</p>
 
     <h2>事件日志保存执行事实，消息是其中一个投影</h2>
-    <p>聊天消息能保存用户和助手文字，却通常缺少失败尝试的预算、工具派发状态、内容压缩范围，以及当时的工具 schema。DSH 文档以追加式 SessionEvent 为事实源，<code>deriveMessages()</code> 从中导出模型历史。消息投影随事件变化，不单独维护另一份可任意修改的历史。</p>
-    <div class="callout law"><span class="t">模型可见 ⇒ 日志可重建</span><code>turn/*</code>、<code>request/header</code>、<code>assistant/attempt</code> 等日志项用于恢复或审计，无需全部进入模型历史。插件修改模型所见内容时，必须通过记录与已声明的纯投影路径；离线读取方也需要同版本投影定义，才能由事件重建请求。</div>
-    <p>每条事件为 <code>{ type, seq, time, data }</code>，seq 连续，data 要能无损表示为 JSON。四类表面事件——<code>system/message</code>、<code>user/message</code>、<code>assistant/message</code>、<code>tool/result</code>——带 <code>surfaceOp</code> 声明追加或替换范围；log-only 事件不带它。日志从不改旧事件，但投影可以通过新事件替换模型当前看到的表面，这两句话并不矛盾。</p>
+    <p>聊天消息能保存用户和助手文字，却通常缺少失败尝试的预算、工具派发状态、内容压缩范围，以及当时的工具 schema。一种可靠的持久化方案以追加式事件为事实源，模型历史从中投影导出。消息投影随事件变化，不单独维护另一份可任意修改的历史。</p>
+    <div class="callout law"><span class="t">模型可见 ⇒ 日志可重建</span>回合边界、请求配置、已结算失败尝试等日志项用于恢复或审计，无需全部进入模型历史。修改模型所见内容时，必须通过记录与已声明的纯投影路径；离线读取方也需要同版本投影定义，才能由事件重建请求。</div>
+    <p>每条事件为 <code>{ type, seq, time, data }</code>，seq 连续，data 要能无损表示为 JSON。表面事件——系统提示、用户消息、助手消息、工具结果——带追加或替换范围声明；log-only 事件不进入模型历史。日志从不改旧事件，但投影可以通过新事件替换模型当前看到的表面，这两句话并不矛盾。</p>
     <figure class="fig">
       <div class="fig-scroll" tabindex="0" role="region" aria-label="图：日志与投影结构，可横向滚动"><img src="assets/figures/fig-session-log.svg" alt="追加式事件日志经投影产生模型历史与界面；写入经单写者句柄，append 与 flush 提供不同级别的承诺" loading="lazy" decoding="async" width="840" height="470"></div>
       <figcaption>图 · 事件日志派生模型输入和界面视图。fork、resume 与导出还依赖投影版本、所有权、持久化屏障和附件保留。</figcaption>
@@ -16,24 +16,24 @@
     <h2>同一日志的模型历史与调用视图</h2>
     <div class="codeblock">
       <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 事件含义示例，省略 payload，不是可导入日志</div>
-      <pre data-lang="log">seq 0  turn/start
-seq 1  step/start
-seq 2  system/message     surface append：当前系统提示
-seq 3  user/message       surface append：用户问题
-seq 4  request/header     log-only：路由配置与工具 schema
-seq 5  assistant/attempt  log-only：一次已结算失败尝试
-seq 6  assistant/message surface append：成功回答
-seq 7  step/end
-seq 8  turn/end
+      <pre data-lang="log">seq 0  turn begin
+seq 1  step begin
+seq 2  system msg       surface append：当前系统提示
+seq 3  user msg         surface append：用户问题
+seq 4  request header   log-only：路由配置与工具 schema
+seq 5  assistant attempt log-only：一次已结算失败尝试
+seq 6  assistant msg    surface append：成功回答
+seq 7  step end
+seq 8  turn end
 # 模型历史：system、user、assistant
 # 调用分析：还需要 attempt 与请求配置，不能只看模型历史
 # UI：可另呈现状态与失败，不代表这些文字都进入下一次模型请求</pre>
     </div>
     <p>可以把投影写成 <code>state[n+1] = fold(state[n], event[n], projectionVersion)</code>。增量投影避免每次从头扫描；冷读必须能用相同规则复算。若某个投影依赖当前网络结果或系统时间，重放会改变历史；纯投影应只依赖受控输入。快照是加速手段，不应成为第二份无法对账的真相源。</p>
-    <p><code>request/header</code> 记录调用配置与工具，<code>request/context</code> 记录路由能力等元数据；系统提示通过 <code>system/message</code> 进入日志。完整 assistant message 内嵌已结算流及可用的 usage；attempt 保留未形成表面消息的已结算尝试。进程硬崩溃前尚未结算的实时流可能丢失，这些事件无法恢复从未记录的内容。</p>
+    <p>请求配置记录调用参数与工具，上下文元数据记录路由能力等；系统提示通过系统消息事件进入日志。完整助手消息内嵌已结算流及可用的 usage；attempt 保留未形成表面消息的已结算尝试。进程硬崩溃前尚未结算的实时流可能丢失，这些事件无法恢复从未记录的内容。</p>
 
     <h2>append 的可见性与 flush 的持久性</h2>
-    <p>文档中的 <code>SessionHandle.append</code> 承诺批次已接受、排序，并对同后端实例后续读取可见；后端可以缓冲。已 resolve 的 <code>flush</code> 才承诺其覆盖的已确认写入具备崩溃持久性。该承诺依赖部署环境满足文件系统与存储硬件假设，覆盖范围也限于相应存储屏障。</p>
+    <p>追加式日志的 append 承诺批次已接受、排序，并对同后端实例后续读取可见；后端可以缓冲。flush 才承诺其覆盖的已确认写入具备崩溃持久性。该承诺依赖部署环境满足文件系统与存储硬件假设，覆盖范围也限于相应存储屏障。</p>
     <div class="tbl-wrap"><table class="tbl">
       <thead><tr><th>观察</th><th>可以得出的结论</th><th>不可以得出的结论</th></tr></thead>
       <tbody>
@@ -41,21 +41,21 @@ seq 8  turn/end
         <tr><td>Session 内存 append 完成</td><td>逻辑会话接受了事件</td><td>异步存储后端已落盘</td></tr>
         <tr><td>存储 handle append resolve</td><td>同后端实例在其后开始的读至少可见该前缀</td><td>所有进程已经可见，或崩溃后一定存在</td></tr>
         <tr><td>handle flush resolve</td><td>该屏障覆盖的已确认追加持久；会话物化</td><td>外部工具副作用与日志形成了跨系统事务</td></tr>
-        <tr><td>whenIdle / turn/end</td><td>某个执行边界达成</td><td>它必然隐含 flush</td></tr>
+        <tr><td>空闲 / 回合结束</td><td>某个执行边界达成</td><td>它必然隐含 flush</td></tr>
       </tbody>
     </table></div>
-    <div class="callout warn"><span class="t">固定提交中 flush 时点的文档差异</span>persistence 的 checkpoint 段称循环在领取下一普通 turn 前用 flush 作为检查点；同提交 session 的 <code>turn/end</code> 注释却称 loop 不在回合边界等待 flush，由 checkpoint-policy 负责每请求屏障，<code>whenIdle()</code> 后读取存储的消费者需自己 flush。这两处描述不足以确定默认时点。handle 的显式 flush 契约是明确的；实际屏障由目标 profile、checkpoint 插件及调用路径决定。</div>
+    <div class="callout warn"><span class="t">flush 时点需要显式约定</span>循环是否在回合边界等待 flush、checkpoint 策略是否每请求屏障、读取存储的消费者是否需自行 flush——这些时点必须由实现契约明确规定。文档中两处描述不一致时，实际屏障由具体配置与调用路径决定，不能默认回合结束即已持久。</div>
     <p>每条事件都 fsync 可以缩小丢失窗口，但会增加 I/O 与尾延迟。批处理降低成本的同时，也拉长了接收成功与持久成功之间的间隔；两种确认需要分开，并向调用方暴露存储失败。若业务承诺用户收到完成通知就能恢复，通知之前就需要完成相应持久化屏障。</p>
 
     <h2>物理修复与逻辑恢复</h2>
-    <p>文档中的 JSONL Provider 默认使用带校验和的拼接 Zstandard 帧，也可配置裸行。存储层只返回物理有效的连续前缀，处理撕裂尾巴，并在新 append 前完成必要的物理修复；它不应因为 turn 未结束而删掉整个回合。一个长回合可能已经持久化大量有效工作。</p>
-    <p>逻辑恢复由持有写 handle 的 resume 路径计算 <code>interruptedTurnClosers</code>：为缺失工具结果补中断错误、闭合开放 step，并追加 <code>turn/end { reason: { kind: 'interrupted' } }</code>。这些是新的普通事件，不伪造历史成功。只读观察者可在内存平衡视图，但不写回，以免与活体 writer 竞争。</p>
+    <p>追加式日志的存储层只返回物理有效的连续前缀，处理撕裂尾巴，并在新 append 前完成必要的物理修复；它不应因为回合未结束而删掉整个回合。一个长回合可能已经持久化大量有效工作。</p>
+    <p>逻辑恢复由持有写句柄的 resume 路径计算中断闭包：为缺失工具结果补中断错误、闭合开放 step，并追加回合结束标记。这些是新的普通事件，不伪造历史成功。只读观察者可在内存平衡视图，但不写回，以免与活体 writer 竞争。</p>
     <div class="codeblock">
       <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 失败窗口推演：恢复不是重新执行工具</div>
       <pre data-lang="log">T0 writer 获得会话所有权
-T1 tool/call(c1) 进入有效日志前缀
+T1 tool call(c1) 进入有效日志前缀
 T2 外部写入可能发生，也可能尚未发生
-T3 进程崩溃，tool/result(c1) 未持久
+T3 进程崩溃，tool result(c1) 未持久
 T4 新 writer 获得所有权，读取连续前缀
 T5 为未结算调用补中断结果，并闭合 step/turn
 T6 对外部副作用做状态核对；只有明确策略才决定能否重试
@@ -80,14 +80,14 @@ T6 对外部副作用做状态核对；只有明确策略才决定能否重试
     <p>派发前将 <code>callId=c17</code>、规范化参数摘要、主体、目标系统与稳定幂等键 K 记录并完成持久屏障；K 代表这次逻辑动作，不能每次重试生成新键。远端创建成功后、写本地结果前崩溃，恢复者首先查询 K 对应的工单。查询确认成功，就追加带操作 ID 的核对记录，再让用户知道工单已经存在；远端仍在处理中则有界等待，而不是再创建一张。</p>
     <p>查询返回“未找到”也未必是未执行：需要确认查询是否强一致、旧请求是否仍在途以及幂等键是否还在保留期内。仅当目标协议保证同一 K 与相同参数再次提交不会重复动作，且当前权限与预算允许时，才能带 K 重试；参数冲突或键已过期都应停下。若服务既无幂等键又无可靠查询，保留 outcome unknown 并提示人工查证。根据标题搜索到一张相似工单只能作为线索，不足以自动认领为本次结果。</p>
     <p>不同目标系统提供不同的核对条件。本地文件可以通过“期望旧摘要 → 原子替换 → 校验新摘要”降低歧义，但新摘要相同只证明目标状态满足，未必证明由本次调用完成。受控数据库可以把业务变更与执行账本放进同一事务。通用 outbox 保存待投递意图，投递仍可能重复，因此消费者必须去重。缺少这些条件的跨系统动作需要保留未知状态；补偿同样是新的副作用，必须独立授权。</p>
-    <p>工单协议的故障实验有三个关键切点：意图 flush 后尚未派发、远端提交后尚未收到回执、结果 flush 后尚未写入 turn/end。每次终止执行者后，记录有效日志、目标系统操作数量和恢复决策；连续恢复两次，应重用已有核对事实而不创建第二个工单。查询暂时未找到时仍保持未知，旧执行者恢复连通后也不能绕过所有权继续提交。目标系统若无法约束旧执行者，重复动作风险就仍然存在。</p>
+    <p>工单协议的故障实验有三个关键切点：意图 flush 后尚未派发、远端提交后尚未收到回执、结果 flush 后尚未写入回合结束。每次终止执行者后，记录有效日志、目标系统操作数量和恢复决策；连续恢复两次，应重用已有核对事实而不创建第二个工单。查询暂时未找到时仍保持未知，旧执行者恢复连通后也不能绕过所有权继续提交。目标系统若无法约束旧执行者，重复动作风险就仍然存在。</p>
 
     <h2>单写者所有权与恢复竞争</h2>
-    <p>每会话 <code>SessionHandle</code> 把读取、追加、flush 和 close 放在同一个所有权边界。写式 open 原子获取单写者，活跃 owner 存在时第二个写 open 拒绝；只读 handle 不取得所有权且禁止变更。<code>close()</code> 按文档幂等、异步且不可取消，负责最后排空与释放；调用方仍要等待它，不应在释放过程中强行丢弃依赖。</p>
+    <p>每会话的写句柄把读取、追加、flush 和 close 放在同一个所有权边界。写式 open 原子获取单写者，活跃 owner 存在时第二个写 open 拒绝；只读 handle 不取得所有权且禁止变更。close 应幂等、异步且不可取消，负责最后排空与释放；调用方仍要等待它，不应在释放过程中强行丢弃依赖。</p>
     <div class="codeblock">
       <div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 存储 seam 的契约摘要，不是完整类型定义</div>
-      <pre data-lang="log">ctx.sessionPersistence: create / open / stat / list / flush
-SessionHandle:          read / append / flush / close
+      <pre data-lang="log">persistence:          create / open / stat / list / flush
+session handle:       read / append / flush / close
 write ownership:        第二个活动写者被拒绝；只读 handle 不得变更
 seq:                    新批次必须连续接在已有逻辑末尾
 append:                 best-effort durability；已接受与可见
@@ -97,7 +97,7 @@ close:                  最后排空并释放所有权；幂等、不可取消</
     <p>分布式存储中的单写者需要存储端可验证的所有权或版本条件。本进程 mutex 无法覆盖网络分区，租约到期也未必阻止旧 owner 继续提交。这是更换存储后端时新增的设计责任，不能由本地 JSONL 文件的所有权规则直接推出。</p>
 
     <h2>日志代际与格式迁移</h2>
-    <p>固定提交文档讨论 v0–v3 的已发布格式；实际版本由 <code>packages/core/session/src/types.ts</code> 的 <code>SESSION_FORMAT_VERSION</code> 定义。迁移保留前代，在旁边发布后继，每个包只拥有一步 <code>vN → vN+1</code>。</p>
+    <p>持久格式通常有已发布的代际；实际版本由代码中的格式常量定义。迁移保留前代，在旁边发布后继，每个版本只拥有一步 <code>vN → vN+1</code>。</p>
     <div class="gen-tape reveal">
       <div class="gen-file">session.jsonl<span class="gf-tag">v0 已发布代际</span></div>
       <span class="gen-arrow">── v0→v1 ─▶</span>
@@ -123,9 +123,9 @@ close:                  最后排空并释放所有权；幂等、不可取消</
     <p>快照实验可以截断 checkpoint 写入、替换前缀摘要，或在日志 flush 与快照发布之间终止进程，检查能否退回可信前缀；再用 P8 撤权后的配置恢复 P7 任务，观察历史是否可读、写动作是否被拒。全量 fold 与 checkpoint 加尾部重放的比较应覆盖模型投影、未决集合和预算余额。旧配置被清理会破坏重建依赖，未计费尝试则仍需保留占用，直到对账或按保守上界结算，与 <a href="#/loop">第 15 章的取消与预算约束</a>保持一致。</p>
 
     <h2>附件的 persist-before-event 顺序</h2>
-    <p>固定提交的 <a href="https://github.com/deepseek-ai/deepseek-harness/blob/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/subsystems/attachment.md" target="_blank" rel="noopener">附件文档</a> 要求 persist-before-event：先发布持久不可变对象，再追加引用它的消息。先记引用再写对象，崩溃后可能留下完整日志和缺失图片；先写对象则可能留下孤儿对象，后者可以通过保守回收处理。</p>
-    <p><code>AttachmentId</code> 是不透明标识，本地后端的 <code>sha256:&lt;digest&gt;</code> 表示不授权消费者自行拼路径。对象位于独立存储，权威读取重新核对摘要、媒体与尺寸；<code>readImageRequest()</code> 再按路由生成请求版本。固定提交文档的本地图片准入上限为每消息 20 张、源编码合计 200 MiB，单源 20 MiB / 6400 万像素 / 单边 8192 px；默认归一化长边 2048 px、编码 4 MiB。它们是该版本后端约束，不是所有存储或模型的通用容量。</p>
-    <p>fork/resume 可能共享附件，删除某会话不能直接删除其所有对象。该文档明确服务 retention-neutral、引用感知 GC 延后，因此会话删除与对象回收需要分别处理。改为远程 Provider 时，还要核对对象权限，以及当前工具执行环境能否读取宿主路径。</p>
+    <p>附件等二进制对象要求 persist-before-event：先发布持久不可变对象，再追加引用它的消息。先记引用再写对象，崩溃后可能留下完整日志和缺失内容；先写对象则可能留下孤儿对象，后者可以通过保守回收处理。</p>
+    <p>附件 ID 是不透明标识，不授权消费者自行拼路径。对象位于独立存储，权威读取重新核对摘要、媒体与尺寸；准入上限（如每消息数量、总编码大小、像素限制）是具体后端的约束，不是所有存储或模型的通用容量。</p>
+    <p>fork/resume 可能共享附件，删除某会话不能直接删除其所有对象。服务保持 retention-neutral、引用感知 GC 延后时，会话删除与对象回收需要分别处理。改为远程 Provider 时，还要核对对象权限，以及当前工具执行环境能否读取宿主路径。</p>
 
     <h2>RepoOps 的 trial 级恢复</h2>
     <p><code>runner.py</code> 用 <code>(run_id, task_id, repeat)</code> 唯一键跳过已提交 trial；结果和完整轨迹在一次 SQLite 事务中可见。<code>run_agent</code> 的动作与观察在内存中累积，结束后才交给 runner。进程在 trial 中途退出，未提交 trial 会整体重跑，无法从最后一个工具事件继续。当前只读 search/read/finish 降低了重跑风险；迁移到修复工具后，还需要处理重复写入和未知结果。</p>

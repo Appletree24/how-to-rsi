@@ -1,13 +1,13 @@
 <section class="chapter" id="ch-conventions">
     <span class="ch-kicker">工程 / 19 · 工程规范</span>
-    <h1>工程契约：<span class="grad">资源、错误与持久格式</span></h1>
+    <h1>契约案例：<span class="grad">资源、错误与持久格式</span></h1>
     <p class="lead">一个插件增加了“后台验证补丁”功能：启动进程、订阅完成事件，再把结果写进会话。代码只有几十行，却同时改变了资源生命周期、错误语义和持久格式。插件卸载需要终止它拥有的进程，重复完成需要避免重复落账，新事件还会影响旧版本的读取与恢复。这些跨组件行为需要由明确的工程契约约束。</p>
-    <div class="callout info"><span class="t">历史约定与案例范围</span>守则卡片、API 名称与防御模式来自本站保留的 DSH 历史整理，未绑定可复核的上游 commit。当前规范以目标版本的 AGENTS、接口声明、持久格式与复盘为准。下文生命周期与迁移案例是设计示例，未在运行时验证。</div>
+    <div class="callout info"><span class="t">本章范围</span>本章讨论资源所有权、错误语义与持久格式迁移的通用契约；一个固定版本的历史守则索引在 <a href="#/packages">第 17 章</a>保留。下文生命周期与迁移案例是设计示例，不绑定某个产品。</div>
 
     <h2>资源所有权与卸载过程</h2>
     <p>设插件接受任务 <code>job-9</code>，启动一个测试子进程，同时注册结果监听与工具入口。如果它把进程句柄存在模块全局，插件卸载只移除 UI 卡片，旧进程仍会完成并发布结果；重新加载后还可能有两个监听器同时消费一次事件。“页面看起来卸载了”不是生命周期终止。</p>
-    <p>历史约定要求注册通过 <code>ctx.effect()</code> / <code>ctx.on()</code> 归属于作用域，注册表的 <code>register()</code> 返回 disposer。背后的原则是<strong>创建资源的作用域拥有结束它的责任</strong>。disposer 只是清理入口，不自动证明子进程已经停止；异步资源还要等待终止。</p>
-    <div class="codeblock"><div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 生命周期示例：状态和方法名为示意，非 DSH API</div><pre data-lang="text">状态：active → closing → closed；不能从 closing 返回 active
+    <p>合理的约定要求注册归属于作用域，注册表返回 disposer。背后的原则是<strong>创建资源的作用域拥有结束它的责任</strong>。disposer 只是清理入口，不自动证明子进程已经停止；异步资源还要等待终止。</p>
+    <div class="codeblock"><div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 生命周期示例：状态和方法名为示意，非特定 API</div><pre data-lang="text">状态：active → closing → closed；不能从 closing 返回 active
 start(job-9)：登记任务所有权，启动进程，订阅完成
 unload：
   1. 标记 closing，拒绝新任务，停止对外注册与完成通知
@@ -29,23 +29,13 @@ unload：
     <p>校验的位置取决于输入的可信边界。同进程已验证的静态类型数据不必层层重复校验；配置、持久文件、模型 JSON、网络和进程输出则需要在进入系统时解析。品牌类型防止编译期串线，运行时授权、资源路径的安全打开和环境变量隔离仍需要各自的实现。</p>
 
     <h2>持久格式迁移与读写兼容性</h2>
-    <p>继续 <code>job-9</code>：旧格式只有最终结果，新格式增加 <code>verification/started</code> 与 <code>verification/completed</code>。如果 started 会改变模型上下文或恢复后的调度决策，旧版本跳过它后继续运行，得到的不是同一个会话。历史守则要求 SessionEventMap 默认“读时必认”，未知事件只有明确允许忽略时才可跳过；结构变化才涉及 <code>SESSION_FORMAT_VERSION</code>。事件名和版本号不是语义兼容性的替代物。</p>
+    <p>继续 <code>job-9</code>：旧格式只有最终结果，新格式增加 <code>verification/started</code> 与 <code>verification/completed</code>。如果 started 会改变模型上下文或恢复后的调度决策，旧版本跳过它后继续运行，得到的不是同一个会话。合理的规则要求事件默认"读时必认"，未知事件只有明确允许忽略时才可跳过；结构变化才涉及格式版本号。事件名和版本号不是语义兼容性的替代物。</p>
     <div class="codeblock"><div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 迁移示例：事件名用于演示，非仓库现有定义</div><pre data-lang="json">{"format":1,"type":"verification/result","job":"job-9","ok":true}
 {"format":2,"type":"verification/completed","job":"job-9","status":"passed"}</pre></div>
     <p>对于 v1 → v2，可以将 <code>ok:true</code> 确定性映射为 passed。但不能凭空补出旧日志从未记录的开始时间、测试套件版本或耗时；应保留缺失语义，或明确拒绝需要这些事实的功能。若 v2 新增 cancelled，反向映射为 <code>ok:false</code> 会把取消变成测试失败，改变报告含义。<strong>存在向前迁移不蕴含存在无损回退。</strong></p>
     <p>历史相邻迁移规则让每一步只拥有 vN → vN+1，已发布代际不覆盖、不删除。这样旧输入在相同迁移链上不会因一次代码修改悄悄变义。迁移检查需要固定旧格式样本、逐步验证转换并重建模型可见内容；支持执行重试时，还需要版本前置条件和提交机制防止双重转换。它与转换函数本身的幂等性是不同要求：vN → vN+1 的输出未必仍是该函数的合法输入。</p>
     <p>滚动升级可能需要双读双写的兼容窗口，但每多一个写入者就多一条一致性链。支持的读写版本矩阵、窗口终点与退出条件共同限定了迁移的复杂度；能够停写后一次切换的系统，通常不必永久维护两套数据表示。发布与数据恢复的衔接见工作流章。</p>
 
-    <h2>历史工程守则索引</h2>
-    <p>下面的历史守则覆盖资源注册、事件分发、包边界、持久化和协作，各条规则都有对应的输入或时序前提。例如，封闭联合的 assertNever 能抓遗漏分支，可扩展联合却需要显式定义未知分支的行为；waterfall 的 next 控制是否短路，省略调用会改变事件传播。适用条件决定了规则如何落在具体实现上。</p>
-    <div id="ruleCards"></div>
-    <h2>防御性模式的适用条件</h2>
-    <p>错误隔离需要区分通知与决策。通知订阅者的失败可以隔离并记录，负责否决操作的策略失败却不能自动变成允许。环境处理也有类似边界：清洗环境变量名称只能处理名称问题，派生进程仍需最小环境与隔离。路径删除必须区分链接与实体目录，不能对来源不明的路径直接递归删除。这些模式只有在各自前提成立时才能阻止对应故障。</p>
-    <div id="defPatterns"></div>
-<figure class="fig">
-  <div class="fig-scroll" tabindex="0" role="region" aria-label="图：历史工程约定分层与防御性模式，可横向滚动"><img src="assets/figures/fig-conventions-layers.svg" alt="历史工程守则按架构、事件与类型、代码卫生、流程协作分层，防御模式横切这些层；数量与分类是历史整理，不是当前上游规范。" loading="lazy" decoding="async" width="840" height="470"></div>
-  <figcaption>图 · 保留历史约定地图作为检索入口。具体防线要落到资源所有权、失败语义与迁移兼容性；历史复盘提示风险，不替代目标版本源码证据。</figcaption>
-</figure>
     <h2>生命周期与迁移实验</h2>
     <p>生命周期实验可以从一项真实任务开始：任务未完成时卸载插件，再释放迟到的完成通知并重复卸载，观察结果流与进程状态；重新加载后，再检查一次任务是否只发布一次完成。迁移实验则固定 v1 输入与预期 v2 输出，加入未知事件，并让旧版本读取新日志。没有兼容承诺时，应明确拒绝读取，避免遗漏事件后继续运行。这两组实验分别检查资源是否真正结束，以及持久信息是否保持原有语义。</p>
   </section>

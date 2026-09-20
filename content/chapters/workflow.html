@@ -1,8 +1,8 @@
 <section class="chapter" id="ch-workflow">
     <span class="ch-kicker">工程 / 21 · 开发工作流</span>
-    <h1>变更发布：<span class="grad">从评审到停写与恢复</span></h1>
+    <h1>变更案例：<span class="grad">从评审到停写与恢复</span></h1>
     <p class="lead">候选插件在回放中修复了更多任务，上线后却开始写入新格式会话，后台还留着测试进程。回退代码无法同时恢复这些状态：旧进程可能继续写入，新数据可能不被旧版本识别，已提交的外部动作也不会随 Git 倒退。本章沿一次并行测试插件的变更，讨论评审、制品验证、发布和恢复之间的衔接。</p>
-    <div class="callout info"><span class="t">历史索引与发布案例</span>下方 DSH 命令表、文档地图与运行要求未绑定上游 commit，具体脚本以目标仓库的 package.json、锁文件与文档为准。发布协议是设计案例，未作为 DSH 部署功能实现或运行。这些 pnpm 命令也不属于本站的构建流程。</div>
+    <div class="callout info"><span class="t">本章范围</span>本章讨论变更发布的通用设计：评审维度、制品验证、状态转移与恢复路线不绑定某个产品。一个固定版本的文档与命令索引在 <a href="#/packages">第 17 章</a>保留。</div>
 
     <h2>界定变更与比较条件</h2>
     <p>设候选 <code>candidate-B</code> 为仓库修复助手加入并行测试执行，基线为 <code>base-A</code>。并行可能减少等待，也会增加进程、改变结果顺序，并引入新的持久完成事件。性能比较需要固定测试集和资源预算，并保留失败与遗漏结果，否则少跑测试也会表现为耗时下降。</p>
@@ -16,27 +16,21 @@
     <p>在 RSI 系统中，提出改进的 agent 与验收规则还需要分开。候选、评测器、任务集和批准权分别固定，候选的自评结果不能直接授予发布许可；评分器修改应作为另一项变更独立审查。固定回放上的功能与性能结果支持当前任务集内的比较，对新任务的泛化仍需另外评估。</p>
 
     <h2>从变更范围定位文档与实现</h2>
-    <p>目标版本的 <code>docs/architecture.md</code> 用于定位行为的拥有者。已有扩展点能承载的行为通常无需修改主循环；接口契约发生变化时，则需要显式修改接口和消费者。对应的 <code>docs/subsystems/&lt;name&gt;.md</code> 说明服务与事件，<code>docs/glossary.md</code> 统一术语，<code>docs/cookbook/</code> 提供实现配方，<code>docs/postmortem/</code> 记录事故。旧 Agent Note 可以解释当时的选择，现行契约仍以当前定义为准。</p>
-    <div class="grid cols3" id="docmapGrid"></div>
+    <p>目标版本的架构文档用于定位行为的拥有者。已有扩展点能承载的行为通常无需修改主循环；接口契约发生变化时，则需要显式修改接口和消费者。对应的子系统文档说明服务与事件，术语表统一词汇，配方文档提供实现模板，事故复盘记录教训。旧设计笔记可以解释当时的选择，现行契约仍以当前定义为准。</p>
+    <p>文档路由通常包括：架构总览（组合、核心包、循环、扩展点）、子系统文档（服务与事件）、术语表、实现配方与事故复盘。变更涉及哪一层，就先读哪一层的现行契约；旧笔记解释历史选择，不替代当前定义。</p>
     <p>例如，并行结果从提交序改为完成序，会影响依赖旧顺序的消费者，也可能改变持久回放。顺序契约需要在实现前确定，测试才能据此选择断言，调用方、记录和展示层也才能一起迁移。如果只按最终代码补文档，偶然的实现顺序可能被误写成规范。</p>
 
     <h2>从源码到可运行制品</h2>
-    <div class="tbl-wrap">
-      <table class="tbl">
-        <thead><tr><th>历史命令</th><th>历史用途，目标版本需复核</th><th>类别</th></tr></thead>
-        <tbody id="cmdTable"></tbody>
-      </table>
-    </div>
-    <p>安装和 typecheck 分别检查依赖环境与静态契约；包内测试检查局部行为，真实 profile 检查装配，快照对照固定轨迹。build 产出的制品还需要通过实际入口启动：tsconfig paths 指向 src 时，测试通过也可能掩盖 lib 导出错误。安装脚本本身会执行代码，因此锁文件与安装行为审查应先于受控环境中的安装。</p>
-    <div class="codeblock"><div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> DSH 历史命令示意：仅在核对后的目标 DSH 仓库运行</div><pre data-lang="bash">pnpm install
-pnpm run typecheck
-pnpm run test
-pnpm run test:snapshot
-pnpm run test:e2e
-pnpm run build
-pnpm run hygiene
-pnpm run doc-sync</pre></div>
-    <p>历史表中的 test:e2e 包含需密钥场景，缺密钥造成的跳过与通过需要分别记录。test:snapshot:record 会重录预期，失败原因未经分析就录制，可能覆盖真正的回归。clean 会移除构建产物，录制与真实 API 运行还可能产生费用或外部副作用，因此这组命令不能作为无条件批处理。完整质量、覆盖率和文档门禁以目标版本 CI 为准。</p>
+    <p>安装和类型检查分别检查依赖环境与静态契约；包内测试检查局部行为，真实组合检查装配，快照对照固定轨迹。构建产出的制品还需要通过实际入口启动：类型路径指向源码时，测试通过也可能掩盖产物导出错误。安装脚本本身会执行代码，因此锁文件与安装行为审查应先于受控环境中的安装。</p>
+    <div class="codeblock"><div class="cb-head"><span class="dots-3"><i></i><i></i><i></i></span> 典型验证阶段：顺序与跳过条件按目标版本确定</div><pre data-lang="bash">install        # 锁定依赖，记录 lockfile 摘要
+typecheck      # 静态契约
+test           # 包内单元测试
+test:snapshot  # 固定轨迹回放
+test:e2e       # 真实组合（可能需密钥，跳过≠通过）
+build          # 产物
+hygiene        # 结构门禁
+doc-sync       # 文档一致性</pre></div>
+    <p>需要密钥的测试场景因缺少密钥而跳过时，应与通过分别记录。快照录制会重录预期，失败原因未经分析就录制，可能覆盖真正的回归。clean 会移除构建产物，录制与真实 API 运行还可能产生费用或外部副作用，因此这组命令不能作为无条件批处理。完整质量、覆盖率和文档门禁以目标版本 CI 为准。</p>
 
     <h2>发布的状态转移</h2>
     <p>candidate-B 的发布设计需要同时描述正常推进和停止路径。制品摘要、配置、profile、数据格式与评测记录共同标识一个发布；仅有源代码 commit 无法唯一确定运行行为，配置或模型服务变化也可能改变结果。</p>

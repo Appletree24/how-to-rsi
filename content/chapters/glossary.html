@@ -1,13 +1,13 @@
 <section class="chapter" id="ch-glossary">
     <span class="ch-kicker">参考 / 22 · 术语表</span>
     <h1>术语表：定义、运行边界与评测口径</h1>
-    <p class="lead">Agent 的运行涉及多个层级：step 与 turn 描述执行过程，outcome 描述任务结果，grader 决定结果是否满足任务契约。它们的边界不同，不能用一个层级的成功替代另一个。本表的 DSH 词条依据上游 <code>docs/glossary.md</code> 的版本快照；框架外概念与项目操作定义分别标注来源，适用范围随来源而定。</p>
+    <p class="lead">Agent 的运行涉及多个层级：step 与 turn 描述执行过程，outcome 描述任务结果，grader 决定结果是否满足任务契约。它们的边界不同，不能用一个层级的成功替代另一个。本表的词条按运行骨架、配置堆叠、时间单位与评测口径四条主线组织；框架外概念与项目操作定义分别标注来源，适用范围随来源而定。</p>
 <figure class="fig">
   <div class="fig-scroll" tabindex="0" role="region" aria-label="图：术语依赖主线，可横向滚动"><img src="assets/figures/fig-glossary-deps.svg" alt="45 条术语按定义中的引用关系排成四条主线：运行骨架 seam 挂到 scope 再到 scope key 与限制；配置堆叠 profile 叠 bundle 再被 patch 覆盖；时间单位 step 组成 turn 再被 round 计数；评测口径从 outcome 与 transcript 之分到 grader、pass@k 与饱和毕业。箭头指向被定义引用的一方。" loading="lazy" decoding="async" width="840" height="520"></div>
   <figcaption>图 · 术语的引用关系分为运行骨架、配置堆叠、时间单位与评测口径四条主线，箭头指向定义依赖的概念。</figcaption>
 </figure>
     <h2>step、turn 与 outcome：过程单位和外部结果</h2>
-    <p>设一次用户输入已经准入：模型先要求搜索，再要求读取手册，最后提交建议。按照本表的 DSH 用语，每次模型请求及其引发的工具执行构成一个 step；这次输入排空构成一个 turn，而不是“每调一次工具就是一个 turn”。外层策略是否把它计为 round，由那个策略定义，不能直接拿会话 turn 数代替。</p>
+    <p>设一次用户输入已经准入：模型先要求搜索，再要求读取手册，最后提交建议。每次模型请求及其引发的工具执行构成一个 step；这次输入排空构成一个 turn，而不是"每调一次工具就是一个 turn"。外层策略是否把它计为 round，由那个策略定义，不能直接拿会话 turn 数代替。</p>
     <p>搜索工具返回成功，只说明对应调用按协议结束。若最终建议依据旧版手册，任务仍可能失败。对于数据库修改任务，模型提交“完成”文本之后，还需要查询数据库的最终状态。<strong>transcript 记录过程中的动作与观察，outcome 表示外部结果，grader 按任务契约判断是否通过。</strong>安全约束还可能要求检查过程：即使最终状态正确，途中越权读取或外传数据也会导致任务不满足约束。</p>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>词汇边界</th><th>对应观测</th><th>常见混淆</th></tr></thead><tbody>
       <tr><td>工具调用 / 运行终态</td><td>请求 ID、状态转换、真实返回值或异常；异步工具还需等待终态。</td><td>把 accepted / starting 当作激活成功。</td></tr>
@@ -18,7 +18,7 @@
     <p>最后两行采用本项目实验与平台的操作定义。具体字段与状态转换见 <a href="#/capstone-agent">P2 的运行终态</a>、<a href="#/capstone-platform">P5 的重试身份</a>和<a href="#/eval">评测口径</a>。</p>
 
     <h2>seam 与 scope：能力组合和可见范围</h2>
-    <p>DSH 的 seam 指完整可替换能力：Service Definition 约定键与词汇类型，Provider 实现能力，Consumer 使用它。以 shell 为例，替换 Provider 可以改变执行位置；实际隔离程度则取决于挂载的 Provider、工作目录、网络与凭据暴露。接口可替换性与执行隔离是两个独立属性。</p>
+    <p>seam 指完整可替换能力：Service Definition 约定接口与词汇类型，Provider 实现能力，Consumer 使用它。以 shell 为例，替换 Provider 可以改变执行位置；实际隔离程度则取决于挂载的 Provider、工作目录、网络与凭据暴露。接口可替换性与执行隔离是两个独立属性。</p>
     <p>scope 描述贡献对哪个 agent 可见，scope key 是不透明身份；它既非文件系统沙箱，也不按名字形成权限继承树。假如子 agent 看不到某个工具，却能通过共享服务读到敏感文件，贡献可见性仍未阻止能力泄漏。能力组合详见<a href="#/tools">工具与能力接缝</a>，访问与执行限制详见<a href="#/safety">安全与护栏</a>。</p>
 
     <h2>多次尝试中的求解率与重复可靠性</h2>
