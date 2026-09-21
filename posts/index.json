@@ -1,0 +1,16 @@
+{
+  "modules": [
+    {
+      "id": "rsi",
+      "name": "RSI · 递归自我改进",
+      "desc": "通向所谓 RSI 的道路上，我们还差什么？",
+      "steps": [
+        {
+          "slug": "what-is-an-agent",
+          "title": "一个 Agent 到底在做什么",
+          "blurb": "模型只选动作，剩下的全是 Harness 的事。"
+        }
+      ]
+    }
+  ]
+}

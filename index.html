@@ -3,26 +3,157 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>How to RSI</title>
-<meta name="description" content="关于 Agent、Harness 与递归自我改进的一份研究笔记。">
+<title>Field Notes on AI</title>
+<meta name="description" content="AI 相关的笔记：机制、评测、实验和想法。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Space+Grotesk:wght@500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
+<div id="progress"></div>
 <header class="site-head">
-  <a class="brand" href="./">How to RSI</a>
-  <span class="brand-sub">递归自我改进笔记</span>
+  <a class="brand" href="#/">Field Notes on AI</a>
+  <span class="brand-sub">FIELD NOTES</span>
 </header>
 
 <main class="page">
-  <article id="content"></article>
+  <article id="content"><p>加载中…</p></article>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/marked@14/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
-<script src="app.js"></script>
+<script src="vendor/marked.min.js"></script>
+<script src="vendor/purify.min.js"></script>
+<script>
+(function () {
+  var content = document.getElementById('content');
+  var manifest = null;
+  var progress = document.getElementById('progress');
+
+  function barStart() {
+    progress.classList.remove('done');
+    progress.classList.add('run');
+  }
+  function barDone() {
+    progress.classList.remove('run');
+    progress.classList.add('done');
+    setTimeout(function () { progress.classList.remove('done'); }, 450);
+  }
+
+  function fetchText(path) {
+    barStart();
+    return fetch(path, { cache: 'no-cache' }).then(function (res) {
+      if (!res.ok) throw new Error(path + ' → ' + res.status);
+      return res.text();
+    }).finally(barDone);
+  }
+
+  function setContent(html) {
+    content.innerHTML = html;
+    var blocks = content.querySelectorAll('p, h1, h2, h3, ul, ol, pre, table, blockquote, .mod-card, .step-item, .step-nav, .mod-head, .crumb');
+    blocks.forEach(function (el, i) {
+      el.classList.add('rise');
+      el.style.animationDelay = Math.min(i * 45, 500) + 'ms';
+    });
+  }
+
+  function renderMd(text) {
+    return DOMPurify.sanitize(marked.parse(text));
+  }
+
+  function getManifest() {
+    if (manifest) return Promise.resolve(manifest);
+    return fetchText('posts/index.json').then(function (t) {
+      manifest = JSON.parse(t);
+      return manifest;
+    });
+  }
+
+  function moduleCards(modules) {
+    var items = modules.map(function (m) {
+      var n = (m.steps || []).length;
+      var count = n ? n + ' 节' : '准备中';
+      return '<a class="mod-card" href="#/' + m.id + '">' +
+        '<span class="mod-name">' + m.name + '</span>' +
+        '<span class="mod-desc">' + m.desc + '</span>' +
+        '<span class="mod-count">' + count + '</span>' +
+      '</a>';
+    }).join('');
+    return '<div class="mod-list">' + items + '</div>';
+  }
+
+  function stepNav(mod, idx) {
+    var out = '<nav class="step-nav">';
+    if (idx > 0) {
+      var prev = mod.steps[idx - 1];
+      out += '<a class="step-link prev" href="#/' + mod.id + '/' + prev.slug + '">← ' + prev.title + '</a>';
+    } else {
+      out += '<span></span>';
+    }
+    if (idx < mod.steps.length - 1) {
+      var next = mod.steps[idx + 1];
+      out += '<a class="step-link next" href="#/' + mod.id + '/' + next.slug + '">' + next.title + ' →</a>';
+    } else {
+      out += '<span></span>';
+    }
+    return out + '</nav>';
+  }
+
+  function toc(mod, current) {
+    var items = mod.steps.map(function (s, i) {
+      var cls = s.slug === current ? 'step-item on' : 'step-item';
+      return '<a class="' + cls + '" href="#/' + mod.id + '/' + s.slug + '">' +
+        '<span class="step-num">' + (i + 1) + '</span>' +
+        '<span class="step-name">' + s.title + '</span>' +
+      '</a>';
+    }).join('');
+    return '<div class="step-toc">' + items + '</div>';
+  }
+
+  function render() {
+    var path = (location.hash || '#/').replace(/^#\/?/, '').replace(/\/+$/, '');
+    var parts = path.split('/');
+    var modId = parts[0], slug = parts[1];
+
+    getManifest().then(function (data) {
+      if (!modId) {
+        fetchText('posts/home.md').then(function (md) {
+          setContent(renderMd(md) + '<h2 class="mod-head">版块</h2>' + moduleCards(data.modules));
+          document.title = 'Field Notes on AI';
+        });
+        return;
+      }
+      var mod = null;
+      for (var i = 0; i < data.modules.length; i++) {
+        if (data.modules[i].id === modId) { mod = data.modules[i]; break; }
+      }
+      if (!mod) throw new Error('no module');
+      if (!slug) {
+        fetchText('posts/' + mod.id + '/index.md').then(function (md) {
+          setContent('<p class="crumb"><a href="#/">← Field Notes on AI</a></p>' + renderMd(md) + toc(mod, null));
+          document.title = mod.name + ' · Field Notes on AI';
+        });
+        return;
+      }
+      var idx = -1;
+      for (var i = 0; i < mod.steps.length; i++) {
+        if (mod.steps[i].slug === slug) { idx = i; break; }
+      }
+      if (idx < 0) throw new Error('no step');
+      fetchText('posts/' + mod.id + '/' + slug + '.md').then(function (md) {
+        var head = '<p class="crumb"><a href="#/' + mod.id + '">← ' + mod.name + '</a></p>' +
+          '<p class="step-kicker">第 ' + (idx + 1) + ' 节 · 共 ' + mod.steps.length + ' 节</p>';
+        setContent(head + renderMd(md) + stepNav(mod, idx));
+        document.title = mod.steps[idx].title + ' · Field Notes on AI';
+      });
+    }).catch(function () {
+      setContent('<p>没有这个页面。<a href="#/">回到首页</a></p>');
+    });
+    window.scrollTo(0, 0);
+  }
+
+  window.addEventListener('hashchange', render);
+  render();
+})();
+</script>
 </body>
 </html>
