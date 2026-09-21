@@ -1,0 +1,139 @@
+/* How to RSI — Jev-inspired: warm paper, ink borders, Grotesk display, Mono labels */
+
+:root {
+  --canvas: #f8f8f2;
+  --surface: #ffffff;
+  --ink: #171717;
+  --ink-soft: rgba(23, 23, 23, 0.62);
+  --ink-faint: rgba(23, 23, 23, 0.42);
+  --divider: rgba(23, 23, 23, 0.10);
+  --divider-strong: #171717;
+  --acc: #394a66;
+  --code-bg: #f3f3ed;
+  --sans: "Inter", -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+          "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+  --disp: "Space Grotesk", var(--sans);
+  --mono: "Space Mono", ui-monospace, "SF Mono", "Cascadia Code", Consolas,
+          "Sarasa Mono SC", monospace;
+  --measure: 42rem;
+}
+
+[data-theme="dark"] {
+  --canvas: #000;
+  --surface: #1d1d1d;
+  --ink: #f8f8f2;
+  --ink-soft: rgba(248, 248, 242, 0.62);
+  --ink-faint: rgba(248, 248, 242, 0.42);
+  --divider: rgba(255, 255, 255, 0.12);
+  --divider-strong: #f8f8f2;
+  --acc: #7aa2f7;
+  --code-bg: #1d1d1d;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  background: var(--canvas);
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--ink); color: var(--canvas); }
+
+a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+a:hover { color: var(--acc); }
+
+code {
+  font-family: var(--mono); font-size: 0.82em;
+  background: var(--code-bg); border-radius: 3px; padding: 0.08em 0.4em;
+}
+
+/* ---------- header ---------- */
+.site-head {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 clamp(20px, 6vw, 72px);
+  height: 60px;
+  background: var(--canvas);
+  border-bottom: 1px solid var(--divider);
+}
+.brand {
+  font-family: var(--disp); font-weight: 700; font-size: 1.02rem;
+  letter-spacing: -0.02em; color: var(--ink); text-decoration: none;
+}
+.brand:hover { color: var(--acc); }
+.brand-sub {
+  font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+
+/* ---------- page ---------- */
+.page {
+  padding: 64px clamp(20px, 6vw, 72px) 96px;
+  max-width: calc(var(--measure) + 2 * clamp(20px, 6vw, 72px));
+}
+
+/* Markdown output */
+h1, h2, h3 {
+  font-family: var(--disp);
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+h1 {
+  font-size: clamp(2.4rem, 5vw, 3.4rem); line-height: 1.06;
+  margin: 0 0 18px; font-weight: 700;
+}
+h2 {
+  font-size: 1.5rem; font-weight: 700;
+  margin: 56px 0 14px;
+}
+h3 { font-size: 1.12rem; margin: 30px 0 8px; font-weight: 500; }
+
+p { margin: 12px 0; max-width: var(--measure); }
+.lede, .page > article > p:first-of-type {
+  font-size: 1.08rem; color: var(--ink-soft);
+}
+ul, ol { padding-left: 1.4em; max-width: var(--measure); }
+li { margin: 6px 0; }
+li::marker { color: var(--ink-faint); }
+strong { font-weight: 600; }
+
+hr { border: 0; height: 1px; background: var(--divider); margin: 48px 0; }
+
+blockquote {
+  margin: 18px 0; padding: 2px 0 2px 16px;
+  border-left: 2px solid var(--divider-strong);
+  color: var(--ink-soft);
+}
+blockquote p { margin: 4px 0; }
+
+pre {
+  background: var(--surface); border: 1px solid var(--divider);
+  border-radius: 6px; padding: 16px 18px; margin: 16px 0;
+  max-width: var(--measure); overflow-x: auto;
+}
+pre code { background: none; padding: 0; font-size: 0.85rem; line-height: 1.7; }
+
+table {
+  border-collapse: collapse; width: 100%; margin: 20px 0;
+  font-size: 0.88rem;
+}
+th, td { padding: 10px 16px 10px 0; border-bottom: 1px solid var(--divider); text-align: left; vertical-align: top; }
+th {
+  font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em;
+  text-transform: uppercase; font-weight: 700;
+  border-bottom: 1.5px solid var(--ink);
+}
+tbody tr:hover { background: var(--surface); }
+
+/* footer */
+.foot {
+  margin-top: 72px; padding-top: 20px;
+  border-top: 1px solid var(--divider);
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
